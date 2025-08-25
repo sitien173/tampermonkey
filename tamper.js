@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         AutoComplete
-// @version      1.1.7
+// @version      1.1.8
 // @description  dummy data and fill
 // @author       https://github.com/sitien173
 // @match        *://*/eidv/personMatch*
@@ -705,7 +705,7 @@
   async function fetchDummyData(fields, countrySelection) {
     const rules = GM_getValue(
       `autocompleted-countrySelectionRules_${countrySelection}`,
-      ''
+      '{}'
     );
 
     const cached_value = GM_getValue(`autocompleted_${countrySelection}_${fields.join(',')}_${rules}`);
@@ -718,11 +718,10 @@
       fields: fields.join(','),
       rule: rules || '',
     };
-    console.log(payload);
     const res = await postJson(`${BACKEND_ENDPOINT}/api/dummy-data`, payload);
     const json = JSON.parse(res.responseText);
     if (!json.success) throw new Error(json.message || 'Error fetching dummy data');
-    GM_setValue(`autocompleted_${countrySelection}_${fields.join(',')}`, res.responseText)
+    GM_setValue(`autocompleted_${countrySelection}_${fields.join(',')}_${rules}`, res.responseText)
     return json.result; // server returns key=value lines
   }
 
