@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         DebugButton
-// @version      1.0.2
+// @version      1.0.3
 // @description  add debug button to navigate to adminportal
 // @author       https://github.com/sitien173
 // @match        *://*/eidv/personMatch*
@@ -9,6 +9,7 @@
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_deleteValue
+// @run-at       document-idle
 // @downloadURL https://update.greasyfork.org/scripts/547242/DebugButton.user.js
 // @updateURL https://update.greasyfork.org/scripts/547242/DebugButton.meta.js
 // ==/UserScript==
@@ -16,8 +17,6 @@
 /* global GM_getValue, GM_setValue */
 
 (function() {
-    'use strict';
-
     function fetchDebugAddress() {
         try {
             const stored = GM_getValue('debugAddress', null);
@@ -162,16 +161,11 @@
         floating.type = 'button';
         floating.textContent = '⚙️';
         floating.title = 'Settings (Ctrl+Shift+Q)';
-        floating.style.position = 'fixed';
-        floating.style.right = '12px';
-        floating.style.bottom = '12px';
         floating.style.zIndex = '100000';
         floating.style.width = '36px';
         floating.style.height = '36px';
-        floating.style.borderRadius = '18px';
-        floating.style.background = '#ffffff';
-        floating.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
         floating.style.cursor = 'pointer';
+        floating.style.border = 'none';
         floating.addEventListener('click', function() { openSettingsOverlay(); });
 
         return floating;
@@ -230,38 +224,38 @@
             }
         }
     }
-    window.addEventListener('load', () => {
-        insertMainButtons();
 
-        const target = document.getElementsByClassName('transaction-page')[0];
-        if (target) {
-            const observer = new MutationObserver(function() {
-                const resultsTable = document.querySelector('#content > div > div.section.search-results > table');
-                if (resultsTable) {
-                    for (const row of resultsTable.rows) {
-                        if (row.rowIndex === 0) {
-                            continue;
-                        }
-                        // Avoid adding multiple buttons
-                        const alreadyHas = row.querySelector('.btn.btn-primary.__auto_debug_btn');
-                        if (alreadyHas) {
-                            continue;
-                        }
-                        const button = document.createElement('button');
-                        button.type = 'button';
-                        button.className = 'btn btn-primary __auto_debug_btn';
-                        button.textContent = 'Debug';
-                        button.addEventListener('click', function(event) {
-                            const transactionRecordID = row.cells[4]?.firstChild?.textContent;
-                            goToDebug(transactionRecordID, event.ctrlKey);
-                        });
-                        if (row.cells[4]) {
-                            row.cells[4].insertAdjacentElement('beforeend', button);
-                        }
-                    }
+    insertMainButtons();
+
+    const target = document.getElementsByClassName('transaction-page')[0];
+    if (!target) {
+        return;
+    }
+    const observer = new MutationObserver(function() {
+        const resultsTable = document.querySelector('#content > div > div.section.search-results > table');
+        if (resultsTable) {
+            for (const row of resultsTable.rows) {
+                if (row.rowIndex === 0) {
+                    continue;
                 }
-            });
-            observer.observe(target, { childList: true, subtree: true });
+                // Avoid adding multiple buttons
+                const alreadyHas = row.querySelector('.btn.btn-primary.__auto_debug_btn');
+                if (alreadyHas) {
+                    continue;
+                }
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'btn btn-primary __auto_debug_btn';
+                button.textContent = 'Debug';
+                button.addEventListener('click', function(event) {
+                    const transactionRecordID = row.cells[4]?.firstChild?.textContent;
+                    goToDebug(transactionRecordID, event.ctrlKey);
+                });
+                if (row.cells[4]) {
+                    row.cells[4].insertAdjacentElement('beforeend', button);
+                }
+            }
         }
     });
+    observer.observe(target, { childList: true, subtree: true });
 })();
