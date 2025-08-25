@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         AutoComplete
-// @version      1.0.8
+// @version      1.0.9
 // @description  dummy data and fill
 // @author       https://github.com/sitien173
 // @match        *://*/eidv/personMatch*
@@ -998,8 +998,10 @@
   }
 
   function openRuleModal() {
+    detectContext();
     createModal();
     populateFieldSelect();
+    loadExistingRule();
   }
 
   // UI trigger
