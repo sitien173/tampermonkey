@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         AutoComplete
-// @version      1.1.0
+// @version      1.1.1
 // @description  dummy data and fill
 // @author       https://github.com/sitien173
 // @match        *://*/eidv/personMatch*
@@ -307,42 +307,51 @@
   function populateFieldSelect() {
     const fieldSelect = document.getElementById('rule-field-select');
     if (!fieldSelect) return;
-
-    fieldSelect.innerHTML = '<option value="">Select a field...</option>';
-    
+  
+    // Clear and repopulate
+    fieldSelect.innerHTML = '';
     const fields = getFormFields();
-    fields.forEach(field => {
+    fields.forEach((field) => {
       const option = document.createElement('option');
       option.value = field;
       option.textContent = field;
       fieldSelect.appendChild(option);
-    });    
+    });
+  
+    // Ensure change listener is set
+    fieldSelect.onchange = () => loadExistingRule();
+  
+    // Select first field and load rule
+    if (fields.length > 0) {
+      fieldSelect.value = fields[0];
+      loadExistingRule();
+    } else {
+      const ruleTextarea = document.getElementById('rule-textarea');
+      if (ruleTextarea) ruleTextarea.value = '';
+    }
   }
 
   function loadExistingRule() {
     const fieldSelect = document.getElementById('rule-field-select');
     const ruleTextarea = document.getElementById('rule-textarea');
-    
     if (!fieldSelect || !ruleTextarea) return;
-    
+  
     const selectedField = fieldSelect.value;
     if (!selectedField) {
       ruleTextarea.value = '';
       return;
     }
-
-    // Get existing rules for current country
-    const rulesString = GM_getValue(
+  
+    // Robust read of rules per current country
+    let rulesString = GM_getValue(
       `autocompleted-countrySelectionRules_${countrySelection}`,
       '{}'
     );
-    const rules = JSON.parse(rulesString);
-
-    if (rules[selectedField] && rules[selectedField]) {
-      ruleTextarea.value = rules[selectedField];
-    } else {
-      ruleTextarea.value = '';
-    }
+    if (!rulesString || typeof rulesString !== 'string') rulesString = '{}';
+    let rules = {};
+    try { rules = JSON.parse(rulesString); } catch { rules = {}; }
+  
+    ruleTextarea.value = rules[selectedField] ?? '';
   }
 
   function saveRule() {
