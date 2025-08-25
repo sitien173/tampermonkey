@@ -2,13 +2,16 @@
 // @name         AutoComplete
 // @version      1.0.4
 // @description  dummy data and fill
-// @author       You
+// @author       https://github.com/sitien173
 // @match        *://*/eidv/personMatch*
 // @match        *://*/verification*
 // @grant        GM_xmlhttpRequest
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @connect      auto-completed.sitienbmt.workers.dev
+// @namespace https://trulioo.com/
+// @downloadURL https://update.greasyfork.org/scripts/546750/AutoComplete.user.js
+// @updateURL https://update.greasyfork.org/scripts/546750/AutoComplete.meta.js
 // ==/UserScript==
 
 (function () {
