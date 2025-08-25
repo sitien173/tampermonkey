@@ -456,7 +456,6 @@
     };
     const res = await postJson(`${BACKEND_ENDPOINT}/api/dummy-data`, payload);
     const json = JSON.parse(res.responseText);
-    if (!json.success) throw new Error(json.message || 'Error fetching data');
     return json.result; // server returns key=value lines
   }
 
