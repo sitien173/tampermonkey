@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         AutoComplete
-// @version      1.1.6
+// @version      1.1.7
 // @description  dummy data and fill
 // @author       https://github.com/sitien173
 // @match        *://*/eidv/personMatch*
@@ -218,16 +218,23 @@
     fieldSelect.innerHTML = '<option value="">Select a field...</option>';
     fieldSelect.value = '';
 
+    detectContext();
+    const defaultRules = {};
+    const rulesString = GM_getValue(`autocompleted-countrySelectionRules_${countrySelection}`, '{}');
+    const rules = JSON.parse(rulesString);
     const fields = getFormFields();
     fields.forEach(field => {
       const option = document.createElement('option');
       option.value = field;
       option.textContent = field;
       fieldSelect.appendChild(option);
+
+      defaultRules[field] = rules[field] || '';
     });
+
+    GM_setValue(`autocompleted-countrySelectionRules_${countrySelection}_temp`, JSON.stringify(defaultRules));
     
     fieldSelect.addEventListener('change', () => {
-      detectContext();
       loadExistingRule();
     });
 
@@ -263,7 +270,7 @@
 
       const rulesString = GM_getValue(
         `autocompleted-countrySelectionRules_${countrySelection}_temp`,
-        `autocompleted-countrySelectionRules_${countrySelection}` || '{}'
+        '{}'
       );
       const rules = JSON.parse(rulesString);
 
@@ -351,9 +358,8 @@
     // Get existing rules for current country
     const rulesString = GM_getValue(
       `autocompleted-countrySelectionRules_${countrySelection}_temp`,
-      `autocompleted-countrySelectionRules_${countrySelection}` || '{}'
+      '{}'
     );
-    console.log(rulesString);
     const rules = JSON.parse(rulesString);
 
     if (rules[selectedField]) {
