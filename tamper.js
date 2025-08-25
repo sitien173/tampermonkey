@@ -294,6 +294,7 @@
       font-size: 14px;
     `;
     cancelBtn.addEventListener('click', () => {
+      GM_deleteValue(`autocompleted-countrySelectionRules_${countrySelection}_temp`);
       closeModal();
     });
 
@@ -861,7 +862,7 @@
   function addCreateRuleButton() {
     const btn = document.createElement('button');
     btn.id = 'autocompleted-button-create-rule';
-    btn.textContent = 'Create Rule';
+    btn.textContent = 'Configure Rule';
     btn.style.cssText = `
       position: fixed;
       z-index: 999999;
