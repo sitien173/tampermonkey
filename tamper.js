@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         AutoComplete
-// @version      1.0.2
+// @version      1.0.3
 // @description  dummy data and fill
 // @author       You
 // @match        *://*/eidv/personMatch*
@@ -443,7 +443,10 @@
   }
 
   async function fetchDummyData(fields, countrySelection) {
-    // Optional: country-specific rules from TM storage (if you store them)
+    const cached_value = GM_getValue(`autocompleted_${countrySelection}_${fields.join(',')}`);
+    if (cached_value){
+      return JSON.parse(cached_value).result;
+    }
     const rules = GM_getValue(
       `autocompleted-countrySelectionRules_${countrySelection}`,
       ''
@@ -455,6 +458,7 @@
     };
     const res = await postJson(`${BACKEND_ENDPOINT}/api/dummy-data`, payload);
     const json = JSON.parse(res.responseText);
+    GM_setValue(`autocompleted_${countrySelection}_${fields.join(',')}`, res.responseText)
     return json.result; // server returns key=value lines
   }
 
