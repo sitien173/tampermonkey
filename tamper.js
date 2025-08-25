@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         AutoComplete
-// @version      1.0.4
+// @version      1.0.5
 // @description  dummy data and fill
 // @author       https://github.com/sitien173
 // @match        *://*/eidv/personMatch*
@@ -26,7 +26,6 @@
   let isVerification = false;
   let isKyb = false;
   let isSearchFieldExisting = false;
-  let customRulesEnabled = true; // You can make this configurable
 
   // Helpers (ported)
   const dobMonthOpts = [
@@ -116,123 +115,254 @@
     );
   }
 
-  // Rule management functions
-  function createRuleButton(labelElement, rules, key, addToParent = true) {
-    const ruleBtn = document.createElement('button');
-    ruleBtn.textContent = rules.has(key) ? 'Edit Rule' : 'Add Rule';
-    ruleBtn.classList.add('btn', 'btn-outline-primary', 'btn-sm');
-    ruleBtn.style.cssText = `
-      margin-left: 5px;
-      padding: 4px 8px;
-      font-size: 12px;
-      border: 1px solid #007bff;
-      background: transparent;
-      color: #007bff;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: all 0.2s;
+  // Modal utilities
+  function createModal() {
+    const modal = document.createElement('div');
+    modal.id = 'autocompleted-modal';
+    modal.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(2px);
+      z-index: 2147483646;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
     `;
-    ruleBtn.addEventListener('mouseenter', () => {
-      ruleBtn.style.background = '#007bff';
-      ruleBtn.style.color = '#fff';
+
+    const modalContent = document.createElement('div');
+    modalContent.style.cssText = `
+      background: white;
+      border-radius: 8px;
+      padding: 24px;
+      min-width: 400px;
+      max-width: 500px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      border: 1px solid #e1e5e9;
+    `;
+
+    const header = document.createElement('div');
+    header.style.cssText = `
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #e1e5e9;
+    `;
+
+    const title = document.createElement('h3');
+    title.textContent = 'Create Rule';
+    title.style.cssText = `
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      color: #24292f;
+    `;
+
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '×';
+    closeBtn.style.cssText = `
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #656d76;
+      padding: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+    `;
+    closeBtn.addEventListener('mouseenter', () => {
+      closeBtn.style.background = '#f6f8fa';
     });
-    ruleBtn.addEventListener('mouseleave', () => {
-      ruleBtn.style.background = 'transparent';
-      ruleBtn.style.color = '#007bff';
+    closeBtn.addEventListener('mouseleave', () => {
+      closeBtn.style.background = 'none';
     });
-    ruleBtn.addEventListener('click', () => openRuleEditor(key, ruleBtn, rules));
-    
-    if (addToParent) {
-      labelElement.parentNode.appendChild(ruleBtn);
-    } else {
-      labelElement.appendChild(ruleBtn);
-    }
-    return ruleBtn;
+    closeBtn.addEventListener('click', () => {
+      closeModal();
+    });
+
+    header.appendChild(title);
+    header.appendChild(closeBtn);
+    modalContent.appendChild(header);
+
+    // Field selection
+    const fieldLabel = document.createElement('label');
+    fieldLabel.textContent = 'Select Field:';
+    fieldLabel.style.cssText = `
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #24292f;
+    `;
+
+    const fieldSelect = document.createElement('select');
+    fieldSelect.id = 'rule-field-select';
+    fieldSelect.style.cssText = `
+      width: 90%;
+      padding: 8px 12px;
+      border: 1px solid #d0d7de;
+      border-radius: 6px;
+      font-size: 14px;
+      margin-bottom: 16px;
+      background: white;
+    `;
+
+    // Rule input
+    const ruleLabel = document.createElement('label');
+    ruleLabel.textContent = 'Rule:';
+    ruleLabel.style.cssText = `
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #24292f;
+    `;
+
+    const ruleTextarea = document.createElement('textarea');
+    ruleTextarea.id = 'rule-textarea';
+    ruleTextarea.placeholder = 'Enter your rule here...';
+    ruleTextarea.style.cssText = `
+      width: 90%;
+      min-height: 100px;
+      padding: 8px 12px;
+      border: 1px solid #d0d7de;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+      resize: vertical;
+      margin-bottom: 20px;
+    `;
+
+    // Buttons
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.cssText = `
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    `;
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.style.cssText = `
+      padding: 8px 16px;
+      border: 1px solid #d0d7de;
+      background: white;
+      color: #24292f;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    `;
+    cancelBtn.addEventListener('click', () => {
+      closeModal();
+    });
+
+    const saveBtn = document.createElement('button');
+    saveBtn.textContent = 'Save Rule';
+    saveBtn.style.cssText = `
+      padding: 8px 16px;
+      background: #0969da;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    `;
+    saveBtn.addEventListener('click', () => {
+      saveRule();
+    });
+
+    buttonContainer.appendChild(cancelBtn);
+    buttonContainer.appendChild(saveBtn);
+
+    modalContent.appendChild(fieldLabel);
+    modalContent.appendChild(fieldSelect);
+    modalContent.appendChild(ruleLabel);
+    modalContent.appendChild(ruleTextarea);
+    modalContent.appendChild(buttonContainer);
+
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+
+    // Close on backdrop click
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        closeModal();
+      }
+    });
+
+    return modal;
   }
 
-  function openRuleEditor(key, ruleBtn, rules) {
-    const currentRule = rules.get(key) || '';
-    const ruleText = prompt(`Rule for ${key}:`, currentRule);
+  function populateFieldSelect() {
+    const fieldSelect = document.getElementById('rule-field-select');
+    if (!fieldSelect) return;
+
+    fieldSelect.innerHTML = '<option value="">Select a field...</option>';
     
-    if (ruleText === null) return; // User cancelled
+    const fields = getFormFields();
+    fields.forEach(field => {
+      const option = document.createElement('option');
+      option.value = field;
+      option.textContent = field;
+      fieldSelect.appendChild(option);
+    });
+  }
+
+  function saveRule() {
+    const fieldSelect = document.getElementById('rule-field-select');
+    const ruleTextarea = document.getElementById('rule-textarea');
     
-    if (!ruleText.trim()) {
-      // Remove rule if empty
-      ruleBtn.textContent = 'Add Rule';
-      rules.delete(key);
-      GM_setValue(
-        `autocompleted-countrySelectionRules_${countrySelection}`,
-        JSON.stringify(Object.fromEntries(rules))
-      );
+    const selectedField = fieldSelect.value;
+    const ruleText = ruleTextarea.value.trim();
+
+    if (!selectedField) {
+      alert('Please select a field.');
       return;
     }
-    
-    // Add or update rule
-    ruleBtn.textContent = 'Edit Rule';
-    rules.set(key, ruleText);
-    GM_setValue(
-      `autocompleted-countrySelectionRules_${countrySelection}`,
-      JSON.stringify(Object.fromEntries(rules))
-    );
-  }
 
-  function findFieldLabel(field) {
-    return isVerification
-      ? [...document.querySelectorAll('label, .label-picker')].find((el) =>
-          el.textContent.replace(/\s+/g, '').includes(field)
-        )
-      : document.querySelector(`label[for="${field}"]`);
-  }
+    if (!ruleText) {
+      alert('Please enter a rule.');
+      return;
+    }
 
-  function addRuleButtonsToFields(fields, rules) {
-    fields.forEach((field) => {
-      const label = findFieldLabel(field);
-      if (!label) return;
-      createRuleButton(label, rules, field);
-    });
-  }
-
-  function addRuleButtonsToFieldGroups(rules) {
-    const fieldGroups = document.querySelectorAll(
-      isKyb ? '[class^="StCategoryLabel"]' : 'svg[data-icon="chevron-up"]'
-    );
-    
-    fieldGroups.forEach((fieldGroup) => {
-      const fieldGroupLabel = isKyb
-        ? fieldGroup
-        : fieldGroup.previousSibling;
-      if (!fieldGroupLabel) return;
-      
-      const btn = createRuleButton(
-        fieldGroupLabel,
-        rules,
-        fieldGroupLabel.textContent,
-        false
-      );
-      btn.addEventListener('click', () => {
-        fieldGroupLabel.click();
-      });
-    });
-  }
-
-  async function generateRulesPerCountry() {
-    if (!customRulesEnabled) return;
-    
+    // Get existing rules for current country
     const rulesString = GM_getValue(
       `autocompleted-countrySelectionRules_${countrySelection}`,
       '{}'
     );
-    const rules = new Map(Object.entries(JSON.parse(rulesString)));
-    
-    // Wait a bit for the form to fully load
-    await new Promise((resolve) => setTimeout(resolve, 800));
-    
-    const fields = isVerification
-      ? getOldUIFields()
-      : getNewUIFields();
-    
-    addRuleButtonsToFieldGroups(rules);
-    addRuleButtonsToFields(fields, rules);
+    const rules = JSON.parse(rulesString);
+
+    // Add/update rule
+    rules[selectedField] = ruleText;
+
+    // Save back to storage
+    GM_setValue(
+      `autocompleted-countrySelectionRules_${countrySelection}`,
+      JSON.stringify(rules)
+    );
+
+    alert(`Rule saved for ${selectedField}!`);
+    closeModal();
+  }
+
+  function closeModal() {
+    const modal = document.getElementById('autocompleted-modal');
+    if (modal && modal.parentNode) {
+      modal.parentNode.removeChild(modal);
+    }
+  }
+
+  function openRuleModal() {
+    const modal = createModal();
+    populateFieldSelect();
   }
 
   // Environment detection
@@ -357,10 +487,6 @@
     }
     if (optionIndex >= 0) {
       options[optionIndex].selected = true;
-    }
-    else {
-      const randomIndex = Math.floor(Math.random() * options.length);
-      options[randomIndex].selected = true;
     }
   }
 
@@ -550,30 +676,6 @@
     });
   }
 
-  async function fetchDummyData(fields, countrySelection) {
-    const rules = GM_getValue(
-      `autocompleted-countrySelectionRules_${countrySelection}`,
-      ''
-    );
-    const cached_value = GM_getValue(`autocompleted_${countrySelection}_${fields.join(',')}_${rules}`);
-    if (cached_value){
-      return JSON.parse(cached_value).result;
-    }
-
-    const payload = {
-      country: countrySelection,
-      fields: fields.join(','),
-      rule: rules || '',
-    };
-    const res = await postJson(`${BACKEND_ENDPOINT}/api/dummy-data`, payload);
-    const json = JSON.parse(res.responseText);
-    if (json.success){
-      GM_setValue(`autocompleted_${countrySelection}_${fields.join(',')}_${rules}`, res.responseText)
-      return json.result; // server returns key=value lines
-    }
-    return '';
-  }
-
   async function fetchExtractedDataFromClipboard(fields) {
     const clipboardText = await navigator.clipboard.readText();
     if (!clipboardText || !clipboardText.trim()) {
@@ -589,6 +691,29 @@
     return json.result; // expected key=value lines
   }
 
+  async function fetchDummyData(fields, countrySelection) {
+    const rules = GM_getValue(
+      `autocompleted-countrySelectionRules_${countrySelection}`,
+      ''
+    );
+
+    const cached_value = GM_getValue(`autocompleted_${countrySelection}_${fields.join(',')}_${rules}`);
+    if (cached_value){
+      return JSON.parse(cached_value).result;
+    }
+
+    const payload = {
+      country: countrySelection,
+      fields: fields.join(','),
+      rule: rules || '',
+    };
+    const res = await postJson(`${BACKEND_ENDPOINT}/api/dummy-data`, payload);
+    const json = JSON.parse(res.responseText);
+    if (!json.success) throw new Error(json.message || 'Error fetching dummy data');
+    GM_setValue(`autocompleted_${countrySelection}_${fields.join(',')}`, res.responseText)
+    return json.result; // server returns key=value lines
+  }
+
   // Wait for fields to be available
   async function waitForFields(timeoutMs = 5000) {
     const start = Date.now();
@@ -600,9 +725,257 @@
     return getFormFields();
   }
 
+  // Modal utilities
+  function createModal() {
+    const modal = document.createElement('div');
+    modal.id = 'autocompleted-modal';
+    modal.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(2px);
+      z-index: 2147483646;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    `;
+
+    const modalContent = document.createElement('div');
+    modalContent.style.cssText = `
+      background: white;
+      border-radius: 8px;
+      padding: 24px;
+      min-width: 400px;
+      max-width: 500px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      border: 1px solid #e1e5e9;
+    `;
+
+    const header = document.createElement('div');
+    header.style.cssText = `
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #e1e5e9;
+    `;
+
+    const title = document.createElement('h3');
+    title.textContent = 'Create Rule';
+    title.style.cssText = `
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      color: #24292f;
+    `;
+
+    const closeBtn = document.createElement('button');
+    closeBtn.textContent = '×';
+    closeBtn.style.cssText = `
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #656d76;
+      padding: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+    `;
+    closeBtn.addEventListener('mouseenter', () => {
+      closeBtn.style.background = '#f6f8fa';
+    });
+    closeBtn.addEventListener('mouseleave', () => {
+      closeBtn.style.background = 'none';
+    });
+    closeBtn.addEventListener('click', () => {
+      closeModal();
+    });
+
+    header.appendChild(title);
+    header.appendChild(closeBtn);
+    modalContent.appendChild(header);
+
+    // Field selection
+    const fieldLabel = document.createElement('label');
+    fieldLabel.textContent = 'Select Field:';
+    fieldLabel.style.cssText = `
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #24292f;
+    `;
+
+    const fieldSelect = document.createElement('select');
+    fieldSelect.id = 'rule-field-select';
+    fieldSelect.style.cssText = `
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #d0d7de;
+      border-radius: 6px;
+      font-size: 14px;
+      margin-bottom: 16px;
+      background: white;
+    `;
+
+    // Rule input
+    const ruleLabel = document.createElement('label');
+    ruleLabel.textContent = 'Rule:';
+    ruleLabel.style.cssText = `
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #24292f;
+    `;
+
+    const ruleTextarea = document.createElement('textarea');
+    ruleTextarea.id = 'rule-textarea';
+    ruleTextarea.placeholder = 'Enter your rule here...';
+    ruleTextarea.style.cssText = `
+      width: 100%;
+      min-height: 100px;
+      padding: 8px 12px;
+      border: 1px solid #d0d7de;
+      border-radius: 6px;
+      font-size: 14px;
+      font-family: inherit;
+      resize: vertical;
+      margin-bottom: 20px;
+    `;
+
+    // Buttons
+    const buttonContainer = document.createElement('div');
+    buttonContainer.style.cssText = `
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    `;
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.textContent = 'Cancel';
+    cancelBtn.style.cssText = `
+      padding: 8px 16px;
+      border: 1px solid #d0d7de;
+      background: white;
+      color: #24292f;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    `;
+    cancelBtn.addEventListener('click', () => {
+      closeModal();
+    });
+
+    const saveBtn = document.createElement('button');
+    saveBtn.textContent = 'Save Rule';
+    saveBtn.style.cssText = `
+      padding: 8px 16px;
+      background: #0969da;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    `;
+    saveBtn.addEventListener('click', () => {
+      saveRule();
+    });
+
+    buttonContainer.appendChild(cancelBtn);
+    buttonContainer.appendChild(saveBtn);
+
+    modalContent.appendChild(fieldLabel);
+    modalContent.appendChild(fieldSelect);
+    modalContent.appendChild(ruleLabel);
+    modalContent.appendChild(ruleTextarea);
+    modalContent.appendChild(buttonContainer);
+
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+
+    // Close on backdrop click
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) {
+        closeModal();
+      }
+    });
+
+    return modal;
+  }
+
+  function populateFieldSelect() {
+    const fieldSelect = document.getElementById('rule-field-select');
+    if (!fieldSelect) return;
+    
+    const fields = getFormFields();
+    fields.forEach(field => {
+      const option = document.createElement('option');
+      option.value = field;
+      option.textContent = field;
+      fieldSelect.appendChild(option);
+    });
+  }
+
+  function saveRule() {
+    const fieldSelect = document.getElementById('rule-field-select');
+    const ruleTextarea = document.getElementById('rule-textarea');
+    
+    const selectedField = fieldSelect.value;
+    const ruleText = ruleTextarea.value.trim();
+
+    if (!selectedField) {
+      alert('Please select a field.');
+      return;
+    }
+
+    if (!ruleText) {
+      alert('Please enter a rule.');
+      return;
+    }
+
+    // Get existing rules for current country
+    const rulesString = GM_getValue(
+      `autocompleted-countrySelectionRules_${countrySelection}`,
+      '{}'
+    );
+    const rules = JSON.parse(rulesString);
+
+    // Add/update rule
+    rules[selectedField] = ruleText;
+
+    // Save back to storage
+    GM_setValue(
+      `autocompleted-countrySelectionRules_${countrySelection}`,
+      JSON.stringify(rules)
+    );
+
+    closeModal();
+  }
+
+  function closeModal() {
+    const modal = document.getElementById('autocompleted-modal');
+    if (modal && modal.parentNode) {
+      modal.parentNode.removeChild(modal);
+    }
+  }
+
+  function openRuleModal() {
+    const modal = createModal();
+    populateFieldSelect();
+  }
+
   // UI trigger
-  function addFloatingButton() {
+  function addFillButton() {
     const btn = document.createElement('button');
+    btn.id = 'autocompleted-button-fill';
     btn.textContent = 'Auto Fill';
     btn.style.cssText = `
       position: fixed;
@@ -619,7 +992,6 @@
       font-size: 14px;
     `;
     btn.addEventListener('click', async () => {
-      let success = false;
       // Disable during processing
       btn.disabled = true;
       btn.style.opacity = '0.6';
@@ -643,15 +1015,19 @@
         // Retry search fields after a delay to let dropdowns mount
         await new Promise(r => setTimeout(r, 150));
         handleSearchField(parsed);
-        success = true;
-      } catch (e) {
-        console.error(e);
-        alert('Auto Fill failed: ' + (e?.message || e));
-      } finally {
+        // Re-enable on success
         btn.disabled = false;
         btn.style.opacity = '';
         btn.style.cursor = 'pointer';
         btn.textContent = 'Auto Fill';
+      } catch (e) {
+        console.error(e);
+        alert('Auto Fill failed: ' + (e?.message || e));
+        // Keep disabled on failure
+        btn.disabled = true;
+        btn.style.opacity = '0.6';
+        btn.style.cursor = 'not-allowed';
+        btn.textContent = 'Auto Fill (disabled)';
       }
     });
     document.body.appendChild(btn);
@@ -659,6 +1035,7 @@
 
   function addPasteAndFillButton() {
     const btn = document.createElement('button');
+    btn.id = 'autocompleted-button-paste-and-fill';
     btn.textContent = 'Paste & Fill';
     btn.style.cssText = `
       position: fixed;
@@ -675,7 +1052,6 @@
       font-size: 14px;
     `;
     btn.addEventListener('click', async () => {
-      let success = false;
       btn.disabled = true;
       btn.style.opacity = '0.6';
       btn.style.cursor = 'not-allowed';
@@ -694,16 +1070,42 @@
 
         await new Promise(r => setTimeout(r, 150));
         handleSearchField(parsed);
-        success = true;
-      } catch (e) {
-        console.error(e);
-        alert('Paste & Fill failed: ' + (e?.message || e));
-      } finally {
         btn.disabled = false;
         btn.style.opacity = '';
         btn.style.cursor = 'pointer';
         btn.textContent = 'Paste & Fill';
+      } catch (e) {
+        console.error(e);
+        alert('Paste & Fill failed: ' + (e?.message || e));
+        btn.disabled = true;
+        btn.style.opacity = '0.6';
+        btn.style.cursor = 'not-allowed';
+        btn.textContent = 'Paste & Fill (disabled)';
       }
+    });
+    document.body.appendChild(btn);
+  }
+
+  function addCreateRuleButton() {
+    const btn = document.createElement('button');
+    btn.id = 'autocompleted-button-create-rule';
+    btn.textContent = 'Create Rule';
+    btn.style.cssText = `
+      position: fixed;
+      z-index: 999999;
+      bottom: 20px;
+      right: 235px;
+      background: #d97706;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 10px 14px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      font-size: 14px;
+    `;
+    btn.addEventListener('click', () => {
+      openRuleModal();
     });
     document.body.appendChild(btn);
   }
@@ -711,12 +1113,34 @@
   // Init
   window.addEventListener('load', () => {
     detectContext();
-    addFloatingButton();
+    addFillButton();
     addPasteAndFillButton();
-    
-    // Add rule buttons after a delay to ensure form is loaded
-    setTimeout(() => {
-      generateRulesPerCountry();
-    }, 1000);
+    addCreateRuleButton();
   });
+
+  document.addEventListener ("keydown", function (zEvent) {
+    var consumed = false;
+    if (zEvent.ctrlKey && zEvent.shiftKey && !zEvent.altKey && !zEvent.metaKey) {
+        switch(zEvent.code) {
+            case "KeyF": // Search
+                document.getElementById('autocompleted-button-fill').click();
+                consumed = true;
+                break;
+            case "KeyV": // Paste
+                document.getElementById('autocompleted-button-paste-and-fill').click();
+                consumed = true;
+                break;
+            case "KeyC": // Create Rule
+                document.getElementById('autocompleted-button-create-rule').click();
+                consumed = true;
+                break;
+            default:
+                break;
+        }
+    }
+    if (consumed) {
+        zEvent.stopPropagation();
+        zEvent.preventDefault();
+    }
+});
 })();
