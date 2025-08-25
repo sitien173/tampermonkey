@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         DebugButton
-// @version      1.0.0
+// @version      1.0.1
 // @description  add debug button to navigate to adminportal
 // @author       https://github.com/sitien173
 // @match        *://*/eidv/personMatch*
@@ -9,8 +9,8 @@
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_deleteValue
-// @downloadURL https://update.greasyfork.org/scripts/546750/AutoComplete.user.js
-// @updateURL https://update.greasyfork.org/scripts/546750/AutoComplete.meta.js
+// @downloadURL https://update.greasyfork.org/scripts/547242/DebugButton.user.js
+// @updateURL https://update.greasyfork.org/scripts/547242/DebugButton.meta.js
 // ==/UserScript==
 /* eslint-disable */
 /* global GM_getValue, GM_setValue */
@@ -32,15 +32,6 @@
             }
         } catch (e) {
             return null;
-        }
-    }
-
-    function fetchIsButtonVisibleFlag() {
-        try {
-            const flag = GM_getValue('isButtonVisible', true);
-            return Boolean(flag);
-        } catch (e) {
-            return true;
         }
     }
 
@@ -77,16 +68,15 @@
     }
 
     function ensureMainButtonVisibility() {
-        const isVisible = fetchIsButtonVisibleFlag();
         const existing = document.getElementById('mainDebugButton');
-        if (isVisible && !existing) {
+        if (!existing) {
             // Trigger insertion routine by calling DOMContentLoaded handler logic fragment
             try {
                 insertMainButtons();
             } catch (e) {
                 // no-op
             }
-        } else if (!isVisible && existing && existing.parentNode) {
+        } else if (existing && existing.parentNode) {
             existing.parentNode.removeChild(existing);
         }
     }
@@ -250,10 +240,6 @@
     });
 
     function insertMainButtons() {
-        const isButtonVisible = fetchIsButtonVisibleFlag();
-        if (!isButtonVisible) {
-            return;
-        }
         const existing = document.getElementById('mainDebugButton');
         if (!existing) {
             const mainBtn = document.createElement('button');
