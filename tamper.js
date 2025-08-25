@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         AutoComplete
 // @namespace    https://trulioo.com/
-// @version      1.0.0
+// @version      1.0.1
 // @description  dummy data and fill the trulioo form
 // @author       You
 // @match        *://*/eidv/personMatch*
