@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         DebugButton
-// @version      1.0.1
+// @version      1.0.2
 // @description  add debug button to navigate to adminportal
 // @author       https://github.com/sitien173
 // @match        *://*/eidv/personMatch*
@@ -67,20 +67,6 @@
         return fromIcon || fromValue || urlParams.get('transactionRecordId');
     }
 
-    function ensureMainButtonVisibility() {
-        const existing = document.getElementById('mainDebugButton');
-        if (!existing) {
-            // Trigger insertion routine by calling DOMContentLoaded handler logic fragment
-            try {
-                insertMainButtons();
-            } catch (e) {
-                // no-op
-            }
-        } else if (existing && existing.parentNode) {
-            existing.parentNode.removeChild(existing);
-        }
-    }
-
     function buildSettingsOverlay() {
         const existing = document.getElementById('auto-settings-overlay');
         if (existing) {
@@ -131,21 +117,6 @@
         fieldDebug.appendChild(labelDebug);
         fieldDebug.appendChild(inputDebug);
 
-        const fieldVisible = document.createElement('div');
-        fieldVisible.style.marginBottom = '8px';
-        const labelVisible = document.createElement('label');
-        labelVisible.style.display = 'inline-flex';
-        labelVisible.style.alignItems = 'center';
-        const inputVisible = document.createElement('input');
-        inputVisible.type = 'checkbox';
-        inputVisible.id = 'auto-setting-isButtonVisible';
-        inputVisible.checked = Boolean(GM_getValue('isButtonVisible', true));
-        const spanVisible = document.createElement('span');
-        spanVisible.textContent = ' Show Debug Button';
-        labelVisible.appendChild(inputVisible);
-        labelVisible.appendChild(spanVisible);
-        fieldVisible.appendChild(labelVisible);
-
         const actions = document.createElement('div');
         actions.style.display = 'flex';
         actions.style.justifyContent = 'flex-end';
@@ -163,14 +134,11 @@
         btnSave.style.borderRadius = '4px';
         btnSave.addEventListener('click', function() {
             const addr = document.getElementById('auto-setting-debugAddress').value.trim();
-            const vis = document.getElementById('auto-setting-isButtonVisible').checked;
             if (addr) {
                 GM_setValue('debugAddress', addr);
             } else {
                 GM_setValue('debugAddress', '');
             }
-            GM_setValue('isButtonVisible', Boolean(vis));
-            ensureMainButtonVisibility();
             overlay.remove();
         });
 
@@ -179,7 +147,6 @@
 
         modal.appendChild(title);
         modal.appendChild(fieldDebug);
-        modal.appendChild(fieldVisible);
         modal.appendChild(actions);
         overlay.appendChild(modal);
         document.body.appendChild(overlay);
@@ -190,10 +157,6 @@
     }
 
     function createFloatingSettingsButton() {
-        let floating = document.getElementById('auto-floating-settings');
-        if (floating) {
-            return;
-        }
         floating = document.createElement('button');
         floating.id = 'auto-floating-settings';
         floating.type = 'button';
@@ -210,7 +173,8 @@
         floating.style.boxShadow = '0 2px 8px rgba(0,0,0,0.2)';
         floating.style.cursor = 'pointer';
         floating.addEventListener('click', function() { openSettingsOverlay(); });
-        document.body.appendChild(floating);
+
+        return floating;
     }
 
     document.addEventListener('keydown', function(e) {
@@ -240,48 +204,34 @@
     });
 
     function insertMainButtons() {
-        const existing = document.getElementById('mainDebugButton');
-        if (!existing) {
-            const mainBtn = document.createElement('button');
-            mainBtn.id = 'mainDebugButton';
-            mainBtn.type = 'button';
-            mainBtn.className = 'btn btn-primary';
-            mainBtn.textContent = 'Debug (F1)';
-            mainBtn.style.alignItems = 'center';
-            mainBtn.style.height = '30px';
-            mainBtn.style.padding = '0px 10px';
-            mainBtn.addEventListener('click', function(event) {
-                const transactionRecordID = getCurrentPageTransactionId();
-                goToDebug(transactionRecordID, event.ctrlKey);
-            });
+        const mainBtn = document.createElement('button');
+        mainBtn.id = 'mainDebugButton';
+        mainBtn.type = 'button';
+        mainBtn.className = 'btn btn-primary';
+        mainBtn.textContent = 'Debug (F1)';
+        mainBtn.style.alignItems = 'center';
+        mainBtn.style.height = '30px';
+        mainBtn.style.padding = '0px 10px';
+        mainBtn.addEventListener('click', function(event) {
+            const transactionRecordID = getCurrentPageTransactionId();
+            goToDebug(transactionRecordID, event.ctrlKey);
+        });
 
-            const settingsBtn = document.createElement('button');
-            settingsBtn.id = 'mainSettingsButton';
-            settingsBtn.type = 'button';
-            settingsBtn.textContent = '⚙️';
-            settingsBtn.title = 'Settings (Ctrl+Shift+Q)';
-            settingsBtn.style.marginLeft = '6px';
-            settingsBtn.style.height = '30px';
-            settingsBtn.style.padding = '0 8px';
-            settingsBtn.addEventListener('click', function() { openSettingsOverlay(); });
-
-            let supportLink = document.querySelector('.atlas-box.atlas-get-support-box.help a');
-            if (supportLink && supportLink.parentNode) {
-                supportLink.parentNode.replaceChild(mainBtn, supportLink);
+        const settingsBtn = createFloatingSettingsButton();
+        let supportLink = document.querySelector('.atlas-box.atlas-get-support-box.help a');
+        if (supportLink && supportLink.parentNode) {
+            supportLink.parentNode.replaceChild(mainBtn, supportLink);
+            mainBtn.insertAdjacentElement('afterend', settingsBtn);
+        } else {
+            const container = document.querySelector('#main-content-div > div.d-print-none.atlas_nav_menu > div > div');
+            if (container && container.innerText === 'Verification') {
+                container.insertAdjacentElement('beforeend', mainBtn);
                 mainBtn.insertAdjacentElement('afterend', settingsBtn);
-            } else {
-                const container = document.querySelector('#main-content-div > div.d-print-none.atlas_nav_menu > div > div');
-                if (container && container.innerText === 'Verification') {
-                    container.insertAdjacentElement('beforeend', mainBtn);
-                    mainBtn.insertAdjacentElement('afterend', settingsBtn);
-                }
             }
         }
     }
-
-    document.addEventListener('DOMContentLoaded', function() {
+    window.addEventListener('load', () => {
         insertMainButtons();
-        createFloatingSettingsButton();
 
         const target = document.getElementsByClassName('transaction-page')[0];
         if (target) {
