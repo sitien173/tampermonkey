@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         AutoComplete
-// @version      1.0.7
+// @version      1.0.8
 // @description  dummy data and fill
 // @author       https://github.com/sitien173
 // @match        *://*/eidv/personMatch*
@@ -296,6 +296,10 @@
         closeModal();
       }
     });
+    
+    fieldSelect.addEventListener('change', () => {
+      loadExistingRule();
+    });
 
     return modal;
   }
@@ -312,12 +316,7 @@
       option.value = field;
       option.textContent = field;
       fieldSelect.appendChild(option);
-    });
-
-    // Add change event listener to load existing rules
-    fieldSelect.addEventListener('change', () => {
-      loadExistingRule();
-    });
+    });    
   }
 
   function loadExistingRule() {
@@ -339,7 +338,6 @@
     );
     const rules = JSON.parse(rulesString);
 
-    // Load existing rule if it exists
     if (rules[selectedField]) {
       ruleTextarea.value = rules[selectedField];
     } else {
@@ -1000,7 +998,7 @@
   }
 
   function openRuleModal() {
-    const modal = createModal();
+    createModal();
     populateFieldSelect();
   }
 
