@@ -817,7 +817,7 @@
     const fieldSelect = document.createElement('select');
     fieldSelect.id = 'rule-field-select';
     fieldSelect.style.cssText = `
-      width: 100%;
+      width: 90%;
       padding: 8px 12px;
       border: 1px solid #d0d7de;
       border-radius: 6px;
@@ -840,7 +840,7 @@
     ruleTextarea.id = 'rule-textarea';
     ruleTextarea.placeholder = 'Enter your rule here...';
     ruleTextarea.style.cssText = `
-      width: 100%;
+      width: 90%;
       min-height: 100px;
       padding: 8px 12px;
       border: 1px solid #d0d7de;
