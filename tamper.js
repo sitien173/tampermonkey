@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         AutoComplete
-// @version      1.1.9
+// @version      1.2.0
 // @description  dummy data and fill
 // @author       https://github.com/sitien173
 // @match        *://*/eidv/personMatch*
@@ -10,15 +10,14 @@
 // @grant        GM_setValue
 // @grant        GM_deleteValue
 // @connect      auto-completed.sitienbmt.workers.dev
+// @run-at       document-idle
 // @downloadURL https://update.greasyfork.org/scripts/546750/AutoComplete.user.js
 // @updateURL https://update.greasyfork.org/scripts/546750/AutoComplete.meta.js
 // ==/UserScript==
 
 (function () {
-  'use strict';
-
   // Config
-  const BACKEND_ENDPOINT = 'https://auto-completed.sitienbmt.workers.dev';
+  const BACKEND_ENDPOINT = "https://auto-completed.sitienbmt.workers.dev";
   const CLICK_DELAY_MS = 600;
 
   // State
@@ -29,29 +28,29 @@
 
   // Helpers (ported)
   const dobMonthOpts = [
-    { text: 'January', value: 1 },
-    { text: 'February', value: 2 },
-    { text: 'March', value: 3 },
-    { text: 'April', value: 4 },
-    { text: 'May', value: 5 },
-    { text: 'June', value: 6 },
-    { text: 'July', value: 7 },
-    { text: 'August', value: 8 },
-    { text: 'September', value: 9 },
-    { text: 'October', value: 10 },
-    { text: 'November', value: 11 },
-    { text: 'December', value: 12 },
+    { text: "January", value: 1 },
+    { text: "February", value: 2 },
+    { text: "March", value: 3 },
+    { text: "April", value: 4 },
+    { text: "May", value: 5 },
+    { text: "June", value: 6 },
+    { text: "July", value: 7 },
+    { text: "August", value: 8 },
+    { text: "September", value: 9 },
+    { text: "October", value: 10 },
+    { text: "November", value: 11 },
+    { text: "December", value: 12 },
   ];
 
   const genderMap = new Map([
-    ['M', 'MALE'],
-    ['MALE', 'MALE'],
-    ['F', 'FEMALE'],
-    ['FEMALE', 'FEMALE'],
+    ["M", "MALE"],
+    ["MALE", "MALE"],
+    ["F", "FEMALE"],
+    ["FEMALE", "FEMALE"],
   ]);
 
   function normalizeInput(input) {
-    return String(input).toLowerCase().replace(/[()]/g, '').trim();
+    return String(input).toLowerCase().replace(/[()]/g, "").trim();
   }
 
   function normalizeMonthOfBirth(input) {
@@ -67,7 +66,9 @@
     );
     if (monthByText) return `${monthByText.text} (${monthByText.value})`;
 
-    const complexMatch = normalizedInput.match(/([a-z]+)\s*(?:\()?(\d+)(?:\))?/);
+    const complexMatch = normalizedInput.match(
+      /([a-z]+)\s*(?:\()?(\d+)(?:\))?/
+    );
     if (complexMatch) {
       const [, monthText, monthValue] = complexMatch;
       const month = dobMonthOpts.find(
@@ -77,18 +78,21 @@
       );
       if (month) return `${month.text} (${month.value})`;
     }
-    return 'Invalid month input';
+    return "Invalid month input";
   }
 
   function compareGender(a, b) {
     if (!a || !b) return false;
     const norm = (x) => x.trim().toUpperCase();
     const extractParen = (s) => (s.match(/\(([^)]+)\)/) || [])[1];
-    const stripParen = (s) => s.replace(/\s*\([^)]*\)\s*/g, '').trim();
+    const stripParen = (s) => s.replace(/\s*\([^)]*\)\s*/g, "").trim();
 
-    const n1 = norm(a), n2 = norm(b);
-    const c1 = stripParen(n1), c2 = stripParen(n2);
-    const p1 = extractParen(n1), p2 = extractParen(n2);
+    const n1 = norm(a),
+      n2 = norm(b);
+    const c1 = stripParen(n1),
+      c2 = stripParen(n2);
+    const p1 = extractParen(n1),
+      p2 = extractParen(n2);
 
     const s1 = genderMap.get(c1) || genderMap.get(p1) || c1;
     const s2 = genderMap.get(c2) || genderMap.get(p2) || c2;
@@ -102,10 +106,12 @@
     if (a === b) return true;
 
     const abbr = (s) => (s.match(/\(([^)]+)\)/) || [])[1];
-    const strip = (s) => s.replace(/\s*\([^)]*\)\s*/g, '').trim();
+    const strip = (s) => s.replace(/\s*\([^)]*\)\s*/g, "").trim();
 
-    const aAbbr = abbr(a), bAbbr = abbr(b);
-    const aClean = strip(a), bClean = strip(b);
+    const aAbbr = abbr(a),
+      bAbbr = abbr(b);
+    const aClean = strip(a),
+      bClean = strip(b);
 
     return (
       (aAbbr && bClean === aAbbr) ||
@@ -117,8 +123,8 @@
 
   // Modal utilities
   function createModal() {
-    const modal = document.createElement('div');
-    modal.id = 'autocompleted-modal';
+    const modal = document.createElement("div");
+    modal.id = "autocompleted-modal";
     modal.style.cssText = `
       position: fixed;
       top: 0;
@@ -134,7 +140,7 @@
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
     `;
 
-    const modalContent = document.createElement('div');
+    const modalContent = document.createElement("div");
     modalContent.style.cssText = `
       background: white;
       border-radius: 8px;
@@ -145,7 +151,7 @@
       border: 1px solid #e1e5e9;
     `;
 
-    const header = document.createElement('div');
+    const header = document.createElement("div");
     header.style.cssText = `
       display: flex;
       justify-content: space-between;
@@ -155,8 +161,8 @@
       border-bottom: 1px solid #e1e5e9;
     `;
 
-    const title = document.createElement('h3');
-    title.textContent = 'Create Rule';
+    const title = document.createElement("h3");
+    title.textContent = "Create Rule";
     title.style.cssText = `
       margin: 0;
       font-size: 18px;
@@ -164,8 +170,8 @@
       color: #24292f;
     `;
 
-    const closeBtn = document.createElement('button');
-    closeBtn.textContent = '×';
+    const closeBtn = document.createElement("button");
+    closeBtn.textContent = "×";
     closeBtn.style.cssText = `
       background: none;
       border: none;
@@ -180,13 +186,13 @@
       justify-content: center;
       border-radius: 4px;
     `;
-    closeBtn.addEventListener('mouseenter', () => {
-      closeBtn.style.background = '#f6f8fa';
+    closeBtn.addEventListener("mouseenter", () => {
+      closeBtn.style.background = "#f6f8fa";
     });
-    closeBtn.addEventListener('mouseleave', () => {
-      closeBtn.style.background = 'none';
+    closeBtn.addEventListener("mouseleave", () => {
+      closeBtn.style.background = "none";
     });
-    closeBtn.addEventListener('click', () => {
+    closeBtn.addEventListener("click", () => {
       closeModal();
     });
 
@@ -195,8 +201,8 @@
     modalContent.appendChild(header);
 
     // Field selection
-    const fieldLabel = document.createElement('label');
-    fieldLabel.textContent = 'Select Field:';
+    const fieldLabel = document.createElement("label");
+    fieldLabel.textContent = "Select Field:";
     fieldLabel.style.cssText = `
       display: block;
       margin-bottom: 8px;
@@ -204,8 +210,8 @@
       color: #24292f;
     `;
 
-    const fieldSelect = document.createElement('select');
-    fieldSelect.id = 'rule-field-select';
+    const fieldSelect = document.createElement("select");
+    fieldSelect.id = "rule-field-select";
     fieldSelect.style.cssText = `
       width: 90%;
       padding: 8px 12px;
@@ -216,31 +222,37 @@
       background: white;
     `;
     fieldSelect.innerHTML = '<option value="">Select a field...</option>';
-    fieldSelect.value = '';
+    fieldSelect.value = "";
 
     detectContext();
     const defaultRules = {};
-    const rulesString = GM_getValue(`autocompleted-countrySelectionRules_${countrySelection}`, '{}');
+    const rulesString = GM_getValue(
+      `autocompleted-countrySelectionRules_${countrySelection}`,
+      "{}"
+    );
     const rules = JSON.parse(rulesString);
     const fields = getFormFields();
-    fields.forEach(field => {
-      const option = document.createElement('option');
+    fields.forEach((field) => {
+      const option = document.createElement("option");
       option.value = field;
       option.textContent = field;
       fieldSelect.appendChild(option);
 
-      defaultRules[field] = rules[field] || '';
+      defaultRules[field] = rules[field] || "";
     });
 
-    GM_setValue(`autocompleted-countrySelectionRules_${countrySelection}_temp`, JSON.stringify(defaultRules));
-    
-    fieldSelect.addEventListener('change', () => {
+    GM_setValue(
+      `autocompleted-countrySelectionRules_${countrySelection}_temp`,
+      JSON.stringify(defaultRules)
+    );
+
+    fieldSelect.addEventListener("change", () => {
       loadExistingRule();
     });
 
     // Rule input
-    const ruleLabel = document.createElement('label');
-    ruleLabel.textContent = 'Rule:';
+    const ruleLabel = document.createElement("label");
+    ruleLabel.textContent = "Rule:";
     ruleLabel.style.cssText = `
       display: block;
       margin-bottom: 8px;
@@ -248,9 +260,9 @@
       color: #24292f;
     `;
 
-    const ruleTextarea = document.createElement('textarea');
-    ruleTextarea.id = 'rule-textarea';
-    ruleTextarea.placeholder = 'Enter your rule here...';
+    const ruleTextarea = document.createElement("textarea");
+    ruleTextarea.id = "rule-textarea";
+    ruleTextarea.placeholder = "Enter your rule here...";
     ruleTextarea.style.cssText = `
       width: 90%;
       min-height: 100px;
@@ -263,14 +275,14 @@
       margin-bottom: 20px;
     `;
 
-    ruleTextarea.addEventListener('change', (event) => {
-      const fieldSelect = document.getElementById('rule-field-select');
+    ruleTextarea.addEventListener("change", (event) => {
+      const fieldSelect = document.getElementById("rule-field-select");
       const selectedField = fieldSelect.value;
       const ruleText = event.target.value.trim();
 
       const rulesString = GM_getValue(
         `autocompleted-countrySelectionRules_${countrySelection}_temp`,
-        '{}'
+        "{}"
       );
       const rules = JSON.parse(rulesString);
 
@@ -283,15 +295,15 @@
     });
 
     // Buttons
-    const buttonContainer = document.createElement('div');
+    const buttonContainer = document.createElement("div");
     buttonContainer.style.cssText = `
       display: flex;
       gap: 12px;
       justify-content: flex-end;
     `;
 
-    const cancelBtn = document.createElement('button');
-    cancelBtn.textContent = 'Cancel';
+    const cancelBtn = document.createElement("button");
+    cancelBtn.textContent = "Cancel";
     cancelBtn.style.cssText = `
       padding: 8px 16px;
       border: 1px solid #d0d7de;
@@ -301,13 +313,15 @@
       cursor: pointer;
       font-size: 14px;
     `;
-    cancelBtn.addEventListener('click', () => {
-      GM_deleteValue(`autocompleted-countrySelectionRules_${countrySelection}_temp`);
+    cancelBtn.addEventListener("click", () => {
+      GM_deleteValue(
+        `autocompleted-countrySelectionRules_${countrySelection}_temp`
+      );
       closeModal();
     });
 
-    const saveBtn = document.createElement('button');
-    saveBtn.textContent = 'Save Rule';
+    const saveBtn = document.createElement("button");
+    saveBtn.textContent = "Save Rule";
     saveBtn.style.cssText = `
       padding: 8px 16px;
       background: #0969da;
@@ -317,7 +331,7 @@
       cursor: pointer;
       font-size: 14px;
     `;
-    saveBtn.addEventListener('click', () => {
+    saveBtn.addEventListener("click", () => {
       saveRule();
     });
 
@@ -334,7 +348,7 @@
     document.body.appendChild(modal);
 
     // Close on backdrop click
-    modal.addEventListener('click', (e) => {
+    modal.addEventListener("click", (e) => {
       if (e.target === modal) {
         closeModal();
       }
@@ -344,33 +358,33 @@
   }
 
   function loadExistingRule() {
-    const fieldSelect = document.getElementById('rule-field-select');
-    const ruleTextarea = document.getElementById('rule-textarea');
-    
+    const fieldSelect = document.getElementById("rule-field-select");
+    const ruleTextarea = document.getElementById("rule-textarea");
+
     if (!fieldSelect || !ruleTextarea) return;
-    
+
     const selectedField = fieldSelect.value;
     if (!selectedField) {
-      ruleTextarea.value = '';
+      ruleTextarea.value = "";
       return;
     }
 
     // Get existing rules for current country
     const rulesString = GM_getValue(
       `autocompleted-countrySelectionRules_${countrySelection}_temp`,
-      '{}'
+      "{}"
     );
     const rules = JSON.parse(rulesString);
 
     if (rules[selectedField]) {
       ruleTextarea.value = rules[selectedField];
     } else {
-      ruleTextarea.value = '';
+      ruleTextarea.value = "";
     }
   }
 
   function closeModal() {
-    const modal = document.getElementById('autocompleted-modal');
+    const modal = document.getElementById("autocompleted-modal");
     if (modal && modal.parentNode) {
       modal.parentNode.removeChild(modal);
     }
@@ -378,20 +392,20 @@
 
   // Environment detection
   function detectContext() {
-    isVerification = window.location.href.endsWith('verification');
-    const kybRootId = 'KYBMFComponent';
+    isVerification = window.location.href.endsWith("verification");
+    const kybRootId = "KYBMFComponent";
     isKyb = isVerification && !!document.getElementById(kybRootId);
 
     if (isVerification) {
       // Old UI country text
       const el = isKyb
         ? document.getElementById(kybRootId)
-        : document.querySelector('td.country-name');
+        : document.querySelector("td.country-name");
       if (el) {
         const text = isKyb
-          ? document
-              .querySelector('[data-testid=country-selection-inputbox] #search')
-              ?.value
+          ? document.querySelector(
+              "[data-testid=country-selection-inputbox] #search"
+            )?.value
           : el.textContent;
         countrySelection = text ? text.toUpperCase() : null;
       }
@@ -408,23 +422,23 @@
   // Field discovery (ported)
   function getOldUIFields() {
     const selectors = [
-      '.mat-input',
-      '[id^=number-range-field-]',
-      '[id^=option-field-]',
-      '[id^=number-range-picker]',
-      'input.form-control',
+      ".mat-input",
+      "[id^=number-range-field-]",
+      "[id^=option-field-]",
+      "[id^=number-range-picker]",
+      "input.form-control",
     ];
     const fields = [
       ...new Set(
         selectors.flatMap((selector) =>
           Array.from(document.querySelectorAll(selector)).map((item) =>
-            (item.getAttribute('id') || '').split('-').pop()
+            (item.getAttribute("id") || "").split("-").pop()
           )
         )
       ),
     ].filter(Boolean);
 
-    const refIndex = fields.indexOf('Customer Reference ID');
+    const refIndex = fields.indexOf("Customer Reference ID");
     if (refIndex !== -1) fields.splice(refIndex, 1);
     return fields;
   }
@@ -432,20 +446,22 @@
   function getNewUIFields() {
     const fields = [
       ...new Set(
-        Array.from(document.querySelectorAll('.form-control'))
-          .map((item) => item.getAttribute('name'))
+        Array.from(document.querySelectorAll(".form-control"))
+          .map((item) => item.getAttribute("name"))
           .slice(1)
       ),
     ].filter(Boolean);
 
-    const searchIndex = fields.indexOf('search');
+    const searchIndex = fields.indexOf("search");
     if (searchIndex !== -1) {
       isSearchFieldExisting = true;
       fields.splice(searchIndex, 1);
 
-      const searchFields = document.querySelectorAll('[data-testid$="-search-field"]');
+      const searchFields = document.querySelectorAll(
+        '[data-testid$="-search-field"]'
+      );
       searchFields.forEach((sf) => {
-        const field = sf.getAttribute('data-testid').split('-').shift().trim();
+        const field = sf.getAttribute("data-testid").split("-").shift().trim();
         fields.push(field);
       });
     }
@@ -461,38 +477,47 @@
   function parseKeyValueLines(text) {
     const parsed = {};
     const invalid = new Set([
-      'null', 'none', 'na', 'n/a', '', 'undefined',
-      'unspecified', 'unknown', 'not applicable', 'not available', 'not provided',
+      "null",
+      "none",
+      "na",
+      "n/a",
+      "",
+      "undefined",
+      "unspecified",
+      "unknown",
+      "not applicable",
+      "not available",
+      "not provided",
     ]);
-    text.split('\n').forEach((line) => {
-      const [k, v] = line.split('=').map((p) => p?.trim());
+    text.split("\n").forEach((line) => {
+      const [k, v] = line.split("=").map((p) => p?.trim());
       if (k && v && !invalid.has(v.toLowerCase())) parsed[k] = v;
     });
     return parsed;
   }
 
   function handleSelectField(selectEl, responseMap) {
-    const options = selectEl.querySelectorAll('option');
+    const options = selectEl.querySelectorAll("option");
     let optionIndex = -1;
-    const field = (selectEl.getAttribute('id') || '').split('-').pop();
+    const field = (selectEl.getAttribute("id") || "").split("-").pop();
     const value = responseMap[field];
 
     switch (field) {
-      case 'MonthOfBirth': {
+      case "MonthOfBirth": {
         const month = normalizeMonthOfBirth(value);
         optionIndex = Array.from(options).findIndex(
-          (o) => normalizeMonthOfBirth(o.getAttribute('value')) === month
+          (o) => normalizeMonthOfBirth(o.getAttribute("value")) === month
         );
         break;
       }
-      case 'Gender':
+      case "Gender":
         optionIndex = Array.from(options).findIndex((o) =>
-          compareGender(o.getAttribute('value'), value)
+          compareGender(o.getAttribute("value"), value)
         );
         break;
       default:
         optionIndex = Array.from(options).findIndex((o) =>
-          compareStrings(o.getAttribute('value'), value)
+          compareStrings(o.getAttribute("value"), value)
         );
         break;
     }
@@ -503,35 +528,39 @@
 
   function rejectSearchFields() {
     if (!isSearchFieldExisting) return;
-    const icons = document.querySelectorAll('[data-icon=xmark]');
+    const icons = document.querySelectorAll("[data-icon=xmark]");
     if (icons.length > 1) {
       for (let i = 1; i < icons.length; i++) {
-        icons[i].dispatchEvent(new MouseEvent('click', { bubbles: true, cancellable: true }));
+        icons[i].dispatchEvent(
+          new MouseEvent("click", { bubbles: true, cancellable: true })
+        );
       }
     }
   }
 
   function handleSearchField(responseMap) {
     if (!isSearchFieldExisting) return;
-    document.querySelectorAll('input[name=search]').forEach((searchInput) => {
+    document.querySelectorAll("input[name=search]").forEach((searchInput) => {
       searchInput.click();
-      document.querySelectorAll('[id$=-dropdown-menu]').forEach((dropDown) => {
-        const options = dropDown.querySelectorAll('[data-testid*=-dropdown-row-]');
-        const field = dropDown.getAttribute('id').split('-').shift().trim();
+      document.querySelectorAll("[id$=-dropdown-menu]").forEach((dropDown) => {
+        const options = dropDown.querySelectorAll(
+          "[data-testid*=-dropdown-row-]"
+        );
+        const field = dropDown.getAttribute("id").split("-").shift().trim();
         const value = responseMap[field];
         let option = null;
 
         switch (field) {
-          case 'countrySelection':
+          case "countrySelection":
             break;
-          case 'MonthOfBirth': {
+          case "MonthOfBirth": {
             const month = normalizeMonthOfBirth(value);
             option = Array.from(options).find(
               (opt) => normalizeMonthOfBirth(opt.textContent) === month
             );
             break;
           }
-          case 'Gender':
+          case "Gender":
             option = Array.from(options).find((opt) =>
               compareGender(opt.textContent, value)
             );
@@ -544,7 +573,7 @@
         }
         if (option) {
           option.dispatchEvent(
-            new MouseEvent('click', { bubbles: true, cancellable: true })
+            new MouseEvent("click", { bubbles: true, cancellable: true })
           );
         }
       });
@@ -554,14 +583,16 @@
   function resetFormFields() {
     const fields = getFormFields();
     fields.forEach((field) => {
-      const control = document.querySelector(`[name="${field}"], [id$="${field}"]`);
+      const control = document.querySelector(
+        `[name="${field}"], [id$="${field}"]`
+      );
       if (!control) return;
-      if (control.tagName.toLowerCase() === 'select') {
+      if (control.tagName.toLowerCase() === "select") {
         control.selectedIndex = 0;
       } else {
-        control.value = '';
+        control.value = "";
       }
-      control.dispatchEvent(new Event('change', { bubbles: true }));
+      control.dispatchEvent(new Event("change", { bubbles: true }));
     });
     rejectSearchFields();
   }
@@ -569,27 +600,35 @@
   function clickTestTransactionCheckboxes() {
     if (isVerification) {
       // Old UI
-      const consentText = 'I agree T&C*';
-      document.querySelectorAll('div:has(+ label input[type="checkbox"])').forEach((div) => {
-        if (!div.textContent.includes(consentText)) return;
-        const checkbox = div.nextElementSibling?.querySelector('input[type="checkbox"]');
-        if (checkbox?.checked === false) checkbox.click();
-      });
+      const consentText = "I agree T&C*";
+      document
+        .querySelectorAll('div:has(+ label input[type="checkbox"])')
+        .forEach((div) => {
+          if (!div.textContent.includes(consentText)) return;
+          const checkbox = div.nextElementSibling?.querySelector(
+            'input[type="checkbox"]'
+          );
+          if (checkbox?.checked === false) checkbox.click();
+        });
 
-      const TEST_TRANSACTION_TEXT = 'Run A Test Transaction';
-      document.querySelectorAll('input[type="checkbox"] ~ span').forEach((span) => {
-        if (!span.textContent.includes(TEST_TRANSACTION_TEXT)) return;
-        const checkbox = span.previousElementSibling?.previousElementSibling;
-        if (checkbox?.type === 'checkbox' && !checkbox.checked) checkbox.click();
-      });
+      const TEST_TRANSACTION_TEXT = "Run A Test Transaction";
+      document
+        .querySelectorAll('input[type="checkbox"] ~ span')
+        .forEach((span) => {
+          if (!span.textContent.includes(TEST_TRANSACTION_TEXT)) return;
+          const checkbox = span.previousElementSibling?.previousElementSibling;
+          if (checkbox?.type === "checkbox" && !checkbox.checked)
+            checkbox.click();
+        });
     } else {
       // New UI
-      const TEST_TRANSACTION_TEXT = 'Run a Test Transaction';
+      const TEST_TRANSACTION_TEXT = "Run a Test Transaction";
       setTimeout(() => {
         document.querySelectorAll('input[type="checkbox"] + p').forEach((p) => {
           if (!p.textContent.includes(TEST_TRANSACTION_TEXT)) return;
           const checkbox = p.previousElementSibling;
-          if (checkbox?.type === 'checkbox' && !checkbox.checked) checkbox.click();
+          if (checkbox?.type === "checkbox" && !checkbox.checked)
+            checkbox.click();
         });
       }, CLICK_DELAY_MS);
     }
@@ -598,7 +637,7 @@
   // Enhanced form control handling
   function setNativeValue(el, value) {
     const prototype = Object.getPrototypeOf(el);
-    const desc = Object.getOwnPropertyDescriptor(prototype, 'value');
+    const desc = Object.getOwnPropertyDescriptor(prototype, "value");
     if (desc && desc.set) {
       desc.set.call(el, value);
     } else {
@@ -607,31 +646,39 @@
   }
 
   function commitInput(el) {
-    el.dispatchEvent(new Event('input', { bubbles: true }));
-    el.dispatchEvent(new Event('change', { bubbles: true }));
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+    el.dispatchEvent(new Event("change", { bubbles: true }));
   }
 
   function setControlValue(control, value, responseMap) {
     const tag = control.tagName.toLowerCase();
-    if (tag === 'select') {
+    if (tag === "select") {
       handleSelectField(control, responseMap);
       commitInput(control);
       return;
     }
 
-    if (tag === 'input') {
-      const type = (control.getAttribute('type') || '').toLowerCase();
-      if (type === 'checkbox') {
-        const desired = value === true || String(value).toLowerCase() === 'true';
+    if (tag === "input") {
+      const type = (control.getAttribute("type") || "").toLowerCase();
+      if (type === "checkbox") {
+        const desired =
+          value === true || String(value).toLowerCase() === "true";
         if (control.checked !== desired) {
           control.click(); // click toggles and triggers events in most frameworks
         }
         return;
       }
-      if (type === 'radio') {
-        const name = control.getAttribute('name');
-        const radios = document.querySelectorAll(`input[type="radio"][name="${name}"]`);
-        const match = Array.from(radios).find(r => compareStrings(r.value, value) || compareStrings(r.id, value) || compareStrings(r.getAttribute('data-value') || '', value));
+      if (type === "radio") {
+        const name = control.getAttribute("name");
+        const radios = document.querySelectorAll(
+          `input[type="radio"][name="${name}"]`
+        );
+        const match = Array.from(radios).find(
+          (r) =>
+            compareStrings(r.value, value) ||
+            compareStrings(r.id, value) ||
+            compareStrings(r.getAttribute("data-value") || "", value)
+        );
         if (match && !match.checked) {
           match.click();
         }
@@ -653,14 +700,15 @@
     if (isVerification) {
       if (responseMap.MonthOfBirth) {
         const idx = dobMonthOpts.findIndex(
-          (m) => normalizeMonthOfBirth(m.text) === normalizeMonthOfBirth(responseMap.MonthOfBirth)
+          (m) =>
+            normalizeMonthOfBirth(m.text) ===
+            normalizeMonthOfBirth(responseMap.MonthOfBirth)
         );
         if (idx !== -1) {
           responseMap.MonthOfBirth = dobMonthOpts[idx].value;
         }
       }
-    }
-    else {
+    } else {
       // new UI already handled by clickTestTransactionCheckboxes()
     }
 
@@ -676,13 +724,13 @@
   function postJson(url, body) {
     return new Promise((resolve, reject) => {
       GM_xmlhttpRequest({
-        method: 'POST',
+        method: "POST",
         url,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
         data: JSON.stringify(body),
         onload: (res) => resolve(res),
         onerror: (err) => reject(err),
-        ontimeout: () => reject(new Error('Timeout')),
+        ontimeout: () => reject(new Error("Timeout")),
       });
     });
   }
@@ -690,38 +738,47 @@
   async function fetchExtractedDataFromClipboard(fields) {
     const clipboardText = await navigator.clipboard.readText();
     if (!clipboardText || !clipboardText.trim()) {
-      throw new Error('Clipboard is empty');
+      throw new Error("Clipboard is empty");
     }
     const payload = {
-      fields: fields.join(','),
+      fields: fields.join(","),
       unstructuredData: clipboardText,
     };
-    const res = await postJson(`${BACKEND_ENDPOINT}/api/extracting-data`, payload);
+    const res = await postJson(
+      `${BACKEND_ENDPOINT}/api/extracting-data`,
+      payload
+    );
     const json = JSON.parse(res.responseText);
-    if (!json.success) throw new Error(json.message || 'Error extracting data');
+    if (!json.success) throw new Error(json.message || "Error extracting data");
     return json.result; // expected key=value lines
   }
 
   async function fetchDummyData(fields, countrySelection) {
     const rules = GM_getValue(
       `autocompleted-countrySelectionRules_${countrySelection}`,
-      '{}'
+      "{}"
     );
 
-    const cached_value = GM_getValue(`autocompleted_${countrySelection}_${fields.join(',')}_${rules}`);
-    if (cached_value){
+    const cached_value = GM_getValue(
+      `autocompleted_${countrySelection}_${fields.join(",")}_${rules}`
+    );
+    if (cached_value) {
       return JSON.parse(cached_value).result;
     }
 
     const payload = {
       country: countrySelection,
-      fields: fields.join(','),
-      rule: rules || '',
+      fields: fields.join(","),
+      rule: rules || "",
     };
     const res = await postJson(`${BACKEND_ENDPOINT}/api/dummy-data`, payload);
     const json = JSON.parse(res.responseText);
-    if (!json.success) throw new Error(json.message || 'Error fetching dummy data');
-    GM_setValue(`autocompleted_${countrySelection}_${fields.join(',')}_${rules}`, res.responseText)
+    if (!json.success)
+      throw new Error(json.message || "Error fetching dummy data");
+    GM_setValue(
+      `autocompleted_${countrySelection}_${fields.join(",")}_${rules}`,
+      res.responseText
+    );
     return json.result; // server returns key=value lines
   }
 
@@ -731,7 +788,7 @@
     while (Date.now() - start < timeoutMs) {
       const fields = getFormFields();
       if (fields && fields.length > 0) return fields;
-      await new Promise(r => setTimeout(r, 150));
+      await new Promise((r) => setTimeout(r, 150));
     }
     return getFormFields();
   }
@@ -739,20 +796,22 @@
   function saveRule() {
     const rulesString = GM_getValue(
       `autocompleted-countrySelectionRules_${countrySelection}_temp`,
-      '{}'
+      "{}"
     );
 
-    if (rulesString === '{}') {
+    if (rulesString === "{}") {
       closeModal();
       return;
     }
-    
+
     GM_setValue(
       `autocompleted-countrySelectionRules_${countrySelection}`,
       rulesString
     );
 
-    GM_deleteValue(`autocompleted-countrySelectionRules_${countrySelection}_temp`);
+    GM_deleteValue(
+      `autocompleted-countrySelectionRules_${countrySelection}_temp`
+    );
 
     closeModal();
   }
@@ -763,9 +822,9 @@
 
   // UI trigger
   function addFillButton() {
-    const btn = document.createElement('button');
-    btn.id = 'autocompleted-button-fill';
-    btn.textContent = 'Auto Fill';
+    const btn = document.createElement("button");
+    btn.id = "autocompleted-button-fill";
+    btn.textContent = "Auto Fill";
     btn.style.cssText = `
       position: fixed;
       z-index: 999999;
@@ -780,47 +839,47 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.15);
       font-size: 14px;
     `;
-    btn.addEventListener('click', async () => {
+    btn.addEventListener("click", async () => {
       // Disable during processing
       btn.disabled = true;
-      btn.style.opacity = '0.6';
-      btn.style.cursor = 'not-allowed';
-      btn.textContent = 'Auto Fill…';
+      btn.style.opacity = "0.6";
+      btn.style.cursor = "not-allowed";
+      btn.textContent = "Auto Fill…";
       try {
         detectContext();
         const fields = await waitForFields();
         if (!fields || fields.length === 0) {
-          throw new Error('No fields detected.');
+          throw new Error("No fields detected.");
         }
         if (!countrySelection) {
-          throw new Error('Country selection not found.');
+          throw new Error("Country selection not found.");
         }
         clickTestTransactionCheckboxes();
 
         const textContent = await fetchDummyData(fields, countrySelection);
         const parsed = parseKeyValueLines(textContent);
         fillFormFields(parsed);
-        
+
         // Retry search fields after a delay to let dropdowns mount
-        await new Promise(r => setTimeout(r, 150));
+        await new Promise((r) => setTimeout(r, 150));
         handleSearchField(parsed);
         // Re-enable on success
         btn.disabled = false;
-        btn.style.opacity = '';
-        btn.style.cursor = 'pointer';
-        btn.textContent = 'Auto Fill';
+        btn.style.opacity = "";
+        btn.style.cursor = "pointer";
+        btn.textContent = "Auto Fill";
       } catch (e) {
         console.error(e);
-        alert('Auto Fill failed: ' + (e?.message || e));
+        alert("Auto Fill failed: " + (e?.message || e));
       }
     });
     document.body.appendChild(btn);
   }
 
   function addPasteAndFillButton() {
-    const btn = document.createElement('button');
-    btn.id = 'autocompleted-button-paste-and-fill';
-    btn.textContent = 'Paste & Fill';
+    const btn = document.createElement("button");
+    btn.id = "autocompleted-button-paste-and-fill";
+    btn.textContent = "Paste & Fill";
     btn.style.cssText = `
       position: fixed;
       z-index: 999999;
@@ -835,16 +894,16 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.15);
       font-size: 14px;
     `;
-    btn.addEventListener('click', async () => {
+    btn.addEventListener("click", async () => {
       btn.disabled = true;
-      btn.style.opacity = '0.6';
-      btn.style.cursor = 'not-allowed';
-      btn.textContent = 'Paste & Fill…';
+      btn.style.opacity = "0.6";
+      btn.style.cursor = "not-allowed";
+      btn.textContent = "Paste & Fill…";
       try {
         detectContext();
         const fields = await waitForFields();
         if (!fields || fields.length === 0) {
-          throw new Error('No fields detected.');
+          throw new Error("No fields detected.");
         }
         clickTestTransactionCheckboxes();
 
@@ -852,24 +911,24 @@
         const parsed = parseKeyValueLines(textContent);
         fillFormFields(parsed);
 
-        await new Promise(r => setTimeout(r, 150));
+        await new Promise((r) => setTimeout(r, 150));
         handleSearchField(parsed);
         btn.disabled = false;
-        btn.style.opacity = '';
-        btn.style.cursor = 'pointer';
-        btn.textContent = 'Paste & Fill';
+        btn.style.opacity = "";
+        btn.style.cursor = "pointer";
+        btn.textContent = "Paste & Fill";
       } catch (e) {
         console.error(e);
-        alert('Paste & Fill failed: ' + (e?.message || e));
+        alert("Paste & Fill failed: " + (e?.message || e));
       }
     });
     document.body.appendChild(btn);
   }
 
   function addCreateRuleButton() {
-    const btn = document.createElement('button');
-    btn.id = 'autocompleted-button-create-rule';
-    btn.textContent = 'Configure Rule';
+    const btn = document.createElement("button");
+    btn.id = "autocompleted-button-create-rule";
+    btn.textContent = "Configure Rule";
     btn.style.cssText = `
       position: fixed;
       z-index: 999999;
@@ -884,43 +943,47 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.15);
       font-size: 14px;
     `;
-    btn.addEventListener('click', () => {
+    btn.addEventListener("click", () => {
       openRuleModal();
     });
     document.body.appendChild(btn);
   }
 
-  // Init
-  window.addEventListener('load', () => {
-    detectContext();
-    addFillButton();
-    addPasteAndFillButton();
-    addCreateRuleButton();
-  });
+  detectContext();
+  addFillButton();
+  addPasteAndFillButton();
+  addCreateRuleButton();
 
-  document.addEventListener ("keydown", function (zEvent) {
+  document.addEventListener("keydown", function (zEvent) {
     var consumed = false;
-    if (zEvent.ctrlKey && zEvent.shiftKey && !zEvent.altKey && !zEvent.metaKey) {
-        switch(zEvent.code) {
-            case "KeyF": // Search
-                document.getElementById('autocompleted-button-fill').click();
-                consumed = true;
-                break;
-            case "KeyV": // Paste
-                document.getElementById('autocompleted-button-paste-and-fill').click();
-                consumed = true;
-                break;
-            case "KeyC": // Create Rule
-                document.getElementById('autocompleted-button-create-rule').click();
-                consumed = true;
-                break;
-            default:
-                break;
-        }
+    if (
+      zEvent.ctrlKey &&
+      zEvent.shiftKey &&
+      !zEvent.altKey &&
+      !zEvent.metaKey
+    ) {
+      switch (zEvent.code) {
+        case "KeyF": // Search
+          document.getElementById("autocompleted-button-fill").click();
+          consumed = true;
+          break;
+        case "KeyV": // Paste
+          document
+            .getElementById("autocompleted-button-paste-and-fill")
+            .click();
+          consumed = true;
+          break;
+        case "KeyC": // Create Rule
+          document.getElementById("autocompleted-button-create-rule").click();
+          consumed = true;
+          break;
+        default:
+          break;
+      }
     }
     if (consumed) {
-        zEvent.stopPropagation();
-        zEvent.preventDefault();
+      zEvent.stopPropagation();
+      zEvent.preventDefault();
     }
-});
+  });
 })();
