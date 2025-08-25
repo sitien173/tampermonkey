@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         AutoComplete
-// @version      1.1.5
+// @version      1.1.6
 // @description  dummy data and fill
 // @author       https://github.com/sitien173
 // @match        *://*/eidv/personMatch*
@@ -227,6 +227,7 @@
     });
     
     fieldSelect.addEventListener('change', () => {
+      detectContext();
       loadExistingRule();
     });
 
@@ -352,6 +353,7 @@
       `autocompleted-countrySelectionRules_${countrySelection}_temp`,
       `autocompleted-countrySelectionRules_${countrySelection}` || '{}'
     );
+    console.log(rulesString);
     const rules = JSON.parse(rulesString);
 
     if (rules[selectedField]) {
