@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         AutoComplete
-// @version      1.0.6
+// @version      1.0.7
 // @description  dummy data and fill
 // @author       https://github.com/sitien173
 // @match        *://*/eidv/personMatch*
@@ -313,6 +313,38 @@
       option.textContent = field;
       fieldSelect.appendChild(option);
     });
+
+    // Add change event listener to load existing rules
+    fieldSelect.addEventListener('change', () => {
+      loadExistingRule();
+    });
+  }
+
+  function loadExistingRule() {
+    const fieldSelect = document.getElementById('rule-field-select');
+    const ruleTextarea = document.getElementById('rule-textarea');
+    
+    if (!fieldSelect || !ruleTextarea) return;
+    
+    const selectedField = fieldSelect.value;
+    if (!selectedField) {
+      ruleTextarea.value = '';
+      return;
+    }
+
+    // Get existing rules for current country
+    const rulesString = GM_getValue(
+      `autocompleted-countrySelectionRules_${countrySelection}`,
+      '{}'
+    );
+    const rules = JSON.parse(rulesString);
+
+    // Load existing rule if it exists
+    if (rules[selectedField]) {
+      ruleTextarea.value = rules[selectedField];
+    } else {
+      ruleTextarea.value = '';
+    }
   }
 
   function saveRule() {
@@ -706,6 +738,7 @@
       fields: fields.join(','),
       rule: rules || '',
     };
+    console.log(payload);
     const res = await postJson(`${BACKEND_ENDPOINT}/api/dummy-data`, payload);
     const json = JSON.parse(res.responseText);
     if (!json.success) throw new Error(json.message || 'Error fetching dummy data');
