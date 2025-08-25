@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         AutoComplete
-// @version      1.0.9
+// @version      1.1.0
 // @description  dummy data and fill
 // @author       https://github.com/sitien173
 // @match        *://*/eidv/personMatch*
@@ -338,7 +338,7 @@
     );
     const rules = JSON.parse(rulesString);
 
-    if (rules[selectedField]) {
+    if (rules[selectedField] && rules[selectedField]) {
       ruleTextarea.value = rules[selectedField];
     } else {
       ruleTextarea.value = '';
