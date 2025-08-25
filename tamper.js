@@ -1,8 +1,7 @@
 // ==UserScript==
 // @name         AutoComplete
-// @namespace    https://trulioo.com/
-// @version      1.0.1
-// @description  dummy data and fill the trulioo form
+// @version      1.0.2
+// @description  dummy data and fill
 // @author       You
 // @match        *://*/eidv/personMatch*
 // @match        *://*/verification*
@@ -518,19 +517,10 @@
         console.error(e);
         alert('Auto Fill failed: ' + (e?.message || e));
       } finally {
-        if (success) {
-          // Re-enable on success
-          btn.disabled = false;
-          btn.style.opacity = '';
-          btn.style.cursor = 'pointer';
-          btn.textContent = 'Auto Fill';
-        } else {
-          // Keep disabled on failure
-          btn.disabled = true;
-          btn.style.opacity = '0.6';
-          btn.style.cursor = 'not-allowed';
-          btn.textContent = 'Auto Fill (disabled)';
-        }
+        btn.disabled = false;
+        btn.style.opacity = '';
+        btn.style.cursor = 'pointer';
+        btn.textContent = 'Auto Fill';
       }
     });
     document.body.appendChild(btn);
@@ -578,17 +568,10 @@
         console.error(e);
         alert('Paste & Fill failed: ' + (e?.message || e));
       } finally {
-        if (success) {
-          btn.disabled = false;
-          btn.style.opacity = '';
-          btn.style.cursor = 'pointer';
-          btn.textContent = 'Paste & Fill';
-        } else {
-          btn.disabled = true;
-          btn.style.opacity = '0.6';
-          btn.style.cursor = 'not-allowed';
-          btn.textContent = 'Paste & Fill (disabled)';
-        }
+        btn.disabled = false;
+        btn.style.opacity = '';
+        btn.style.cursor = 'pointer';
+        btn.textContent = 'Paste & Fill';
       }
     });
     document.body.appendChild(btn);
