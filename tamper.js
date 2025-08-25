@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         AutoComplete
-// @version      1.1.2
+// @version      1.1.3
 // @description  dummy data and fill
 // @author       https://github.com/sitien173
 // @match        *://*/eidv/personMatch*
@@ -348,8 +348,8 @@
 
     // Get existing rules for current country
     const rulesString = GM_getValue(
-      `autocompleted-countrySelectionRules_${countrySelection}`,
-      '{}'
+      `autocompleted-countrySelectionRules_${countrySelection}_temp`,
+      `autocompleted-countrySelectionRules_${countrySelection}`
     );
     const rules = JSON.parse(rulesString);
 
