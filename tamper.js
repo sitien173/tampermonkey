@@ -733,6 +733,11 @@
       `autocompleted-countrySelectionRules_${countrySelection}_temp`,
       '{}'
     );
+
+    if (rulesString === '{}') {
+      closeModal();
+      return;
+    }
     
     GM_setValue(
       `autocompleted-countrySelectionRules_${countrySelection}`,
