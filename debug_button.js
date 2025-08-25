@@ -5,6 +5,7 @@
 // @author       https://github.com/sitien173
 // @match        *://*/eidv/personMatch*
 // @match        *://*/verification*
+// @match        *://*/search*
 // @grant        GM_xmlhttpRequest
 // @grant        GM_getValue
 // @grant        GM_setValue
