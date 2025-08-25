@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         AutoComplete
-// @version      1.0.3
+// @version      1.0.4
 // @description  dummy data and fill
 // @author       You
 // @match        *://*/eidv/personMatch*
@@ -23,6 +23,7 @@
   let isVerification = false;
   let isKyb = false;
   let isSearchFieldExisting = false;
+  let customRulesEnabled = true; // You can make this configurable
 
   // Helpers (ported)
   const dobMonthOpts = [
@@ -110,6 +111,125 @@
       aClean === bClean ||
       (aAbbr && bAbbr && aAbbr === bAbbr)
     );
+  }
+
+  // Rule management functions
+  function createRuleButton(labelElement, rules, key, addToParent = true) {
+    const ruleBtn = document.createElement('button');
+    ruleBtn.textContent = rules.has(key) ? 'Edit Rule' : 'Add Rule';
+    ruleBtn.classList.add('btn', 'btn-outline-primary', 'btn-sm');
+    ruleBtn.style.cssText = `
+      margin-left: 5px;
+      padding: 4px 8px;
+      font-size: 12px;
+      border: 1px solid #007bff;
+      background: transparent;
+      color: #007bff;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    `;
+    ruleBtn.addEventListener('mouseenter', () => {
+      ruleBtn.style.background = '#007bff';
+      ruleBtn.style.color = '#fff';
+    });
+    ruleBtn.addEventListener('mouseleave', () => {
+      ruleBtn.style.background = 'transparent';
+      ruleBtn.style.color = '#007bff';
+    });
+    ruleBtn.addEventListener('click', () => openRuleEditor(key, ruleBtn, rules));
+    
+    if (addToParent) {
+      labelElement.parentNode.appendChild(ruleBtn);
+    } else {
+      labelElement.appendChild(ruleBtn);
+    }
+    return ruleBtn;
+  }
+
+  function openRuleEditor(key, ruleBtn, rules) {
+    const currentRule = rules.get(key) || '';
+    const ruleText = prompt(`Rule for ${key}:`, currentRule);
+    
+    if (ruleText === null) return; // User cancelled
+    
+    if (!ruleText.trim()) {
+      // Remove rule if empty
+      ruleBtn.textContent = 'Add Rule';
+      rules.delete(key);
+      GM_setValue(
+        `autocompleted-countrySelectionRules_${countrySelection}`,
+        JSON.stringify(Object.fromEntries(rules))
+      );
+      return;
+    }
+    
+    // Add or update rule
+    ruleBtn.textContent = 'Edit Rule';
+    rules.set(key, ruleText);
+    GM_setValue(
+      `autocompleted-countrySelectionRules_${countrySelection}`,
+      JSON.stringify(Object.fromEntries(rules))
+    );
+  }
+
+  function findFieldLabel(field) {
+    return isVerification
+      ? [...document.querySelectorAll('label, .label-picker')].find((el) =>
+          el.textContent.replace(/\s+/g, '').includes(field)
+        )
+      : document.querySelector(`label[for="${field}"]`);
+  }
+
+  function addRuleButtonsToFields(fields, rules) {
+    fields.forEach((field) => {
+      const label = findFieldLabel(field);
+      if (!label) return;
+      createRuleButton(label, rules, field);
+    });
+  }
+
+  function addRuleButtonsToFieldGroups(rules) {
+    const fieldGroups = document.querySelectorAll(
+      isKyb ? '[class^="StCategoryLabel"]' : 'svg[data-icon="chevron-up"]'
+    );
+    
+    fieldGroups.forEach((fieldGroup) => {
+      const fieldGroupLabel = isKyb
+        ? fieldGroup
+        : fieldGroup.previousSibling;
+      if (!fieldGroupLabel) return;
+      
+      const btn = createRuleButton(
+        fieldGroupLabel,
+        rules,
+        fieldGroupLabel.textContent,
+        false
+      );
+      btn.addEventListener('click', () => {
+        fieldGroupLabel.click();
+      });
+    });
+  }
+
+  async function generateRulesPerCountry() {
+    if (!customRulesEnabled) return;
+    
+    const rulesString = GM_getValue(
+      `autocompleted-countrySelectionRules_${countrySelection}`,
+      '{}'
+    );
+    const rules = new Map(Object.entries(JSON.parse(rulesString)));
+    
+    // Wait a bit for the form to fully load
+    await new Promise((resolve) => setTimeout(resolve, 800));
+    
+    const fields = isVerification
+      ? getOldUIFields()
+      : getNewUIFields();
+    
+    addRuleButtonsToFieldGroups(rules);
+    addRuleButtonsToFields(fields, rules);
   }
 
   // Environment detection
@@ -427,6 +547,30 @@
     });
   }
 
+  async function fetchDummyData(fields, countrySelection) {
+    const rules = GM_getValue(
+      `autocompleted-countrySelectionRules_${countrySelection}`,
+      ''
+    );
+    const cached_value = GM_getValue(`autocompleted_${countrySelection}_${fields.join(',')}_${rules}`);
+    if (cached_value){
+      return JSON.parse(cached_value).result;
+    }
+
+    const payload = {
+      country: countrySelection,
+      fields: fields.join(','),
+      rule: rules || '',
+    };
+    const res = await postJson(`${BACKEND_ENDPOINT}/api/dummy-data`, payload);
+    const json = JSON.parse(res.responseText);
+    if (json.success){
+      GM_setValue(`autocompleted_${countrySelection}_${fields.join(',')}_${rules}`, res.responseText)
+      return json.result; // server returns key=value lines
+    }
+    return '';
+  }
+
   async function fetchExtractedDataFromClipboard(fields) {
     const clipboardText = await navigator.clipboard.readText();
     if (!clipboardText || !clipboardText.trim()) {
@@ -440,26 +584,6 @@
     const json = JSON.parse(res.responseText);
     if (!json.success) throw new Error(json.message || 'Error extracting data');
     return json.result; // expected key=value lines
-  }
-
-  async function fetchDummyData(fields, countrySelection) {
-    const cached_value = GM_getValue(`autocompleted_${countrySelection}_${fields.join(',')}`);
-    if (cached_value){
-      return JSON.parse(cached_value).result;
-    }
-    const rules = GM_getValue(
-      `autocompleted-countrySelectionRules_${countrySelection}`,
-      ''
-    );
-    const payload = {
-      country: countrySelection,
-      fields: fields.join(','),
-      rule: rules || '',
-    };
-    const res = await postJson(`${BACKEND_ENDPOINT}/api/dummy-data`, payload);
-    const json = JSON.parse(res.responseText);
-    GM_setValue(`autocompleted_${countrySelection}_${fields.join(',')}`, res.responseText)
-    return json.result; // server returns key=value lines
   }
 
   // Wait for fields to be available
@@ -586,5 +710,10 @@
     detectContext();
     addFloatingButton();
     addPasteAndFillButton();
+    
+    // Add rule buttons after a delay to ensure form is loaded
+    setTimeout(() => {
+      generateRulesPerCountry();
+    }, 1000);
   });
 })();
