@@ -1,7 +1,8 @@
 // ==UserScript==
 // @name         Cookie Updater
+// @description  Automatically fetch and update udemy cookies automatically
 // @namespace https://greasyfork.org/users/1508709
-// @version      1.0.3
+// @version      1.0.4
 // @author       https://github.com/sitien173
 // @match        *://*.udemy.com/*
 // @match        *://*.itauchile.udemy.com/*
@@ -20,7 +21,7 @@
     const DEFAULT_CONFIG = {
         workerUrl: 'https://udemy-cookies-worker.sitienbmt.workers.dev/',
         licenseKey: '',
-        autoUpdateInterval: 5 * 60 * 1000, // 5 minutes
+        autoUpdateInterval: 60 * 60 * 1000, // 1 hour
         autoUpdateEnabled: false,
         showNotifications: true,
         autoReload: true,
