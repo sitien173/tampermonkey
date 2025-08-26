@@ -20,7 +20,7 @@
     const DEFAULT_CONFIG = {
         workerUrl: 'https://udemy-cookies-worker.sitienbmt.workers.dev/',
         autoUpdateInterval: 5 * 60 * 1000, // 5 minutes
-        autoUpdateEnabled: true,
+        autoUpdateEnabled: false,
         showNotifications: true,
         autoReload: true,
         retryAttempts: 3
