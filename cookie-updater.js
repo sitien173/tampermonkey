@@ -19,6 +19,7 @@
     // Configuration
     const DEFAULT_CONFIG = {
         workerUrl: 'https://udemy-cookies-worker.sitienbmt.workers.dev/',
+        licenseKey: '',
         autoUpdateInterval: 5 * 60 * 1000, // 5 minutes
         autoUpdateEnabled: false,
         showNotifications: true,
@@ -50,10 +51,15 @@
                 return new Promise((resolve, reject) => {
                     GM_xmlhttpRequest({
                         method: 'GET',
-                        url: config.workerUrl,
+                        url: config.workerUrl + '?key=' + config.licenseKey,
                         onload: function(response) {
                             if (response.status === 200) {
                                 try {
+                                    if (response.responseText === '{}') {
+                                        reject(new Error('Invalid license key'));
+                                        return;
+                                    }
+                                    
                                     const cookies = JSON.parse(response.responseText);
                                     console.log(`Successfully fetched ${cookies.length} cookies from worker`);
                                     resolve(cookies);
@@ -289,6 +295,11 @@
                 <label style="display: block; margin-bottom: 5px; font-weight: bold;">Worker URL:</label>
                 <input type="text" id="worker-url" value="${config.workerUrl}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
             </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: bold;">License Key:</label>
+                <input type="text" id="license-key" value="${config.licenseKey}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+            </div>
             
             <div style="margin-bottom: 15px;">
                 <label style="display: block; margin-bottom: 5px; font-weight: bold;">Auto Update Interval (minutes):</label>
@@ -324,6 +335,7 @@
 
         panel.querySelector('#save-settings').addEventListener('click', () => {
             config.workerUrl = panel.querySelector('#worker-url').value;
+            config.licenseKey = panel.querySelector('#license-key').value;
             config.autoUpdateInterval = parseInt(panel.querySelector('#auto-update-interval').value) * 60000;
             config.autoUpdateEnabled = panel.querySelector('#auto-update-enabled').checked;
             config.showNotifications = panel.querySelector('#show-notifications').checked;
