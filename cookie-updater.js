@@ -2,7 +2,7 @@
 // @name         Cookie Updater
 // @description  Automatically fetch and update udemy cookies automatically
 // @namespace https://greasyfork.org/users/1508709
-// @version      1.0.5
+// @version      1.0.6
 // @author       https://github.com/sitien173
 // @match        *://*.udemy.com/*
 // @match        *://*.itauchile.udemy.com/*
@@ -114,66 +114,118 @@
 
     // Save cookie using GM_cookie
     function saveCookie(cookie, url) {
-        return new Promise((resolve, reject) => {
-            const cookieDetails = {
-                name: cookie.name,
-                value: cookie.value,
-                url: url,
-                domain: cookie.domain || undefined,
-                path: cookie.path || '/',
-                secure: cookie.secure || false,
-                httpOnly: cookie.httpOnly || false,
-                sameSite: cookie.sameSite || 'no_restriction'
-            };
+        const gmAvailable = typeof GM_cookie !== 'undefined' && GM_cookie && typeof GM_cookie.set === 'function';
+        if (gmAvailable) {
+            return new Promise((resolve, reject) => {
+                const cookieDetails = {
+                    name: cookie.name,
+                    value: cookie.value,
+                    url: url,
+                    domain: cookie.domain || undefined,
+                    path: cookie.path || '/',
+                    secure: cookie.secure || false,
+                    httpOnly: cookie.httpOnly || false,
+                    sameSite: cookie.sameSite || 'no_restriction'
+                };
 
-            // Set expiration if provided
-            if (cookie.expirationDate) {
-                cookieDetails.expirationDate = cookie.expirationDate;
-            }
-
-            GM_cookie.set(cookieDetails, (result, error) => {
-                if (error) {
-                    console.error('Failed to save cookie:', error);
-                    reject(error);
-                } else {
-                    console.log(`Successfully saved cookie: ${cookie.name}`);
-                    resolve(result);
+                if (cookie.expirationDate) {
+                    cookieDetails.expirationDate = cookie.expirationDate;
                 }
+
+                GM_cookie.set(cookieDetails, (result, error) => {
+                    if (error) {
+                        console.error('Failed to save cookie:', error);
+                        reject(error);
+                    } else {
+                        console.log(`Successfully saved cookie: ${cookie.name}`);
+                        resolve(result);
+                    }
+                });
             });
+        }
+
+        // Fallback for environments where GM_cookie is not available (e.g., iOS Safari)
+        return new Promise((resolve) => {
+            // HttpOnly cannot be set via document.cookie
+            // Domain is omitted to restrict to current host (safest cross-browser)
+            let cookieStr = `${cookie.name}=${encodeURIComponent(cookie.value)}`;
+            cookieStr += `; path=${cookie.path || '/'}`;
+            if (cookie.secure) cookieStr += '; Secure';
+            // SameSite handling
+            if (cookie.sameSite && typeof cookie.sameSite === 'string') {
+                const s = cookie.sameSite.toLowerCase();
+                if (s === 'lax' || s === 'strict' || s === 'none') {
+                    cookieStr += `; SameSite=${s.charAt(0).toUpperCase() + s.slice(1)}`;
+                    if (s === 'none' && cookieStr.indexOf('Secure') === -1) {
+                        cookieStr += '; Secure';
+                    }
+                }
+            }
+            if (cookie.expirationDate) {
+                const d = new Date(0);
+                d.setUTCSeconds(cookie.expirationDate);
+                cookieStr += `; Expires=${d.toUTCString()}`;
+            }
+            document.cookie = cookieStr;
+            console.warn('GM_cookie not available, used document.cookie fallback. Some cookies (e.g., HttpOnly/third-party) cannot be set.');
+            resolve(true);
         });
     }
 
     // Remove cookie using GM_cookie
     function removeCookie(name, url) {
-        return new Promise((resolve, reject) => {
-            GM_cookie.delete({
-                name: name,
-                url: url
-            }, (result, error) => {
-                if (error) {
-                    console.error('Failed to remove cookie:', error);
-                    reject(error);
-                } else {
-                    console.log(`Successfully removed cookie: ${name}`);
-                    resolve(result);
-                }
+        const gmAvailable = typeof GM_cookie !== 'undefined' && GM_cookie && typeof GM_cookie.delete === 'function';
+        if (gmAvailable) {
+            return new Promise((resolve, reject) => {
+                GM_cookie.delete({
+                    name: name,
+                    url: url
+                }, (result, error) => {
+                    if (error) {
+                        console.error('Failed to remove cookie:', error);
+                        reject(error);
+                    } else {
+                        console.log(`Successfully removed cookie: ${name}`);
+                        resolve(result);
+                    }
+                });
             });
+        }
+        // Fallback: expire the cookie for current host
+        return new Promise((resolve) => {
+            document.cookie = `${name}=; path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+            resolve(true);
         });
     }
 
     // Get all cookies for current domain using GM_cookie
     function getAllCookies(url) {
-        return new Promise((resolve, reject) => {
-            GM_cookie.list({
-                url: url
-            }, (cookies, error) => {
-                if (error) {
-                    console.error('Failed to get cookies:', error);
-                    reject(error);
-                } else {
-                    resolve(cookies);
-                }
+        const gmAvailable = typeof GM_cookie !== 'undefined' && GM_cookie && typeof GM_cookie.list === 'function';
+        if (gmAvailable) {
+            return new Promise((resolve, reject) => {
+                GM_cookie.list({
+                    url: url
+                }, (cookies, error) => {
+                    if (error) {
+                        console.error('Failed to get cookies:', error);
+                        reject(error);
+                    } else {
+                        resolve(cookies);
+                    }
+                });
             });
+        }
+        // Fallback: parse document.cookie
+        return new Promise((resolve) => {
+            const cookieStr = document.cookie || '';
+            const pairs = cookieStr ? cookieStr.split('; ') : [];
+            const results = pairs.map(p => {
+                const eqIdx = p.indexOf('=');
+                const name = eqIdx >= 0 ? p.slice(0, eqIdx) : p;
+                const value = eqIdx >= 0 ? decodeURIComponent(p.slice(eqIdx + 1)) : '';
+                return { name, value };
+            });
+            resolve(results);
         });
     }
 
