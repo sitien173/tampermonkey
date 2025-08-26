@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Cookie Updater
 // @namespace https://greasyfork.org/users/1508709
-// @version      1.0.1
+// @version      1.0.3
 // @author       https://github.com/sitien173
 // @match        *://*.udemy.com/*
 // @match        *://*.itauchile.udemy.com/*
@@ -40,6 +40,25 @@
         GM_setValue('config', config);
     }
 
+    // Persist and return a stable device id for this client
+    function getOrCreateDeviceId() {
+        let id = GM_getValue('deviceId', '');
+        if (!id) {
+            try {
+                if (crypto && crypto.randomUUID) {
+                    id = crypto.randomUUID();
+                }
+            } catch (e) {}
+            if (!id) {
+                id = (Date.now().toString(36) + Math.random().toString(36).slice(2, 10));
+            }
+            // Keep it simple and URL-safe
+            id = id.replace(/[^a-zA-Z0-9_-]/g, '').slice(0, 64);
+            GM_setValue('deviceId', id);
+        }
+        return id;
+    }
+
     // Fetch cookies from worker with retry logic using GM_xmlhttpRequest
     async function fetchCookiesFromWorker() {
         let lastError;
@@ -51,7 +70,7 @@
                 return new Promise((resolve, reject) => {
                     GM_xmlhttpRequest({
                         method: 'GET',
-                        url: config.workerUrl + '?key=' + config.licenseKey,
+                        url: config.workerUrl + '?key=' + encodeURIComponent(config.licenseKey) + '&device=' + encodeURIComponent(getOrCreateDeviceId()),
                         onload: function(response) {
                             if (response.status === 200) {
                                 try {
@@ -59,7 +78,7 @@
                                         reject(new Error('Invalid license key'));
                                         return;
                                     }
-                                    
+
                                     const cookies = JSON.parse(response.responseText);
                                     console.log(`Successfully fetched ${cookies.length} cookies from worker`);
                                     resolve(cookies);
