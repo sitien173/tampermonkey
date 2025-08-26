@@ -1,8 +1,7 @@
 // ==UserScript==
-// @name         Udemy Cookie Updater
+// @name         Cookie Updater
 // @namespace https://greasyfork.org/users/1508709
-// @version      1.0.0
-// @description  Advanced cookie updater for Udemy with settings panel
+// @version      1.0.1
 // @author       https://github.com/sitien173
 // @match        *://*.itauchile.udemy.com/*
 // @grant        GM_setValue
@@ -347,89 +346,6 @@
         document.body.appendChild(panel);
     }
 
-    // Add control buttons
-    function addControlButtons() {
-        const existingButtons = document.querySelectorAll('#udemy-cookie-update-btn, #udemy-cookie-settings-btn');
-        existingButtons.forEach(btn => btn.remove());
-
-        const updateButton = document.createElement('button');
-        updateButton.id = 'udemy-cookie-update-btn';
-        updateButton.textContent = '🔄 Update Cookies';
-        updateButton.style.cssText = `
-            position: fixed;
-            top: 20px;
-            left: 20px;
-            padding: 10px 15px;
-            background-color: #2196F3;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-family: Arial, sans-serif;
-            font-size: 12px;
-            z-index: 10000;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            transition: background-color 0.3s ease;
-        `;
-
-        updateButton.addEventListener('mouseenter', () => {
-            updateButton.style.backgroundColor = '#1976D2';
-        });
-
-        updateButton.addEventListener('mouseleave', () => {
-            updateButton.style.backgroundColor = '#2196F3';
-        });
-
-        updateButton.addEventListener('click', async () => {
-            updateButton.disabled = true;
-            updateButton.textContent = '⏳ Updating...';
-            updateButton.style.backgroundColor = '#9E9E9E';
-            
-            try {
-                await updateCookiesFromWorker();
-            } finally {
-                updateButton.disabled = false;
-                updateButton.textContent = '🔄 Update Cookies';
-                updateButton.style.backgroundColor = '#2196F3';
-            }
-        });
-
-        const settingsButton = document.createElement('button');
-        settingsButton.id = 'udemy-cookie-settings-btn';
-        settingsButton.textContent = '⚙️ Settings';
-        settingsButton.style.cssText = `
-            position: fixed;
-            top: 20px;
-            left: 140px;
-            padding: 10px 15px;
-            background-color: #FF9800;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-family: Arial, sans-serif;
-            font-size: 12px;
-            z-index: 10000;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-            transition: background-color 0.3s ease;
-        `;
-
-        settingsButton.addEventListener('mouseenter', () => {
-            settingsButton.style.backgroundColor = '#F57C00';
-        });
-
-        settingsButton.addEventListener('mouseleave', () => {
-            settingsButton.style.backgroundColor = '#FF9800';
-        });
-
-        settingsButton.addEventListener('click', () => {
-            createSettingsPanel();
-        });
-
-        document.body.appendChild(updateButton);
-        document.body.appendChild(settingsButton);
-    }
-
     // Auto-update functionality
     function startAutoUpdate() {
         const lastUpdate = GM_getValue('lastCookieUpdate', 0);
@@ -455,12 +371,6 @@
         GM_registerMenuCommand('Open Settings', () => {
             createSettingsPanel();
         });
-        
-        GM_registerMenuCommand('Toggle Auto Update', () => {
-            config.autoUpdateEnabled = !config.autoUpdateEnabled;
-            saveConfig();
-            showNotification(`Auto update ${config.autoUpdateEnabled ? 'enabled' : 'disabled'}`, 'info');
-        });
     }
 
     // Initialize
@@ -471,17 +381,12 @@
             document.addEventListener('DOMContentLoaded', initialize);
             return;
         }
-
-        console.log('Udemy Cookie Updater (Advanced) initialized');
         
-        addControlButtons();
         registerMenuCommands();
         
         if (config.autoUpdateEnabled) {
             startAutoUpdate();
         }
-        
-        showNotification('Udemy Cookie Updater (Advanced) loaded. Click the update button to fetch latest cookies.', 'info');
     }
 
     initialize();
