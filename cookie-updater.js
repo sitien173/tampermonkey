@@ -2,7 +2,7 @@
 // @name         Cookie Updater
 // @description  Automatically fetch and update udemy cookies automatically
 // @namespace https://greasyfork.org/users/1508709
-// @version      1.0.4
+// @version      1.0.5
 // @author       https://github.com/sitien173
 // @match        *://*.udemy.com/*
 // @match        *://*.itauchile.udemy.com/*
@@ -25,7 +25,8 @@
         autoUpdateEnabled: false,
         showNotifications: true,
         autoReload: true,
-        retryAttempts: 3
+        retryAttempts: 3,
+        showUiButtons: true
     };
 
     let config = { ...DEFAULT_CONFIG };
@@ -347,6 +348,13 @@
                 </label>
             </div>
             
+            <div style="margin-bottom: 15px;">
+                <label style="display: flex; align-items: center; cursor: pointer;">
+                    <input type="checkbox" id="show-ui-buttons" ${config.showUiButtons ? 'checked' : ''} style="margin-right: 8px;">
+                    Show Floating Buttons (Fetch Cookies, Settings)
+                </label>
+            </div>
+            
             <div style="display: flex; gap: 10px; justify-content: flex-end;">
                 <button id="save-settings" style="padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">Save Settings</button>
                 <button id="cancel-settings" style="padding: 10px 20px; background: #9E9E9E; color: white; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
@@ -360,10 +368,12 @@
             config.autoUpdateEnabled = panel.querySelector('#auto-update-enabled').checked;
             config.showNotifications = panel.querySelector('#show-notifications').checked;
             config.autoReload = panel.querySelector('#auto-reload').checked;
+            config.showUiButtons = panel.querySelector('#show-ui-buttons').checked;
             
             saveConfig();
             panel.remove();
             showNotification('Settings saved successfully!', 'success');
+            renderFloatingControls();
         });
 
         panel.querySelector('#cancel-settings').addEventListener('click', () => {
@@ -377,6 +387,58 @@
         });
 
         document.body.appendChild(panel);
+    }
+
+    // Create floating UI controls (Fetch Cookies, Settings)
+    function renderFloatingControls() {
+        const existing = document.getElementById('udemy-cookie-controls');
+        if (existing) {
+            existing.remove();
+        }
+
+        if (!config.showUiButtons) return;
+
+        const container = document.createElement('div');
+        container.id = 'udemy-cookie-controls';
+        container.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 10002;
+        `;
+
+        const btnStyle = `
+            padding: 10px 14px;
+            background: #1f2937;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: Arial, sans-serif;
+            font-size: 13px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        `;
+
+        const fetchBtn = document.createElement('button');
+        fetchBtn.textContent = 'Fetch Cookies';
+        fetchBtn.style.cssText = btnStyle;
+        fetchBtn.addEventListener('click', async () => {
+            await updateCookiesFromWorker();
+        });
+
+        const settingsBtn = document.createElement('button');
+        settingsBtn.textContent = 'Settings';
+        settingsBtn.style.cssText = btnStyle + 'background:#2563EB;';
+        settingsBtn.addEventListener('click', () => {
+            createSettingsPanel();
+        });
+
+        container.appendChild(fetchBtn);
+        container.appendChild(settingsBtn);
+        document.body.appendChild(container);
     }
 
     // Auto-update functionality
@@ -420,6 +482,9 @@
         if (config.autoUpdateEnabled) {
             startAutoUpdate();
         }
+
+        // Render floating UI controls based on settings
+        renderFloatingControls();
     }
 
     initialize();
