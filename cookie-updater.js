@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Cookie Updater
 // @namespace https://greasyfork.org/users/1508709
-// @version      1.0.1
+// @version      1.0.2
 // @author       https://github.com/sitien173
 // @match        *://*.udemy.com/*
 // @match        *://*.itauchile.udemy.com/*
