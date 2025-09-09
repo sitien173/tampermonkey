@@ -2,7 +2,7 @@
 // @name         Cookie Updater
 // @description  Automatically fetch and update udemy cookies automatically
 // @namespace https://greasyfork.org/users/1508709
-// @version      1.1.0
+// @version      1.1.1
 // @author       https://github.com/sitien173
 // @match        *://*.itauchile.udemy.com/*
 // @grant        GM_setValue
@@ -20,10 +20,7 @@
     const DEFAULT_CONFIG = {
         workerUrl: 'https://udemy-cookies-worker-commercial.sitienbmt.workers.dev',
         licenseKey: '',
-        autoUpdateInterval: 60 * 60 * 1000, // 1 hour
-        autoUpdateEnabled: false,
         showNotifications: true,
-        autoReload: true,
         retryAttempts: 3,
         showUiButtons: true
     };
@@ -277,7 +274,7 @@
             }
             
             // Auto reload if enabled
-            if (config.autoReload && successCount > 0) {
+            if (successCount > 0) {
                 setTimeout(() => {
                     window.location.reload();
                 }, 1000);
@@ -382,28 +379,9 @@
             </div>
             
             <div style="margin-bottom: 15px;">
-                <label style="display: block; margin-bottom: 5px; font-weight: bold;">Auto Update Interval (minutes):</label>
-                <input type="number" id="auto-update-interval" value="${config.autoUpdateInterval / 60000}" min="1" max="60" style="width: 100px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-            </div>
-            
-            <div style="margin-bottom: 15px;">
-                <label style="display: flex; align-items: center; cursor: pointer;">
-                    <input type="checkbox" id="auto-update-enabled" ${config.autoUpdateEnabled ? 'checked' : ''} style="margin-right: 8px;">
-                    Enable Auto Update
-                </label>
-            </div>
-            
-            <div style="margin-bottom: 15px;">
                 <label style="display: flex; align-items: center; cursor: pointer;">
                     <input type="checkbox" id="show-notifications" ${config.showNotifications ? 'checked' : ''} style="margin-right: 8px;">
                     Show Notifications
-                </label>
-            </div>
-            
-            <div style="margin-bottom: 15px;">
-                <label style="display: flex; align-items: center; cursor: pointer;">
-                    <input type="checkbox" id="auto-reload" ${config.autoReload ? 'checked' : ''} style="margin-right: 8px;">
-                    Auto Reload Page After Update
                 </label>
             </div>
             
@@ -423,10 +401,7 @@
         panel.querySelector('#save-settings').addEventListener('click', () => {
             config.workerUrl = panel.querySelector('#worker-url').value;
             config.licenseKey = panel.querySelector('#license-key').value;
-            config.autoUpdateInterval = parseInt(panel.querySelector('#auto-update-interval').value) * 60000;
-            config.autoUpdateEnabled = panel.querySelector('#auto-update-enabled').checked;
             config.showNotifications = panel.querySelector('#show-notifications').checked;
-            config.autoReload = panel.querySelector('#auto-reload').checked;
             config.showUiButtons = panel.querySelector('#show-ui-buttons').checked;
             
             saveConfig();
@@ -504,16 +479,17 @@
     function startAutoUpdate() {
         const lastUpdate = GM_getValue('lastCookieUpdate', 0);
         const now = Date.now();
-        
-        if (now - lastUpdate > config.autoUpdateInterval) {
-            updateCookiesFromWorker();
+
+        const autoUpdateInterval = 4 * 60 * 60 * 1000; // 4 hours
+        if (now - lastUpdate > autoUpdateInterval) {
+            updateCookiesFromWorker(true);
             GM_setValue('lastCookieUpdate', now);
         }
         
         setInterval(() => {
             updateCookiesFromWorker();
             GM_setValue('lastCookieUpdate', Date.now());
-        }, config.autoUpdateInterval);
+        }, autoUpdateInterval);
     }
 
     // Register menu commands
@@ -530,7 +506,6 @@
     // Initialize
     function initialize() {
         loadConfig();
-        updateCookiesFromWorker(true);
 
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initialize);
@@ -538,10 +513,8 @@
         }
         
         registerMenuCommands();
-        
-        if (config.autoUpdateEnabled) {
-            startAutoUpdate();
-        }
+
+        startAutoUpdate();
 
         // Render floating UI controls based on settings
         renderFloatingControls();
