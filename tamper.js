@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         AutoComplete
-// @version      1.2.3
+// @version      1.2.4
 // @description  dummy data and fill
 // @author       https://github.com/sitien173
 // @match        *://*/eidv/personMatch*
@@ -18,9 +18,9 @@
 
 (function () {
     const DEFAULT_CONFIG = {
-        BACKEND_ENDPOINT: 'https://auto-completed.sitienbmt.workers.dev',
+        BACKEND_ENDPOINT: "https://auto-completed.sitienbmt.workers.dev",
         showNotifications: true,
-        showUiButtons: false
+        showUiButtons: false,
     };
 
     let config = { ...DEFAULT_CONFIG };
@@ -55,25 +55,27 @@
     ]);
 
     function loadConfig() {
-        const savedConfig = GM_getValue('config', {});
+        const savedConfig = GM_getValue("config", {});
         config = { ...DEFAULT_CONFIG, ...savedConfig };
     }
 
     // Save configuration
     function saveConfig() {
-        GM_setValue('config', config);
+        GM_setValue("config", config);
     }
 
-    function showNotification(message, type = 'info') {
+    function showNotification(message, type = "info") {
         if (!config.showNotifications) return;
 
-        const existingNotification = document.getElementById('udemy-cookie-notification');
+        const existingNotification = document.getElementById(
+            "udemy-cookie-notification"
+        );
         if (existingNotification) {
             existingNotification.remove();
         }
 
-        const notification = document.createElement('div');
-        notification.id = 'autocompleted-notification';
+        const notification = document.createElement("div");
+        notification.id = "autocompleted-notification";
         notification.style.cssText = `
             position: fixed;
             top: 20px;
@@ -91,17 +93,17 @@
         `;
 
         switch (type) {
-            case 'success':
-                notification.style.backgroundColor = '#4CAF50';
+            case "success":
+                notification.style.backgroundColor = "#4CAF50";
                 break;
-            case 'error':
-                notification.style.backgroundColor = '#f44336';
+            case "error":
+                notification.style.backgroundColor = "#f44336";
                 break;
-            case 'warning':
-                notification.style.backgroundColor = '#ff9800';
+            case "warning":
+                notification.style.backgroundColor = "#ff9800";
                 break;
             default:
-                notification.style.backgroundColor = '#2196F3';
+                notification.style.backgroundColor = "#2196F3";
         }
 
         notification.textContent = message;
@@ -109,7 +111,7 @@
 
         setTimeout(() => {
             if (notification.parentNode) {
-                notification.style.opacity = '0';
+                notification.style.opacity = "0";
                 setTimeout(() => {
                     if (notification.parentNode) {
                         notification.remove();
@@ -121,8 +123,8 @@
 
     // Create settings panel
     function createSettingsPanel() {
-        const panel = document.createElement('div');
-        panel.id = 'autocompleted-settings-panel';
+        const panel = document.createElement("div");
+        panel.id = "autocompleted-settings-panel";
         panel.style.cssText = `
             position: fixed;
             top: 50%;
@@ -142,19 +144,22 @@
             
             <div style="margin-bottom: 15px;">
                 <label style="display: block; margin-bottom: 5px; font-weight: bold;">Worker URL:</label>
-                <input type="text" id="worker-url" value="${config.BACKEND_ENDPOINT}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                <input type="text" id="worker-url" value="${config.BACKEND_ENDPOINT
+            }" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
             </div>
             
             <div style="margin-bottom: 15px;">
                 <label style="display: flex; align-items: center; cursor: pointer;">
-                    <input type="checkbox" id="show-notifications" ${config.showNotifications ? 'checked' : ''} style="margin-right: 8px;">
+                    <input type="checkbox" id="show-notifications" ${config.showNotifications ? "checked" : ""
+            } style="margin-right: 8px;">
                     Show Notifications
                 </label>
             </div>
             
             <div style="margin-bottom: 15px;">
                 <label style="display: flex; align-items: center; cursor: pointer;">
-                    <input type="checkbox" id="show-ui-buttons" ${config.showUiButtons ? 'checked' : ''} style="margin-right: 8px;">
+                    <input type="checkbox" id="show-ui-buttons" ${config.showUiButtons ? "checked" : ""
+            } style="margin-right: 8px;">
                     Show Settings Button
                 </label>
             </div>
@@ -165,22 +170,24 @@
             </div>
         `;
 
-        panel.querySelector('#save-settings').addEventListener('click', () => {
-            config.BACKEND_ENDPOINT = panel.querySelector('#worker-url').value;
-            config.showNotifications = panel.querySelector('#show-notifications').checked;
-            config.showUiButtons = panel.querySelector('#show-ui-buttons').checked;
+        panel.querySelector("#save-settings").addEventListener("click", () => {
+            config.BACKEND_ENDPOINT = panel.querySelector("#worker-url").value;
+            config.showNotifications = panel.querySelector(
+                "#show-notifications"
+            ).checked;
+            config.showUiButtons = panel.querySelector("#show-ui-buttons").checked;
 
             saveConfig();
             panel.remove();
-            showNotification('Settings saved successfully!', 'success');
+            showNotification("Settings saved successfully!", "success");
             renderFloatingControls();
         });
 
-        panel.querySelector('#cancel-settings').addEventListener('click', () => {
+        panel.querySelector("#cancel-settings").addEventListener("click", () => {
             panel.remove();
         });
 
-        panel.addEventListener('click', (e) => {
+        panel.addEventListener("click", (e) => {
             if (e.target === panel) {
                 panel.remove();
             }
@@ -190,15 +197,15 @@
     }
 
     function renderFloatingControls() {
-        const existing = document.getElementById('autocompleted-controls');
+        const existing = document.getElementById("autocompleted-controls");
         if (existing) {
             existing.remove();
         }
 
         if (!config.showUiButtons) return;
 
-        const container = document.createElement('div');
-        container.id = 'autocompleted-controls';
+        const container = document.createElement("div");
+        container.id = "autocompleted-controls";
         container.style.cssText = `
             position: fixed;
             bottom: 20px;
@@ -221,10 +228,10 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         `;
 
-        const settingsBtn = document.createElement('button');
-        settingsBtn.textContent = 'Settings';
-        settingsBtn.style.cssText = btnStyle + 'background:#2563EB;';
-        settingsBtn.addEventListener('click', () => {
+        const settingsBtn = document.createElement("button");
+        settingsBtn.textContent = "Settings";
+        settingsBtn.style.cssText = btnStyle + "background:#2563EB;";
+        settingsBtn.addEventListener("click", () => {
             createSettingsPanel();
         });
 
@@ -903,16 +910,82 @@
     }
 
     // Network
+    // Simple top progress bar for network activity
+    const netProgress = (() => {
+        let activeCount = 0;
+        let barEl = null;
+        let timerId = null;
+        function ensureStyles() {
+            if (document.getElementById("tmk-progress-style")) return;
+            const style = document.createElement("style");
+            style.id = "tmk-progress-style";
+            style.textContent = `
+                #tmk-progress-container { position: fixed; top: 0; left: 0; width: 100%; height: 3px; z-index: 2147483647; pointer-events: none; }
+                #tmk-progress-bar { width: 0%; height: 100%; background: linear-gradient(90deg, #29d, #3af); box-shadow: 0 0 10px rgba(41,157,255,.7); transition: width .2s ease; }
+            `;
+            document.head.appendChild(style);
+        }
+        function createBar() {
+            if (barEl) return;
+            ensureStyles();
+            const container = document.createElement("div");
+            container.id = "tmk-progress-container";
+            const bar = document.createElement("div");
+            bar.id = "tmk-progress-bar";
+            container.appendChild(bar);
+            document.documentElement.appendChild(container);
+            barEl = bar;
+        }
+        function startTimer() {
+            if (timerId) return;
+            timerId = window.setInterval(() => {
+                if (!barEl) return;
+                const current = parseFloat(barEl.style.width || "0");
+                const target = current < 80 ? current + Math.random() * 5 + 3 : current < 90 ? current + Math.random() * 2 + 1 : current;
+                barEl.style.width = Math.min(90, target) + "%";
+            }, 300);
+        }
+        function clearTimer() {
+            if (timerId) {
+                clearInterval(timerId);
+                timerId = null;
+            }
+        }
+        return {
+            start() {
+                activeCount += 1;
+                if (activeCount === 1) {
+                    createBar();
+                    barEl.style.width = "0%";
+                    startTimer();
+                }
+            },
+            end() {
+                if (activeCount > 0) activeCount -= 1;
+                if (activeCount === 0 && barEl) {
+                    clearTimer();
+                    barEl.style.width = "100%";
+                    setTimeout(() => {
+                        const container = document.getElementById("tmk-progress-container");
+                        if (container && container.parentNode) container.parentNode.removeChild(container);
+                        barEl = null;
+                    }, 200);
+                }
+            },
+        };
+    })();
+
     function postJson(url, body) {
         return new Promise((resolve, reject) => {
+            netProgress.start();
             GM_xmlhttpRequest({
                 method: "POST",
                 url,
                 headers: { "Content-Type": "application/json" },
                 data: JSON.stringify(body),
-                onload: (res) => resolve(res),
-                onerror: (err) => reject(err),
-                ontimeout: () => reject(new Error("Timeout")),
+                onload: (res) => { netProgress.end(); resolve(res); },
+                onerror: (err) => { netProgress.end(); reject(err); },
+                ontimeout: () => { netProgress.end(); reject(new Error("Timeout")); },
             });
         });
     }
@@ -953,7 +1026,10 @@
             fields: fields.join(","),
             rule: rules || "",
         };
-        const res = await postJson(`${config.BACKEND_ENDPOINT}/api/dummy-data`, payload);
+        const res = await postJson(
+            `${config.BACKEND_ENDPOINT}/api/dummy-data`,
+            payload
+        );
         const json = JSON.parse(res.responseText);
         if (!json.success)
             throw new Error(json.message || "Error fetching dummy data");
@@ -1002,7 +1078,7 @@
         createModal();
     }
 
-    async function clickFillButon(){
+    async function clickFillButon() {
         const btn = document.getElementById("autocompleted-button-fill");
         if (btn) {
             btn.disabled = true;
@@ -1029,8 +1105,7 @@
             await new Promise((r) => setTimeout(r, 150));
             handleSearchField(parsed);
             // Re-enable on success
-            if(btn)
-            {
+            if (btn) {
                 btn.disabled = false;
                 btn.style.opacity = "";
                 btn.style.cursor = "pointer";
@@ -1065,10 +1140,9 @@
         document.body.appendChild(btn);
     }
 
-    async function clickPasteAndFillButton(){
+    async function clickPasteAndFillButton() {
         const btn = document.getElementById("autocompleted-button-paste-and-fill");
-        if(btn)
-        {
+        if (btn) {
             btn.disabled = true;
             btn.style.opacity = "0.6";
             btn.style.cursor = "not-allowed";
@@ -1088,8 +1162,7 @@
 
             await new Promise((r) => setTimeout(r, 150));
             handleSearchField(parsed);
-            if(btn)
-            {
+            if (btn) {
                 btn.disabled = false;
                 btn.style.opacity = "";
                 btn.style.cursor = "pointer";
@@ -1148,10 +1221,10 @@
     }
 
     function registerMenuCommands() {
-        GM_registerMenuCommand('Open Settings', () => {
+        GM_registerMenuCommand("Open Settings", () => {
             createSettingsPanel();
         });
-        GM_registerMenuCommand('Configure Rule', () => {
+        GM_registerMenuCommand("Configure Rule", () => {
             openRuleModal();
         });
     }
@@ -1159,8 +1232,8 @@
     function initialize() {
         loadConfig();
 
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initialize);
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", initialize);
             return;
         }
 
@@ -1168,8 +1241,7 @@
         renderFloatingControls();
         detectContext();
 
-        if(config.showUiButtons)
-        {
+        if (config.showUiButtons) {
             addFillButton();
             addPasteAndFillButton();
             addCreateRuleButton();
