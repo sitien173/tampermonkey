@@ -2,7 +2,7 @@
 // @name         Cookie Updater
 // @description  Automatically fetch and update udemy cookies automatically
 // @namespace https://greasyfork.org/users/1508709
-// @version      1.0.8
+// @version      1.0.9
 // @author       https://github.com/sitien173
 // @match        *://*.itauchile.udemy.com/*
 // @grant        GM_setValue
@@ -11,6 +11,7 @@
 // @grant        GM_xmlhttpRequest
 // @grant        GM_registerMenuCommand
 // @connect      udemy-cookies-worker-commercial.sitienbmt.workers.dev
+// @connect      udemy-cookies-worker.sitienbmt.workers.dev
 // @run-at       document-start
 // ==/UserScript==
 /* eslint-disable */
