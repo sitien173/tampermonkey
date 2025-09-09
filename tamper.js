@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         AutoComplete
-// @version      1.2.4
+// @version      1.2.5
 // @description  dummy data and fill
 // @author       https://github.com/sitien173
 // @match        *://*/eidv/personMatch*
@@ -160,7 +160,7 @@
                 <label style="display: flex; align-items: center; cursor: pointer;">
                     <input type="checkbox" id="show-ui-buttons" ${config.showUiButtons ? "checked" : ""
             } style="margin-right: 8px;">
-                    Show Settings Button
+                    Show UI Button
                 </label>
             </div>
             
@@ -169,6 +169,21 @@
                 <button id="cancel-settings" style="padding: 10px 20px; background: #9E9E9E; color: white; border: none; border-radius: 4px; cursor: pointer;">Cancel</button>
             </div>
         `;
+
+        function removeFillButton() {
+            const btn = document.getElementById("autocompleted-fill-button");
+            if (btn && btn.parentNode) btn.parentNode.removeChild(btn);
+        }
+
+        function removePasteAndFillButton() {
+            const btn = document.getElementById("autocompleted-paste-fill-button");
+            if (btn && btn.parentNode) btn.parentNode.removeChild(btn);
+        }
+
+        function removeCreateRuleButton() {
+            const btn = document.getElementById("autocompleted-create-rule-button");
+            if (btn && btn.parentNode) btn.parentNode.removeChild(btn);
+        }
 
         panel.querySelector("#save-settings").addEventListener("click", () => {
             config.BACKEND_ENDPOINT = panel.querySelector("#worker-url").value;
@@ -180,7 +195,17 @@
             saveConfig();
             panel.remove();
             showNotification("Settings saved successfully!", "success");
-            renderFloatingControls();
+
+            if (config.showUiButtons) {
+                addFillButton();
+                addPasteAndFillButton();
+                addCreateRuleButton();
+            }
+            else {
+                removeFillButton();
+                removePasteAndFillButton();
+                removeCreateRuleButton();
+            }
         });
 
         panel.querySelector("#cancel-settings").addEventListener("click", () => {
@@ -194,49 +219,6 @@
         });
 
         document.body.appendChild(panel);
-    }
-
-    function renderFloatingControls() {
-        const existing = document.getElementById("autocompleted-controls");
-        if (existing) {
-            existing.remove();
-        }
-
-        if (!config.showUiButtons) return;
-
-        const container = document.createElement("div");
-        container.id = "autocompleted-controls";
-        container.style.cssText = `
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            z-index: 10002;
-        `;
-
-        const btnStyle = `
-            padding: 10px 14px;
-            background: #1f2937;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-family: Arial, sans-serif;
-            font-size: 13px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        `;
-
-        const settingsBtn = document.createElement("button");
-        settingsBtn.textContent = "Settings";
-        settingsBtn.style.cssText = btnStyle + "background:#2563EB;";
-        settingsBtn.addEventListener("click", () => {
-            createSettingsPanel();
-        });
-
-        container.appendChild(settingsBtn);
-        document.body.appendChild(container);
     }
 
     function normalizeInput(input) {
@@ -1238,7 +1220,6 @@
         }
 
         registerMenuCommands();
-        renderFloatingControls();
         detectContext();
 
         if (config.showUiButtons) {
