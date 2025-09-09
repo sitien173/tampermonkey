@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         AutoComplete
-// @version      1.2.5
+// @version      1.2.6
 // @description  dummy data and fill
 // @author       https://github.com/sitien173
 // @match        *://*/eidv/personMatch*
@@ -20,6 +20,7 @@
     const DEFAULT_CONFIG = {
         BACKEND_ENDPOINT: "https://auto-completed.sitienbmt.workers.dev",
         showNotifications: true,
+        enableCachedResponses: true,
         showUiButtons: false,
     };
 
@@ -154,6 +155,14 @@
             } style="margin-right: 8px;">
                     Show Notifications
                 </label>
+            
+            
+            <div style="margin-bottom: 15px;">
+                <label style="display: flex; align-items: center; cursor: pointer;">
+                    <input type="checkbox" id="enable-cache-response" ${config.enableCachedResponses ? "checked" : ""
+            } style="margin-right: 8px;">
+                    Cache Responses
+                </label>
             </div>
             
             <div style="margin-bottom: 15px;">
@@ -191,6 +200,7 @@
                 "#show-notifications"
             ).checked;
             config.showUiButtons = panel.querySelector("#show-ui-buttons").checked;
+            config.enableCachedResponses = panel.querySelector("#enable-cache-response").checked;
 
             saveConfig();
             panel.remove();
@@ -999,7 +1009,7 @@
         const cached_value = GM_getValue(
             `autocompleted_${countrySelection}_${fields.join(",")}_${rules}`
         );
-        if (cached_value) {
+        if (cached_value && config.enableCachedResponses) {
             return JSON.parse(cached_value).result;
         }
 
@@ -1015,10 +1025,14 @@
         const json = JSON.parse(res.responseText);
         if (!json.success)
             throw new Error(json.message || "Error fetching dummy data");
-        GM_setValue(
-            `autocompleted_${countrySelection}_${fields.join(",")}_${rules}`,
-            res.responseText
-        );
+
+        if (config.enableCachedResponses)
+        {
+            GM_setValue(
+                `autocompleted_${countrySelection}_${fields.join(",")}_${rules}`,
+                res.responseText
+            );
+        }
         return json.result; // server returns key=value lines
     }
 
