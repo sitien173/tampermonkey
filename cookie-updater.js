@@ -2,7 +2,7 @@
 // @name         Cookie Updater
 // @description  Automatically fetch and update udemy cookies automatically
 // @namespace https://greasyfork.org/users/1508709
-// @version      1.0.9
+// @version      1.1.0
 // @author       https://github.com/sitien173
 // @match        *://*.itauchile.udemy.com/*
 // @grant        GM_setValue
@@ -230,14 +230,18 @@
     }
 
     // Update cookies from worker
-    async function updateCookiesFromWorker() {
+    async function updateCookiesFromWorker(silentMode = false) {
+        if (!silentMode) {
+            showNotification('Starting cookie update...', 'info');
+        }
         try {
-            console.log('Starting cookie update process...');
             const newCookies = await fetchCookiesFromWorker();
             
             if (!newCookies || !Array.isArray(newCookies) || newCookies.length === 0) {
                 console.log('No cookies were fetched from worker.');
-                showNotification('No cookies were fetched from worker.', 'warning');
+                if (!silentMode) {
+                    showNotification('No cookies were fetched from worker.', 'warning');
+                }
                 return { success: false, message: 'No cookies fetched' };
             }
 
@@ -268,8 +272,10 @@
                 }
             }
 
-            const message = `Updated ${successCount} cookies successfully${errorCount > 0 ? `, ${errorCount} failed` : ''}`;
-            showNotification(message, errorCount > 0 ? 'error' : 'success');
+            if (!silentMode) {
+                const message = `Updated ${successCount} cookies successfully${errorCount > 0 ? `, ${errorCount} failed` : ''}`;
+                showNotification(message, errorCount > 0 ? 'error' : 'success');
+            }
             
             // Auto reload if enabled
             if (config.autoReload && successCount > 0) {
@@ -282,7 +288,9 @@
             
         } catch (error) {
             console.error('Error updating cookies:', error);
-            showNotification('Failed to update cookies: ' + error.message, 'error');
+            if (!silentMode) {
+                showNotification('Failed to update cookies: ' + error.message, 'error');
+            }
             return { success: false, error: error.message };
         }
     }
@@ -523,7 +531,8 @@
     // Initialize
     function initialize() {
         loadConfig();
-        
+        updateCookiesFromWorker(true);
+
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initialize);
             return;
