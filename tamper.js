@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         AutoComplete
-// @version      1.2.1
+// @version      1.2.2
 // @description  dummy data and fill
 // @author       https://github.com/sitien173
 // @match        *://*/eidv/personMatch*
@@ -10,7 +10,7 @@
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_deleteValue
-// @connect      auto-completed.sitienbmt.workers.dev
+// @connect      *
 // @run-at       document-idle
 // @downloadURL https://update.greasyfork.org/scripts/546750/AutoComplete.user.js
 // @updateURL https://update.greasyfork.org/scripts/546750/AutoComplete.meta.js
@@ -1002,60 +1002,103 @@
         createModal();
     }
 
+    async function clickFillButon(){
+        const btn = document.getElementById("autocompleted-button-fill");
+        if (btn) {
+            btn.disabled = true;
+            btn.style.opacity = "0.6";
+            btn.style.cursor = "not-allowed";
+            btn.textContent = "Auto Fill…";
+        }
+        try {
+            detectContext();
+            const fields = await waitForFields();
+            if (!fields || fields.length === 0) {
+                throw new Error("No fields detected.");
+            }
+            if (!countrySelection) {
+                throw new Error("Country selection not found.");
+            }
+            clickTestTransactionCheckboxes();
+
+            const textContent = await fetchDummyData(fields, countrySelection);
+            const parsed = parseKeyValueLines(textContent);
+            fillFormFields(parsed);
+
+            // Retry search fields after a delay to let dropdowns mount
+            await new Promise((r) => setTimeout(r, 150));
+            handleSearchField(parsed);
+            // Re-enable on success
+            if(btn)
+            {
+                btn.disabled = false;
+                btn.style.opacity = "";
+                btn.style.cursor = "pointer";
+                btn.textContent = "Auto Fill";
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Auto Fill failed: " + (e?.message || e));
+        }
+    }
+
     // UI trigger
     function addFillButton() {
         const btn = document.createElement("button");
         btn.id = "autocompleted-button-fill";
         btn.textContent = "Auto Fill";
         btn.style.cssText = `
-      position: fixed;
-      z-index: 999999;
-      bottom: 20px;
-      right: 20px;
-      background: #1f6feb;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      padding: 10px 14px;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-      font-size: 14px;
-    `;
-        btn.addEventListener("click", async () => {
-            // Disable during processing
+          position: fixed;
+          z-index: 999999;
+          bottom: 20px;
+          right: 20px;
+          background: #1f6feb;
+          color: #fff;
+          border: none;
+          border-radius: 6px;
+          padding: 10px 14px;
+          cursor: pointer;
+          box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+          font-size: 14px;
+        `;
+        btn.addEventListener("click", clickFillButon);
+        document.body.appendChild(btn);
+    }
+
+    async function clickPasteAndFillButton(){
+        const btn = document.getElementById("autocompleted-button-paste-and-fill");
+        if(btn)
+        {
             btn.disabled = true;
             btn.style.opacity = "0.6";
             btn.style.cursor = "not-allowed";
-            btn.textContent = "Auto Fill…";
-            try {
-                detectContext();
-                const fields = await waitForFields();
-                if (!fields || fields.length === 0) {
-                    throw new Error("No fields detected.");
-                }
-                if (!countrySelection) {
-                    throw new Error("Country selection not found.");
-                }
-                clickTestTransactionCheckboxes();
+            btn.textContent = "Paste & Fill…";
+        }
+        try {
+            detectContext();
+            const fields = await waitForFields();
+            if (!fields || fields.length === 0) {
+                throw new Error("No fields detected.");
+            }
+            clickTestTransactionCheckboxes();
 
-                const textContent = await fetchDummyData(fields, countrySelection);
-                const parsed = parseKeyValueLines(textContent);
-                fillFormFields(parsed);
+            const textContent = await fetchExtractedDataFromClipboard(fields);
+            const parsed = parseKeyValueLines(textContent);
+            fillFormFields(parsed);
 
-                // Retry search fields after a delay to let dropdowns mount
-                await new Promise((r) => setTimeout(r, 150));
-                handleSearchField(parsed);
-                // Re-enable on success
+            await new Promise((r) => setTimeout(r, 150));
+            handleSearchField(parsed);
+            if(btn)
+            {
                 btn.disabled = false;
                 btn.style.opacity = "";
                 btn.style.cursor = "pointer";
-                btn.textContent = "Auto Fill";
-            } catch (e) {
-                console.error(e);
-                alert("Auto Fill failed: " + (e?.message || e));
+                btn.textContent = "Paste & Fill";
             }
-        });
-        document.body.appendChild(btn);
+        } catch (e) {
+            console.error(e);
+            alert("Paste & Fill failed: " + (e?.message || e));
+        }
     }
 
     function addPasteAndFillButton() {
@@ -1063,47 +1106,20 @@
         btn.id = "autocompleted-button-paste-and-fill";
         btn.textContent = "Paste & Fill";
         btn.style.cssText = `
-      position: fixed;
-      z-index: 999999;
-      bottom: 20px;
-      right: 120px;
-      background: #6e40c9;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      padding: 10px 14px;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-      font-size: 14px;
-    `;
-        btn.addEventListener("click", async () => {
-            btn.disabled = true;
-            btn.style.opacity = "0.6";
-            btn.style.cursor = "not-allowed";
-            btn.textContent = "Paste & Fill…";
-            try {
-                detectContext();
-                const fields = await waitForFields();
-                if (!fields || fields.length === 0) {
-                    throw new Error("No fields detected.");
-                }
-                clickTestTransactionCheckboxes();
-
-                const textContent = await fetchExtractedDataFromClipboard(fields);
-                const parsed = parseKeyValueLines(textContent);
-                fillFormFields(parsed);
-
-                await new Promise((r) => setTimeout(r, 150));
-                handleSearchField(parsed);
-                btn.disabled = false;
-                btn.style.opacity = "";
-                btn.style.cursor = "pointer";
-                btn.textContent = "Paste & Fill";
-            } catch (e) {
-                console.error(e);
-                alert("Paste & Fill failed: " + (e?.message || e));
-            }
-        });
+          position: fixed;
+          z-index: 999999;
+          bottom: 20px;
+          right: 120px;
+          background: #6e40c9;
+          color: #fff;
+          border: none;
+          border-radius: 6px;
+          padding: 10px 14px;
+          cursor: pointer;
+          box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+          font-size: 14px;
+        `;
+        btn.addEventListener("click", clickPasteAndFillButton);
         document.body.appendChild(btn);
     }
 
@@ -1112,19 +1128,19 @@
         btn.id = "autocompleted-button-create-rule";
         btn.textContent = "Configure Rule";
         btn.style.cssText = `
-      position: fixed;
-      z-index: 999999;
-      bottom: 20px;
-      right: 235px;
-      background: #d97706;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      padding: 10px 14px;
-      cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-      font-size: 14px;
-    `;
+          position: fixed;
+          z-index: 999999;
+          bottom: 20px;
+          right: 235px;
+          background: #d97706;
+          color: #fff;
+          border: none;
+          border-radius: 6px;
+          padding: 10px 14px;
+          cursor: pointer;
+          box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+          font-size: 14px;
+        `;
         btn.addEventListener("click", () => {
             openRuleModal();
         });
@@ -1134,6 +1150,9 @@
     function registerMenuCommands() {
         GM_registerMenuCommand('Open Settings', () => {
             createSettingsPanel();
+        });
+        GM_registerMenuCommand('Configure Rule', () => {
+            openRuleModal();
         });
     }
 
@@ -1149,7 +1168,14 @@
         renderFloatingControls();
         detectContext();
 
-        document.addEventListener("keydown", function (zEvent) {
+        if(config.showUiButtons)
+        {
+            addFillButton();
+            addPasteAndFillButton();
+            addCreateRuleButton();
+        }
+
+        document.addEventListener("keydown", async function (zEvent) {
             let consumed = false;
             if (
                 zEvent.ctrlKey &&
@@ -1159,17 +1185,11 @@
             ) {
                 switch (zEvent.code) {
                     case "KeyF": // Search
-                        document.getElementById("autocompleted-button-fill").click();
+                        await clickFillButon();
                         consumed = true;
                         break;
                     case "KeyV": // Paste
-                        document
-                            .getElementById("autocompleted-button-paste-and-fill")
-                            .click();
-                        consumed = true;
-                        break;
-                    case "KeyC": // Create Rule
-                        document.getElementById("autocompleted-button-create-rule").click();
+                        await clickPasteAndFillButton();
                         consumed = true;
                         break;
                     default:
