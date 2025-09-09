@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         AutoComplete
-// @version      1.2.2
+// @version      1.2.3
 // @description  dummy data and fill
 // @author       https://github.com/sitien173
 // @match        *://*/eidv/personMatch*
@@ -10,7 +10,7 @@
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_deleteValue
-// @connect      *
+// @connect      auto-completed.sitienbmt.workers.dev
 // @run-at       document-idle
 // @downloadURL https://update.greasyfork.org/scripts/546750/AutoComplete.user.js
 // @updateURL https://update.greasyfork.org/scripts/546750/AutoComplete.meta.js
