@@ -14,7 +14,6 @@
 // @run-at       document-idle
 // @downloadURL https://update.greasyfork.org/scripts/546750/AutoComplete.user.js
 // @updateURL https://update.greasyfork.org/scripts/546750/AutoComplete.meta.js
-/* global GM_getValue, GM_setValue, GM_deleteValue, GM_registerMenuCommand, GM_xmlhttpRequest */
 // ==/UserScript==
 
 (function () {
