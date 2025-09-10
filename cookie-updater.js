@@ -10,7 +10,7 @@
 // @grant        GM_cookie
 // @grant        GM_xmlhttpRequest
 // @grant        GM_registerMenuCommand
-// @connect      *
+// @connect      udemy-cookies-worker-commercial.sitienbmt.workers.dev
 // @run-at       document-start
 // ==/UserScript==
 /* eslint-disable */
