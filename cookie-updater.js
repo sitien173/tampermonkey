@@ -1,8 +1,8 @@
-// ==UserScript==
+// =// @version      1.3.0UserScript==
 // @name         Cookie Updater
 // @description  Automatically fetch and update udemy cookies automatically
 // @namespace https://greasyfork.org/users/1508709
-// @version      1.2.1
+// @version      1.2.2
 // @author       https://github.com/sitien173
 // @match        *://*.itauchile.udemy.com/*
 // @grant        GM_setValue
@@ -330,32 +330,39 @@
             const currentUrl = window.location.href;
             const existingCookies = await getAllCookies(currentUrl);
             
-            // Create a map of existing cookies by name for quick lookup
-            const existingCookiesMap = {};
-            existingCookies.forEach(c => {
-                existingCookiesMap[c.name] = c;
-            });
-            
+            let removedCount = 0;
             let successCount = 0;
             let errorCount = 0;
             
-            // Process each new cookie
+            // Step 1: Remove ALL existing cookies first
+            console.log(`Removing all ${existingCookies.length} existing cookies...`);
+            if (!silentMode) {
+                showNotification(`Removing ${existingCookies.length} existing cookies...`, 'info');
+            }
+            
+            for (const existingCookie of existingCookies) {
+                try {
+                    await removeCookie(existingCookie.name, currentUrl, existingCookie);
+                    removedCount++;
+                    console.log(`Removed cookie: ${existingCookie.name}`);
+                } catch (error) {
+                    console.error(`Failed to remove cookie ${existingCookie.name}:`, error);
+                }
+            }
+            
+            console.log(`Successfully removed ${removedCount} cookies`);
+            
+            // Small delay to ensure all removals complete
+            await new Promise(resolve => setTimeout(resolve, 200));
+            
+            // Step 2: Add all new cookies
+            console.log(`Adding ${newCookies.length} new cookies...`);
+            if (!silentMode) {
+                showNotification(`Adding ${newCookies.length} new cookies...`, 'info');
+            }
+            
             for (const cookie of newCookies) {
                 try {
-                    const existingCookie = existingCookiesMap[cookie.name];
-                    const oldHostOnly = existingCookie ? existingCookie.hostOnly : null;
-                    const newHostOnly = cookie.hostOnly || false;
-                    
-                    // Remove existing cookie first if name exists OR hostOnly changed
-                    // This matches cookie-editor behavior
-                    if (existingCookie && (existingCookie.name === cookie.name || oldHostOnly !== newHostOnly)) {
-                        await removeCookie(cookie.name, currentUrl, existingCookie);
-                        console.log(`Removed existing cookie before update: ${cookie.name}`);
-                        // Small delay to ensure removal completes
-                        await new Promise(resolve => setTimeout(resolve, 100));
-                    }
-
-                    // Add new cookie
                     await saveCookie(cookie, currentUrl);
                     successCount++;
                     console.log(`Successfully saved cookie: ${cookie.name}`);
@@ -367,7 +374,7 @@
             }
 
             if (!silentMode) {
-                const message = `Updated ${successCount} cookies successfully${errorCount > 0 ? `, ${errorCount} failed` : ''}`;
+                const message = `Removed ${removedCount} old cookies, added ${successCount} new cookies${errorCount > 0 ? `, ${errorCount} failed` : ''}`;
                 showNotification(message, errorCount > 0 ? 'error' : 'success');
             }
             
