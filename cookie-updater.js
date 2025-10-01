@@ -1,4 +1,4 @@
-// =// @version      1.3.0UserScript==
+// UserScript==
 // @name         Cookie Updater
 // @description  Automatically fetch and update udemy cookies automatically
 // @namespace https://greasyfork.org/users/1508709
