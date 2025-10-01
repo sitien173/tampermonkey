@@ -2,7 +2,7 @@
 // @name         Cookie Updater
 // @description  Automatically fetch and update udemy cookies automatically
 // @namespace https://greasyfork.org/users/1508709
-// @version      1.1.2
+// @version      1.1.3
 // @author       https://github.com/sitien173
 // @match        *://*.itauchile.udemy.com/*
 // @grant        GM_setValue
@@ -14,7 +14,6 @@
 // @run-at       document-start
 // ==/UserScript==
 /* eslint-disable */
-/* global GM_getValue, GM_setValue */
 (function() {
     // Configuration
     const DEFAULT_CONFIG = {
@@ -108,27 +107,63 @@
         throw new Error(`Failed to fetch cookies after ${config.retryAttempts} attempts. Last error: ${lastError.message}`);
     }
 
+    // Prepare cookie for saving (like cookie-editor does)
+    function prepareCookie(cookie, url) {
+        const newCookie = {
+            name: cookie.name || '',
+            value: cookie.value || '',
+            url: url,
+            path: cookie.path || '/',
+            secure: cookie.secure || false,
+            httpOnly: cookie.httpOnly || false,
+            expirationDate: cookie.expirationDate || null
+        };
+
+        // Handle hostOnly cookies - set domain to null for hostOnly
+        if (cookie.hostOnly) {
+            newCookie.domain = null;
+        } else if (cookie.domain) {
+            newCookie.domain = cookie.domain;
+        }
+
+        // Handle sameSite properly
+        let sameSite = cookie.sameSite;
+        
+        // Normalize sameSite values
+        if (sameSite) {
+            const sameSiteLower = sameSite.toLowerCase();
+            if (sameSiteLower === 'no_restriction' || sameSiteLower === 'none') {
+                sameSite = 'none';
+                newCookie.secure = true; // Force secure for SameSite=None
+            } else if (sameSiteLower === 'lax') {
+                sameSite = 'lax';
+            } else if (sameSiteLower === 'strict') {
+                sameSite = 'strict';
+            } else {
+                sameSite = 'no_restriction';
+            }
+        } else {
+            sameSite = 'no_restriction';
+        }
+        
+        newCookie.sameSite = sameSite;
+
+        // Ensure session cookies don't have expirationDate
+        if (cookie.session) {
+            newCookie.expirationDate = null;
+        }
+
+        return newCookie;
+    }
+
     // Save cookie using GM_cookie
     function saveCookie(cookie, url) {
+        const preparedCookie = prepareCookie(cookie, url);
         const gmAvailable = typeof GM_cookie !== 'undefined' && GM_cookie && typeof GM_cookie.set === 'function';
+        
         if (gmAvailable) {
             return new Promise((resolve, reject) => {
-                const cookieDetails = {
-                    name: cookie.name,
-                    value: cookie.value,
-                    url: url,
-                    domain: cookie.domain || undefined,
-                    path: cookie.path || '/',
-                    secure: cookie.secure || false,
-                    httpOnly: cookie.httpOnly || false,
-                    sameSite: cookie.sameSite || 'no_restriction'
-                };
-
-                if (cookie.expirationDate) {
-                    cookieDetails.expirationDate = cookie.expirationDate;
-                }
-
-                GM_cookie.set(cookieDetails, (result, error) => {
+                GM_cookie.set(preparedCookie, (result, error) => {
                     if (error) {
                         console.error('Failed to save cookie:', error);
                         reject(error);
@@ -143,25 +178,35 @@
         // Fallback for environments where GM_cookie is not available (e.g., iOS Safari)
         return new Promise((resolve) => {
             // HttpOnly cannot be set via document.cookie
-            // Domain is omitted to restrict to current host (safest cross-browser)
-            let cookieStr = `${cookie.name}=${encodeURIComponent(cookie.value)}`;
-            cookieStr += `; path=${cookie.path || '/'}`;
-            if (cookie.secure) cookieStr += '; Secure';
+            let cookieStr = `${preparedCookie.name}=${encodeURIComponent(preparedCookie.value)}`;
+            cookieStr += `; path=${preparedCookie.path}`;
+            
+            // Handle domain for fallback
+            if (preparedCookie.domain && !cookie.hostOnly) {
+                cookieStr += `; domain=${preparedCookie.domain}`;
+            }
+            
+            if (preparedCookie.secure) {
+                cookieStr += '; Secure';
+            }
+            
             // SameSite handling
-            if (cookie.sameSite && typeof cookie.sameSite === 'string') {
-                const s = cookie.sameSite.toLowerCase();
+            if (preparedCookie.sameSite) {
+                const s = preparedCookie.sameSite.toLowerCase();
                 if (s === 'lax' || s === 'strict' || s === 'none') {
                     cookieStr += `; SameSite=${s.charAt(0).toUpperCase() + s.slice(1)}`;
-                    if (s === 'none' && cookieStr.indexOf('Secure') === -1) {
+                    if (s === 'none') {
                         cookieStr += '; Secure';
                     }
                 }
             }
-            if (cookie.expirationDate) {
+            
+            if (preparedCookie.expirationDate) {
                 const d = new Date(0);
-                d.setUTCSeconds(cookie.expirationDate);
+                d.setUTCSeconds(preparedCookie.expirationDate);
                 cookieStr += `; Expires=${d.toUTCString()}`;
             }
+            
             document.cookie = cookieStr;
             console.warn('GM_cookie not available, used document.cookie fallback. Some cookies (e.g., HttpOnly/third-party) cannot be set.');
             resolve(true);
@@ -169,9 +214,42 @@
     }
 
     // Remove cookie using GM_cookie
-    function removeCookie(name, url) {
+    async function removeCookie(name, url, cookie) {
         const gmAvailable = typeof GM_cookie !== 'undefined' && GM_cookie && typeof GM_cookie.delete === 'function';
+        
         if (gmAvailable) {
+            // Try to remove with specific domain if available
+            if (cookie && cookie.domain) {
+                const domains = [
+                    cookie.domain,
+                    '.' + cookie.domain.replace(/^\./, ''),
+                    cookie.domain.replace(/^\./, '')
+                ];
+                
+                // Try all possible domain variations
+                for (const domain of domains) {
+                    try {
+                        await new Promise((resolve, reject) => {
+                            GM_cookie.delete({
+                                name: name,
+                                url: url,
+                                domain: domain
+                            }, (result, error) => {
+                                if (error) {
+                                    resolve(false); // Continue to next domain
+                                } else {
+                                    console.log(`Successfully removed cookie: ${name} for domain: ${domain}`);
+                                    resolve(true);
+                                }
+                            });
+                        });
+                    } catch (e) {
+                        // Continue with next domain
+                    }
+                }
+            }
+            
+            // Standard removal without domain specification
             return new Promise((resolve, reject) => {
                 GM_cookie.delete({
                     name: name,
@@ -179,17 +257,25 @@
                 }, (result, error) => {
                     if (error) {
                         console.error('Failed to remove cookie:', error);
-                        reject(error);
+                        // Don't reject - some cookies might not exist
+                        resolve(false);
                     } else {
                         console.log(`Successfully removed cookie: ${name}`);
-                        resolve(result);
+                        resolve(true);
                     }
                 });
             });
         }
-        // Fallback: expire the cookie for current host
+        
+        // Fallback: expire the cookie for current host and all paths
         return new Promise((resolve) => {
-            document.cookie = `${name}=; path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+            const paths = ['/', cookie?.path || '/'];
+            paths.forEach(path => {
+                document.cookie = `${name}=; path=${path}; Expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+                if (cookie?.domain) {
+                    document.cookie = `${name}=; domain=${cookie.domain}; path=${path}; Expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+                }
+            });
             resolve(true);
         });
     }
@@ -243,7 +329,12 @@
 
             const currentUrl = window.location.href;
             const existingCookies = await getAllCookies(currentUrl);
-            const existingCookieNames = existingCookies.map(c => c.name);
+            
+            // Create a map of existing cookies by name for quick lookup
+            const existingCookiesMap = {};
+            existingCookies.forEach(c => {
+                existingCookiesMap[c.name] = c;
+            });
             
             let successCount = 0;
             let errorCount = 0;
@@ -251,10 +342,17 @@
             // Process each new cookie
             for (const cookie of newCookies) {
                 try {
-                    // Remove existing cookie if it exists
-                    if (existingCookieNames.includes(cookie.name)) {
-                        await removeCookie(cookie.name, currentUrl);
-                        console.log(`Removed existing cookie: ${cookie.name}`);
+                    const existingCookie = existingCookiesMap[cookie.name];
+                    const oldHostOnly = existingCookie ? existingCookie.hostOnly : null;
+                    const newHostOnly = cookie.hostOnly || false;
+                    
+                    // Remove existing cookie first if name exists OR hostOnly changed
+                    // This matches cookie-editor behavior
+                    if (existingCookie && (existingCookie.name === cookie.name || oldHostOnly !== newHostOnly)) {
+                        await removeCookie(cookie.name, currentUrl, existingCookie);
+                        console.log(`Removed existing cookie before update: ${cookie.name}`);
+                        // Small delay to ensure removal completes
+                        await new Promise(resolve => setTimeout(resolve, 100));
                     }
 
                     // Add new cookie
