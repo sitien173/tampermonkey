@@ -1,4 +1,4 @@
-// UserScript==
+// ==UserScript==
 // @name         Cookie Updater
 // @description  Automatically fetch and update udemy cookies automatically
 // @namespace https://greasyfork.org/users/1508709
@@ -12,6 +12,8 @@
 // @grant        GM_registerMenuCommand
 // @connect      udemy-cookies-worker-commercial.sitienbmt.workers.dev
 // @run-at       document-start
+// @downloadURL https://update.greasyfork.org/scripts/547313/Cookie%20Updater.user.js
+// @updateURL https://update.greasyfork.org/scripts/547313/Cookie%20Updater.meta.js
 // ==/UserScript==
 /* eslint-disable */
 (function() {
