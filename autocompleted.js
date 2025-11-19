@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         AutoComplete
-// @version      1.0.0
+// @version      1.0.1
 // @description  dummy data and fill
 // @author       https://github.com/sitien173
 // @match        *://*/eidv/personMatch*
@@ -10,18 +10,19 @@
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_deleteValue
-// @connect      auto-completed.sitienbmt.workers.dev
+// @connect      *
 // @run-at       document-idle
-// @downloadURL https://update.greasyfork.org/scripts/546750/AutoComplete.user.js
-// @updateURL https://update.greasyfork.org/scripts/546750/AutoComplete.meta.js
+// @downloadURL https://update.greasyfork.org/scripts/548989/AutoComplete.user.js
+// @updateURL https://update.greasyfork.org/scripts/548989/AutoComplete.meta.js
 // ==/UserScript==
 
 (function () {
     const DEFAULT_CONFIG = {
-        BACKEND_ENDPOINT: "https://auto-completed.sitienbmt.workers.dev",
+        BACKEND_ENDPOINT: "https://auto-completed-byg2dgh8egaahsg9.southeastasia-01.azurewebsites.net",
         showNotifications: true,
         enableCachedResponses: true,
         showUiButtons: false,
+        excludedFields: ['Third Party Reference','Customer Reference ID'],
     };
 
     let config = { ...DEFAULT_CONFIG };
@@ -31,6 +32,43 @@
     let isVerification = false;
     let isKyb = false;
     let isSearchFieldExisting = false;
+
+    function normalizeExcludedFields(value) {
+        if (Array.isArray(value)) {
+            return value.map((field) => field.trim()).filter(Boolean);
+        }
+        if (typeof value === "string") {
+            return value
+                .split(/[\n,]/)
+                .map((field) => field.trim())
+                .filter(Boolean);
+        }
+        return [];
+    }
+
+    function getExcludedFieldSet(processSpaces = false) {
+        return new Set(
+            (config.excludedFields || [])
+                .map((field) => processSpaces ? field.toLowerCase().replaceAll(/\s+/g, "") : field.toLowerCase())
+                .filter(Boolean)
+        );
+    }
+
+    function shouldSkipField(fieldName, control, excludedSet) {
+        if (!excludedSet || excludedSet.size === 0) return false;
+        const normalizedName = (fieldName || "").toLowerCase().replaceAll(/\s+/g, "");
+        if (excludedSet.has(normalizedName)) return true;
+
+        if (control) {
+            const nameAttr = (control.getAttribute("name") || "").toLowerCase().replaceAll(/\s+/g, "");
+            if (nameAttr && excludedSet.has(nameAttr)) return true;
+
+            const idAttr = (control.id || "").toLowerCase().replaceAll(/\s+/g, "");
+            if (idAttr && excludedSet.has(idAttr)) return true;
+        }
+
+        return false;
+    }
 
     // Helpers (ported)
     const dobMonthOpts = [
@@ -58,6 +96,7 @@
     function loadConfig() {
         const savedConfig = GM_getValue("config", {});
         config = { ...DEFAULT_CONFIG, ...savedConfig };
+        config.excludedFields = normalizeExcludedFields(config.excludedFields);
     }
 
     // Save configuration
@@ -172,6 +211,12 @@
                     Show UI Button
                 </label>
             </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px; font-weight: bold;">Skip Field Names (comma or newline separated):</label>
+                <textarea id="excluded-fields" style="width: 100%; min-height: 60px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;" placeholder="FieldName1, FieldName2">${config.excludedFields.join(", ")}</textarea>
+                <small style="color: #666;">Matching is case-insensitive against field names or IDs.</small>
+            </div>
             
             <div style="display: flex; gap: 10px; justify-content: flex-end;">
                 <button id="save-settings" style="padding: 10px 20px; background: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer;">Save Settings</button>
@@ -201,6 +246,9 @@
             ).checked;
             config.showUiButtons = panel.querySelector("#show-ui-buttons").checked;
             config.enableCachedResponses = panel.querySelector("#enable-cache-response").checked;
+            config.excludedFields = normalizeExcludedFields(
+                panel.querySelector("#excluded-fields").value || ""
+            );
 
             saveConfig();
             panel.remove();
@@ -308,66 +356,66 @@
         const modal = document.createElement("div");
         modal.id = "autocompleted-modal";
         modal.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: rgba(0,0,0,0.5);
-      backdrop-filter: blur(2px);
-      z-index: 2147483646;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-    `;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: rgba(0,0,0,0.5);
+        backdrop-filter: blur(2px);
+        z-index: 2147483646;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        `;
 
         const modalContent = document.createElement("div");
         modalContent.style.cssText = `
-      background: white;
-      border-radius: 8px;
-      padding: 24px;
-      min-width: 400px;
-      max-width: 500px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-      border: 1px solid #e1e5e9;
-    `;
+        background: white;
+        border-radius: 8px;
+        padding: 24px;
+        min-width: 400px;
+        max-width: 500px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        border: 1px solid #e1e5e9;
+        `;
 
         const header = document.createElement("div");
         header.style.cssText = `
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid #e1e5e9;
-    `;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #e1e5e9;
+        `;
 
         const title = document.createElement("h3");
         title.textContent = "Create Rule";
         title.style.cssText = `
-      margin: 0;
-      font-size: 18px;
-      font-weight: 600;
-      color: #24292f;
-    `;
+        margin: 0;
+        font-size: 18px;
+        font-weight: 600;
+        color: #24292f;
+        `;
 
         const closeBtn = document.createElement("button");
         closeBtn.textContent = "×";
         closeBtn.style.cssText = `
-      background: none;
-      border: none;
-      font-size: 24px;
-      cursor: pointer;
-      color: #656d76;
-      padding: 0;
-      width: 24px;
-      height: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 4px;
-    `;
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #656d76;
+        padding: 0;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        `;
         closeBtn.addEventListener("mouseenter", () => {
             closeBtn.style.background = "#f6f8fa";
         });
@@ -386,23 +434,23 @@
         const fieldLabel = document.createElement("label");
         fieldLabel.textContent = "Select Field:";
         fieldLabel.style.cssText = `
-      display: block;
-      margin-bottom: 8px;
-      font-weight: 500;
-      color: #24292f;
-    `;
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #24292f;
+        `;
 
         const fieldSelect = document.createElement("select");
         fieldSelect.id = "rule-field-select";
         fieldSelect.style.cssText = `
-      width: 90%;
-      padding: 8px 12px;
-      border: 1px solid #d0d7de;
-      border-radius: 6px;
-      font-size: 14px;
-      margin-bottom: 16px;
-      background: white;
-    `;
+        width: 90%;
+        padding: 8px 12px;
+        border: 1px solid #d0d7de;
+        border-radius: 6px;
+        font-size: 14px;
+        margin-bottom: 16px;
+        background: white;
+        `;
         fieldSelect.innerHTML = '<option value="">Select a field...</option>';
         fieldSelect.value = "";
 
@@ -436,26 +484,26 @@
         const ruleLabel = document.createElement("label");
         ruleLabel.textContent = "Rule:";
         ruleLabel.style.cssText = `
-      display: block;
-      margin-bottom: 8px;
-      font-weight: 500;
-      color: #24292f;
-    `;
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #24292f;
+        `;
 
         const ruleTextarea = document.createElement("textarea");
         ruleTextarea.id = "rule-textarea";
         ruleTextarea.placeholder = "Enter your rule here...";
         ruleTextarea.style.cssText = `
-      width: 90%;
-      min-height: 100px;
-      padding: 8px 12px;
-      border: 1px solid #d0d7de;
-      border-radius: 6px;
-      font-size: 14px;
-      font-family: inherit;
-      resize: vertical;
-      margin-bottom: 20px;
-    `;
+        width: 90%;
+        min-height: 100px;
+        padding: 8px 12px;
+        border: 1px solid #d0d7de;
+        border-radius: 6px;
+        font-size: 14px;
+        font-family: inherit;
+        resize: vertical;
+        margin-bottom: 20px;
+        `;
 
         ruleTextarea.addEventListener("change", (event) => {
             const fieldSelect = document.getElementById("rule-field-select");
@@ -479,22 +527,22 @@
         // Buttons
         const buttonContainer = document.createElement("div");
         buttonContainer.style.cssText = `
-      display: flex;
-      gap: 12px;
-      justify-content: flex-end;
-    `;
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        `;
 
         const cancelBtn = document.createElement("button");
         cancelBtn.textContent = "Cancel";
         cancelBtn.style.cssText = `
-      padding: 8px 16px;
-      border: 1px solid #d0d7de;
-      background: white;
-      color: #24292f;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 14px;
-    `;
+        padding: 8px 16px;
+        border: 1px solid #d0d7de;
+        background: white;
+        color: #24292f;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        `;
         cancelBtn.addEventListener("click", () => {
             GM_deleteValue(
                 `autocompleted-countrySelectionRules_${countrySelection}_temp`
@@ -505,14 +553,14 @@
         const saveBtn = document.createElement("button");
         saveBtn.textContent = "Save Rule";
         saveBtn.style.cssText = `
-      padding: 8px 16px;
-      background: #0969da;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 14px;
-    `;
+        padding: 8px 16px;
+        background: #0969da;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        `;
         saveBtn.addEventListener("click", () => {
             saveRule();
         });
@@ -656,26 +704,25 @@
     }
 
     // Parsing and filling (ported)
-    function parseKeyValueLines(text) {
-        const parsed = {};
-        const invalid = new Set([
-            "null",
-            "none",
-            "na",
-            "n/a",
-            "",
-            "undefined",
-            "unspecified",
-            "unknown",
-            "not applicable",
-            "not available",
-            "not provided",
-        ]);
-        text.split("\n").forEach((line) => {
-            const [k, v] = line.split("=").map((p) => p?.trim());
-            if (k && v && !invalid.has(v.toLowerCase())) parsed[k] = v;
-        });
-        return parsed;
+    const invalidFieldValues = new Set([
+        "null",
+        "none",
+        "na",
+        "n/a",
+        "",
+        "undefined",
+        "unspecified",
+        "unknown",
+        "not applicable",
+        "not available",
+        "not provided",
+    ]);
+
+    function transformResultsToMap(entries) {
+        return entries.reduce((acc, entry) => ({
+            ...acc,
+            [entry.fieldName]: entry.value
+        }), {});
     }
 
     function handleSelectField(selectEl, responseMap) {
@@ -763,12 +810,13 @@
     }
 
     function resetFormFields() {
+        const excludedFieldsSet = getExcludedFieldSet();
         const fields = getFormFields();
         fields.forEach((field) => {
             const control = document.querySelector(
                 `[name="${field}"], [id$="${field}"]`
             );
-            if (!control) return;
+            if (!control || shouldSkipField(field, control, excludedFieldsSet)) return;
             if (control.tagName.toLowerCase() === "select") {
                 control.selectedIndex = 0;
             } else {
@@ -877,6 +925,7 @@
     function fillFormFields(responseMap) {
         resetFormFields();
         handleSearchField(responseMap);
+        const excludedFieldsSet = getExcludedFieldSet();
 
         if (isVerification) {
             if (responseMap.MonthOfBirth) {
@@ -895,7 +944,7 @@
 
         for (const [key, value] of Object.entries(responseMap)) {
             const control = document.querySelector(`[name="${key}"], [id$="${key}"]`);
-            if (!control) continue;
+            if (!control || shouldSkipField(key, control, excludedFieldsSet)) continue;
 
             setControlValue(control, value, responseMap);
         }
@@ -982,22 +1031,24 @@
         });
     }
 
-    async function fetchExtractedDataFromClipboard(fields) {
+    async function parseDataToStructuredFormat(fields) {
         const clipboardText = await navigator.clipboard.readText();
         if (!clipboardText || !clipboardText.trim()) {
             throw new Error("Clipboard is empty");
         }
         const payload = {
-            fields: fields.join(","),
+            fields: fields,
             unstructuredData: clipboardText,
         };
         const res = await postJson(
-            `${config.BACKEND_ENDPOINT}/api/extracting-data`,
+            `${config.BACKEND_ENDPOINT}/api/parse-data-to-structured-format`,
             payload
         );
-        const json = JSON.parse(res.responseText);
-        if (!json.success) throw new Error(json.message || "Error extracting data");
-        return json.result; // expected key=value lines
+
+        if(res.status === 200) {
+            return JSON.parse(res.responseText);
+        }
+        throw new Error(res.responseText);
     }
 
     async function fetchDummyData(fields, countrySelection) {
@@ -1009,31 +1060,40 @@
         const cached_value = GM_getValue(
             `autocompleted_${countrySelection}_${fields.join(",")}_${rules}`
         );
+
         if (cached_value && config.enableCachedResponses) {
-            return JSON.parse(cached_value).result;
+            return JSON.parse(cached_value);
         }
+
+        const rulesSpec = Object.entries(rules)
+        .filter(([_, value]) => value !== "")
+        .map(([key, value]) => ({
+            fieldName: key,
+            ruleSpecification: value
+        }));
 
         const payload = {
             country: countrySelection,
-            fields: fields.join(","),
-            rule: rules || "",
+            fields: fields.filter((field) => !shouldSkipField(field, null, getExcludedFieldSet(true))),
+            rules: rulesSpec,
         };
         const res = await postJson(
-            `${config.BACKEND_ENDPOINT}/api/dummy-data`,
+            `${config.BACKEND_ENDPOINT}/api/dummy-data-generator`,
             payload
         );
-        const json = JSON.parse(res.responseText);
-        if (!json.success)
-            throw new Error(json.message || "Error fetching dummy data");
 
-        if (config.enableCachedResponses)
-        {
-            GM_setValue(
-                `autocompleted_${countrySelection}_${fields.join(",")}_${rules}`,
-                res.responseText
-            );
+        if(res.status === 200) {
+            const result = JSON.parse(res.responseText);
+            if (config.enableCachedResponses)
+            {
+                GM_setValue(
+                    `autocompleted_${countrySelection}_${fields.join(",")}_${rules}`,
+                    JSON.stringify(result)
+                );
+            }
+            return result;
         }
-        return json.result; // server returns key=value lines
+        throw new Error(res.responseText);
     }
 
     // Wait for fields to be available
@@ -1093,8 +1153,8 @@
             }
             clickTestTransactionCheckboxes();
 
-            const textContent = await fetchDummyData(fields, countrySelection);
-            const parsed = parseKeyValueLines(textContent);
+            const results = await fetchDummyData(fields, countrySelection);
+            const parsed = transformResultsToMap(results);
             fillFormFields(parsed);
 
             // Retry search fields after a delay to let dropdowns mount
@@ -1119,18 +1179,18 @@
         btn.id = "autocompleted-button-fill";
         btn.textContent = "Auto Fill";
         btn.style.cssText = `
-          position: fixed;
-          z-index: 999999;
-          bottom: 20px;
-          right: 20px;
-          background: #1f6feb;
-          color: #fff;
-          border: none;
-          border-radius: 6px;
-          padding: 10px 14px;
-          cursor: pointer;
-          box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-          font-size: 14px;
+            position: fixed;
+            z-index: 999999;
+            bottom: 20px;
+            right: 20px;
+            background: #1f6feb;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 14px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            font-size: 14px;
         `;
         btn.addEventListener("click", clickFillButon);
         document.body.appendChild(btn);
@@ -1152,8 +1212,8 @@
             }
             clickTestTransactionCheckboxes();
 
-            const textContent = await fetchExtractedDataFromClipboard(fields);
-            const parsed = parseKeyValueLines(textContent);
+            const results = await parseDataToStructuredFormat(fields);
+            const parsed = transformResultsToMap(results);
             fillFormFields(parsed);
 
             await new Promise((r) => setTimeout(r, 150));
@@ -1175,18 +1235,18 @@
         btn.id = "autocompleted-button-paste-and-fill";
         btn.textContent = "Paste & Fill";
         btn.style.cssText = `
-          position: fixed;
-          z-index: 999999;
-          bottom: 20px;
-          right: 120px;
-          background: #6e40c9;
-          color: #fff;
-          border: none;
-          border-radius: 6px;
-          padding: 10px 14px;
-          cursor: pointer;
-          box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-          font-size: 14px;
+            position: fixed;
+            z-index: 999999;
+            bottom: 20px;
+            right: 120px;
+            background: #6e40c9;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 14px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            font-size: 14px;
         `;
         btn.addEventListener("click", clickPasteAndFillButton);
         document.body.appendChild(btn);
@@ -1197,18 +1257,18 @@
         btn.id = "autocompleted-button-create-rule";
         btn.textContent = "Configure Rule";
         btn.style.cssText = `
-          position: fixed;
-          z-index: 999999;
-          bottom: 20px;
-          right: 235px;
-          background: #d97706;
-          color: #fff;
-          border: none;
-          border-radius: 6px;
-          padding: 10px 14px;
-          cursor: pointer;
-          box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-          font-size: 14px;
+            position: fixed;
+            z-index: 999999;
+            bottom: 20px;
+            right: 235px;
+            background: #d97706;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 14px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            font-size: 14px;
         `;
         btn.addEventListener("click", () => {
             openRuleModal();
