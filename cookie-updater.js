@@ -2,9 +2,9 @@
 // @name         Cookie Updater
 // @description  Automatically fetch and update udemy cookies automatically
 // @namespace https://greasyfork.org/users/1508709
-// @version      1.2.2
+// @version      1.2.3
 // @author       https://github.com/sitien173
-// @match        *://*.itauchile.udemy.com/*
+// @match        *://*.udemy.com/*
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_cookie

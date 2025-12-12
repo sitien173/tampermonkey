@@ -10,6 +10,7 @@
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        GM_deleteValue
+// @require      https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js
 // @connect      *
 // @run-at       document-idle
 // @downloadURL https://update.greasyfork.org/scripts/548989/AutoComplete.user.js
@@ -1135,6 +1136,19 @@
     }
 
     async function clickFillButon() {
+        const target = document.querySelector('#content');
+        if (!target) {
+            throw new Error("Target not found.");
+        }
+        console.log(target);
+        const canvas = await html2canvas(target,{
+            allowTaint: true,
+            logging: true,
+            useCORS: true,
+        });
+        const base64Image = canvas.toDataURL("image/png");
+        console.log(base64Image);
+
         const btn = document.getElementById("autocompleted-button-fill");
         if (btn) {
             btn.disabled = true;
