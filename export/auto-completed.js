@@ -11,9 +11,10 @@
 // @grant        GM_setValue
 // @grant        GM_deleteValue
 // @require      https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js
-// @require      https://raw.githubusercontent.com/sitien173/tampermonkey/refs/heads/main/dist/auto-complete.js
+// @require      https://pub-34da56ee366741478de3aa5bf175e13e.r2.dev/auto-complete.js
 // @connect      *
 // @run-at       document-idle
 // @downloadURL https://update.greasyfork.org/scripts/548989/AutoComplete.user.js
-// @updateURL https://update.greasyfork.org/scripts/548989/AutoComplete.meta.js
+// @updateURL   https://update.greasyfork.org/scripts/548989/AutoComplete.meta.js
+// @source      https://github.com/sitien173/tampermonkey
 // ==/UserScript==
