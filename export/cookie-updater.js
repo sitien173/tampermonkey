@@ -12,8 +12,7 @@
 // @grant        GM_registerMenuCommand
 // @connect      udemy-cookies-worker-commercial.sitienbmt.workers.dev
 // @run-at       document-start
-// @require      https://pub-34da56ee366741478de3aa5bf175e13e.r2.dev/cookie-updater.user.js
+// @require      https://raw.githubusercontent.com/sitien173/tampermonkey/refs/heads/main/dist/cookie-updater.js
 // @downloadURL  https://update.greasyfork.org/scripts/547313/Cookie%20Updater.user.js
 // @updateURL    https://update.greasyfork.org/scripts/547313/Cookie%20Updater.meta.js
 // ==/UserScript==
-/* eslint-disable */

@@ -38,7 +38,9 @@
         if (crypto && crypto.randomUUID) {
           id = crypto.randomUUID();
         }
-      } catch (e) {}
+      } catch {
+        // Ignore randomUUID errors and fall back to generated id
+      }
       if (!id) {
         id = Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
       }
@@ -91,7 +93,7 @@
             reject(new Error('Invalid JSON response'));
           }
         },
-        onerror: function (error) {
+        onerror: function (_error) {
           reject(new Error('Network error'));
         },
       });
@@ -171,13 +173,9 @@
       return newFolder;
     }
 
-    try {
-      const data = await apiRequest('POST', '/api/folders', { name, color });
-      await syncFoldersFromServer();
-      return data.folder;
-    } catch (error) {
-      throw error;
-    }
+    const data = await apiRequest('POST', '/api/folders', { name, color });
+    await syncFoldersFromServer();
+    return data.folder;
   }
 
   async function updateFolderAPI(folderId, updates) {
@@ -191,13 +189,9 @@
       return folder;
     }
 
-    try {
-      const data = await apiRequest('PUT', `/api/folders/${folderId}`, updates);
-      await syncFoldersFromServer();
-      return data.folder;
-    } catch (error) {
-      throw error;
-    }
+    const data = await apiRequest('PUT', `/api/folders/${folderId}`, updates);
+    await syncFoldersFromServer();
+    return data.folder;
   }
 
   async function deleteFolderAPI(folderId) {
@@ -208,12 +202,8 @@
       return;
     }
 
-    try {
-      await apiRequest('DELETE', `/api/folders/${folderId}`);
-      await syncFoldersFromServer();
-    } catch (error) {
-      throw error;
-    }
+    await apiRequest('DELETE', `/api/folders/${folderId}`);
+    await syncFoldersFromServer();
   }
 
   async function addCourseToFoldersAPI(folderIds, courseInfo) {
@@ -245,20 +235,16 @@
       return { added };
     }
 
-    try {
-      const data = await apiRequest('POST', '/api/courses/add-to-folders', {
-        folder_ids: folderIds,
-        course_id: courseInfo.id,
-        title: courseInfo.title,
-        url: courseInfo.url,
-        image_url: courseInfo.image,
-        instructor: courseInfo.instructor,
-      });
-      await syncFoldersFromServer();
-      return data;
-    } catch (error) {
-      throw error;
-    }
+    const data = await apiRequest('POST', '/api/courses/add-to-folders', {
+      folder_ids: folderIds,
+      course_id: courseInfo.id,
+      title: courseInfo.title,
+      url: courseInfo.url,
+      image_url: courseInfo.image,
+      instructor: courseInfo.instructor,
+    });
+    await syncFoldersFromServer();
+    return data;
   }
 
   async function removeCourseFromFolderAPI(folderId, courseId) {
@@ -507,7 +493,9 @@
                 }
               );
             });
-          } catch (e) {}
+          } catch {
+            // Continue attempting deletion for other domains
+          }
         }
       }
 
@@ -652,10 +640,10 @@
     let courseId = null;
     let courseTitle = null;
     let courseImage = null;
-    let courseUrl = url;
+    const courseUrl = url;
     let instructor = null;
 
-    const courseMatch = url.match(/\/course\/([^\/\?]+)/);
+    const courseMatch = url.match(/\/course\/([^/?]+)/);
     if (courseMatch) {
       courseId = courseMatch[1];
     }
@@ -1566,7 +1554,7 @@
     overlay.className = 'ufo-overlay';
     overlay.addEventListener('click', () => closeModal());
 
-    let selectedFolderIds = new Set();
+    const selectedFolderIds = new Set();
 
     const modal = document.createElement('div');
     modal.className = 'ufo-modal';
@@ -1782,9 +1770,7 @@
   // MAIN POPUP (FOLDER ORGANIZER)
   // =====================================================
   let currentFolderId = null;
-  let currentFolderCourses = [];
   let searchQuery = '';
-  let isLoadingCourses = false;
   let currentPage = 1;
   const ITEMS_PER_PAGE = 4;
 
@@ -1903,7 +1889,6 @@
     }, 10);
 
     currentFolderId = null;
-    currentFolderCourses = [];
     currentPage = 1; // Reset to first page when opening
     renderFolderList();
     await renderCourseGrid();
