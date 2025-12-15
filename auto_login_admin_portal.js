@@ -12,25 +12,29 @@
 // @namespace https://greasyfork.org/users/1508709
 // ==/UserScript==
 
-(function() {
-    const USERNAME = 'tien_ad';
-    const PASSWORD = '123';
+(function () {
+  const USERNAME = 'tien_ad';
+  const PASSWORD = '123';
 
-    const usernameInput = document.querySelector('input[name="Username"], input#Username, input[name="username"], input[name="UserName"]');
-    const passwordInput = document.querySelector('input[name="Password"], input#Password, input[name="password"]');
-    const submitButton = document.querySelector('button[type="submit"], input[type="submit"]');
+  const usernameInput = document.querySelector(
+    'input[name="Username"], input#Username, input[name="username"], input[name="UserName"]'
+  );
+  const passwordInput = document.querySelector(
+    'input[name="Password"], input#Password, input[name="password"]'
+  );
+  const submitButton = document.querySelector('button[type="submit"], input[type="submit"]');
 
-    if (usernameInput && passwordInput && submitButton) {
-        usernameInput.value = USERNAME;
-        passwordInput.value = PASSWORD;
+  if (usernameInput && passwordInput && submitButton) {
+    usernameInput.value = USERNAME;
+    passwordInput.value = PASSWORD;
 
-        // Trigger input events in case the app listens for them
-        usernameInput.dispatchEvent(new Event('input', { bubbles: true }));
-        passwordInput.dispatchEvent(new Event('input', { bubbles: true }));
+    // Trigger input events in case the app listens for them
+    usernameInput.dispatchEvent(new Event('input', { bubbles: true }));
+    passwordInput.dispatchEvent(new Event('input', { bubbles: true }));
 
-        // Optional small delay for better compatibility
-        setTimeout(() => {
-            submitButton.click();
-        }, 300);
-    }
+    // Optional small delay for better compatibility
+    setTimeout(() => {
+      submitButton.click();
+    }, 300);
+  }
 })();
