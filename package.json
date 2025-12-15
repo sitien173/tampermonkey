@@ -10,13 +10,10 @@
     "clean": "gulp clean",
     "dev": "gulp dev",
     "build": "gulp build",
-    "build:single": "gulp single --file",
     "watch": "gulp watch",
-    "list": "gulp list",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "format": "prettier --write \"*.{js,jsx,ts,tsx,css,json}\"",
-    "format:check": "prettier --check \"*.{js,jsx,ts,tsx,css,json}\""
+    "format": "prettier --write \"src/**/*.js\"",
+    "format:check": "prettier --check \"src/**/*.js\""
   },
   "devDependencies": {
     "@babel/core": "^7.23.0",
@@ -24,14 +21,10 @@
     "del": "^6.1.1",
     "gulp": "^5.0.1",
     "gulp-babel": "^8.0.0",
-    "gulp-concat": "^2.6.1",
-    "gulp-header": "^1.8.9",
     "gulp-javascript-obfuscator": "^1.1.6",
-    "gulp-rename": "^2.0.0",
     "gulp-sourcemaps": "^2.6.5",
     "gulp-uglify": "^3.0.2",
-    "prettier": "^3.4.2",
-    "through2": "^4.0.2"
+    "prettier": "^3.4.2"
   },
   "author": "",
   "license": "ISC",

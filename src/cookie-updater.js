@@ -1,21 +1,3 @@
-// ==UserScript==
-// @name         Cookie Updater & Folder Organizer
-// @description  Automatically fetch and update udemy cookies + organize courses into folders (Cloud Sync)
-// @namespace    https://greasyfork.org/users/1508709
-// @version      3.0.0
-// @author       https://github.com/sitien173
-// @match        *://*.udemy.com/*
-// @grant        GM_setValue
-// @grant        GM_getValue
-// @grant        GM_cookie
-// @grant        GM_xmlhttpRequest
-// @grant        GM_registerMenuCommand
-// @connect      udemy-cookies-worker-commercial.sitienbmt.workers.dev
-// @run-at       document-start
-// @downloadURL  https://update.greasyfork.org/scripts/547313/Cookie%20Updater.user.js
-// @updateURL    https://update.greasyfork.org/scripts/547313/Cookie%20Updater.meta.js
-// ==/UserScript==
-/* eslint-disable */
 (function () {
   'use strict';
 
