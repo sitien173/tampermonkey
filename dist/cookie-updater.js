@@ -1,10 +1,10 @@
 (function () {
   'use strict';
 
+  const workerUrl = 'https://udemy-cookies-worker-commercial.sitienbmt.workers.dev';
+
   const DEFAULT_CONFIG = {
-    workerUrl: 'https://udemy-cookies-worker-commercial.sitienbmt.workers.dev',
     licenseKey: '',
-    showNotifications: true,
     retryAttempts: 3,
     showUiButtons: true,
     showFolderOrganizer: true
@@ -12,7 +12,7 @@
   let config = {
     ...DEFAULT_CONFIG
   };
-  let folders = []; 
+  let folders = [];
   let isOrganizerPopupOpen = false;
   let isSyncing = false;
   let lastSyncTime = 0;
@@ -60,7 +60,7 @@
 
   function apiRequest(method, endpoint, body = null) {
     return new Promise((resolve, reject) => {
-      const url = config.workerUrl + endpoint;
+      const url = workerUrl + endpoint;
       GM_xmlhttpRequest({
         method: method,
         url: url,
@@ -279,7 +279,7 @@
         return new Promise((resolve, reject) => {
           GM_xmlhttpRequest({
             method: 'GET',
-            url: config.workerUrl + '?key=' + encodeURIComponent(config.licenseKey) + '&device=' + encodeURIComponent(getOrCreateDeviceId()),
+            url: workerUrl + '?key=' + encodeURIComponent(config.licenseKey) + '&device=' + encodeURIComponent(getOrCreateDeviceId()),
             onload: function (response) {
               if (response.status === 200) {
                 try {
@@ -1216,7 +1216,6 @@
   };
 
   function showNotification(message, type = 'info') {
-    if (!config.showNotifications) return;
     const existingNotification = document.getElementById('udemy-cookie-notification');
     if (existingNotification) existingNotification.remove();
     const notification = document.createElement('div');
@@ -1498,10 +1497,6 @@
             <div class="ufo-settings-section">
                 <div class="ufo-settings-section-title">Configuration</div>
                 <div style="margin-bottom: 12px;">
-                    <label style="color: rgba(255,255,255,0.7); font-size: 12px; display: block; margin-bottom: 6px;">Worker URL</label>
-                    <input type="text" class="ufo-modal-input" id="settings-worker-url" value="${config.workerUrl}" style="margin-bottom: 0;">
-                </div>
-                <div style="margin-bottom: 12px;">
                     <label style="color: rgba(255,255,255,0.7); font-size: 12px; display: block; margin-bottom: 6px;">License Key</label>
                     <input type="text" class="ufo-modal-input" id="settings-license-key" value="${config.licenseKey}" style="margin-bottom: 0;">
                 </div>
@@ -1509,10 +1504,6 @@
 
             <div class="ufo-settings-section">
                 <div class="ufo-settings-section-title">Display</div>
-                <div class="ufo-settings-row">
-                    <div class="ufo-settings-label">Show Notifications</div>
-                    <div class="ufo-toggle ${config.showNotifications ? 'active' : ''}" data-setting="showNotifications"></div>
-                </div>
                 <div class="ufo-settings-row">
                     <div class="ufo-settings-label">Show UI Buttons</div>
                     <div class="ufo-toggle ${config.showUiButtons ? 'active' : ''}" data-setting="showUiButtons"></div>
@@ -1560,9 +1551,7 @@
     modal.querySelector('.cancel').addEventListener('click', closeModal);
     modal.querySelector('.primary').addEventListener('click', async () => {
       const oldLicenseKey = config.licenseKey;
-      config.workerUrl = modal.querySelector('#settings-worker-url').value;
       config.licenseKey = modal.querySelector('#settings-license-key').value;
-      config.showNotifications = modal.querySelector('[data-setting="showNotifications"]').classList.contains('active');
       config.showUiButtons = modal.querySelector('[data-setting="showUiButtons"]').classList.contains('active');
       config.showFolderOrganizer = modal.querySelector('[data-setting="showFolderOrganizer"]').classList.contains('active');
       saveConfig();
@@ -1899,7 +1888,6 @@
   function renderFloatingControls() {
     const existing = document.getElementById('udemy-combined-controls');
     if (existing) existing.remove();
-    if (!config.showUiButtons) return;
     const container = document.createElement('div');
     container.id = 'udemy-combined-controls';
     const settingsBtn = document.createElement('button');
@@ -1912,6 +1900,10 @@
     fetchBtn.addEventListener('click', async () => {
       await updateCookiesFromWorker();
     });
+    if (config.showUiButtons) {
+      container.appendChild(fetchBtn);
+      container.appendChild(settingsBtn);
+    }
     if (config.showFolderOrganizer) {
       const folderBtn = document.createElement('button');
       folderBtn.className = 'ucc-btn primary';
@@ -1936,8 +1928,6 @@
       });
       container.appendChild(saveBtn);
     }
-    container.appendChild(fetchBtn);
-    container.appendChild(settingsBtn);
     document.body.appendChild(container);
   }
 
@@ -1958,18 +1948,6 @@
   function registerMenuCommands() {
     GM_registerMenuCommand('🍪 Update Cookies Now', async () => {
       await updateCookiesFromWorker();
-    });
-    GM_registerMenuCommand('📁 Open Folder Organizer', () => {
-      if (!isOrganizerPopupOpen) createMainPopup();
-    });
-    GM_registerMenuCommand('➕ Save Current Course', () => {
-      const courseInfo = getCurrentCourseInfo();
-      showAddCourseModal(courseInfo);
-    });
-    GM_registerMenuCommand('🔄 Sync Folders from Cloud', async () => {
-      showNotification('Syncing folders...', 'info');
-      await syncFoldersFromServer();
-      showNotification('Folders synced!', 'success');
     });
     GM_registerMenuCommand('⚙️ Open Settings', showSettingsModal);
   }
@@ -1993,7 +1971,6 @@
   function onDomReady() {
     injectStyles();
     renderFloatingControls();
-
     let lastUrl = location.href;
     new MutationObserver(() => {
       if (location.href !== lastUrl) {
