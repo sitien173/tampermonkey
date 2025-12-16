@@ -2,7 +2,7 @@
 // @name         Cookie Updater
 // @description  udemy cookies + organize courses
 // @namespace    https://greasyfork.org/users/1508709
-// @version      3.0.3
+// @version      3.0.4
 // @author       https://github.com/sitien173
 // @match        *://*.udemy.com/*
 // @grant        GM_setValue
@@ -2150,106 +2150,115 @@
   // =====================================================
   // COURSE HOVER POPUP - SAVE BUTTON INJECTION
   // =====================================================
-  function getCourseInfoFromPopup(popup) {
+  function getCourseInfoFromPopup(popupElement) {
     // Extract course info from the hover popup
-    // Try multiple selectors for title - new Udemy structure uses data-testid
-    const titleEl = popup.querySelector(
-      '[data-testid="quick-view-box-title"], ' +
-      '[data-purpose="course-title-url"], ' +
-      'a[class*="course-details-quick-view-box-module--title"], ' +
-      'h3[data-purpose="safely-set-inner-html:popper-content:title"]'
-    );
-    const title = titleEl?.textContent?.trim() || 'Unknown Course';
-
-    // Find link to course page
-    const linkEl = popup.querySelector(
-      '[data-testid="quick-view-box-title"], ' +
+    // Try multiple selectors for title - Udemy uses data-testid="quick-view-box-title"
+    const titleEl = popupElement.querySelector(
+      '[data-testid="quick-view-box-title"]'
+    ) || popupElement.querySelector(
+      'a[class*="course-details-quick-view-box-module--title"]'
+    ) || popupElement.querySelector(
       'a[href*="/course/"]'
     );
-    let url = linkEl?.href || '';
+    
+    const title = titleEl?.textContent?.trim() || 'Unknown Course';
+
+    // Find link to course page - the title element is usually the link
+    let url = titleEl?.href || '';
     
     // Make sure we have a full URL
     if (url && !url.startsWith('http')) {
       url = 'https://www.udemy.com' + url;
     }
 
-    // Extract course ID from URL
+    // Extract course ID from URL (the slug)
     const courseMatch = url.match(/\/course\/([^/?]+)/);
-    const courseId = courseMatch ? courseMatch[1] : btoa(url).slice(0, 20);
+    let courseId = 'unknown';
+    if (courseMatch) {
+      courseId = courseMatch[1];
+    } else if (url) {
+      courseId = btoa(url).slice(0, 20);
+    }
 
-    // Find course image
-    const imgEl = popup.querySelector('img[src*="udemycdn.com"]');
+    // Find course image (might not be in popup, but try)
+    const imgEl = popupElement.querySelector('img[src*="udemycdn.com"]');
     const image = imgEl?.src || '';
 
-    // Find instructor - try multiple selectors
-    const instructorEl = popup.querySelector(
-      '[class*="instructor"], ' +
-      '[data-purpose="safely-set-inner-html:popper-content:instructor"], ' +
-      '[data-testid="quick-view-box-headline"]'
-    );
-    const instructor = instructorEl?.textContent?.trim() || '';
+    // Find headline/description as instructor fallback
+    const headlineEl = popupElement.querySelector('[data-testid="quick-view-box-headline"]');
+    const headline = headlineEl?.textContent?.trim() || '';
 
     return {
       id: courseId,
       title: title,
       image: image,
       url: url,
-      instructor: instructor,
+      instructor: headline, // Use headline as description/instructor
       addedAt: Date.now(),
     };
   }
 
-  function injectSaveButtonToPopup(popup) {
-    // Check if we already injected the button
-    if (popup.querySelector('.ufo-popup-save-btn')) return;
+  function injectSaveButtonToPopup(popupElement) {
+    // Check if we already injected the button anywhere in this popup
+    if (popupElement.querySelector('.ufo-popup-save-btn')) return;
 
-    // Find the CTA/button container in new Udemy structure
-    let buttonContainer = popup.querySelector('[class*="course-details-quick-view-box-module--cta"]');
+    // Strategy 1: Find the CTA container div (best location)
+    let ctaContainer = popupElement.querySelector('[class*="course-details-quick-view-box-module--cta--"]');
     
-    // Fallback: Find Enroll button's parent container
-    if (!buttonContainer) {
-      const enrollBtn = popup.querySelector('[data-testid="enroll-now-button"]');
+    // Strategy 2: Find the empty cta-button placeholder div
+    if (!ctaContainer) {
+      ctaContainer = popupElement.querySelector('[class*="course-details-quick-view-box-module--cta-button--"]');
+    }
+    
+    // Strategy 3: Find the Enroll button and get its parent's parent (the CTA container)
+    if (!ctaContainer) {
+      const enrollBtn = popupElement.querySelector('[data-testid="enroll-now-button"]');
       if (enrollBtn) {
-        buttonContainer = enrollBtn.closest('[class*="cta"]') || enrollBtn.parentElement?.parentElement;
+        // Go up to find the cta container: enroll-btn -> add-to-cart div -> cta div
+        ctaContainer = enrollBtn.parentElement?.parentElement;
       }
     }
 
-    // Fallback: Old selectors for legacy popup structure
-    if (!buttonContainer) {
-      buttonContainer =
-        popup.querySelector('[class*="popper-module--popper-content"] [class*="buy-button"]')
-          ?.parentElement ||
-        popup.querySelector('[data-purpose="add-to-cart"]')?.parentElement ||
-        popup.querySelector('button[data-purpose="buy-this-course-button"]')?.parentElement ||
-        popup.querySelector('.ud-btn-primary')?.parentElement ||
-        popup.querySelector('.ud-btn-brand')?.parentElement;
+    // Strategy 4: Find the add-to-cart container
+    if (!ctaContainer) {
+      ctaContainer = popupElement.querySelector('[class*="course-details-quick-view-box-module--add-to-cart--"]');
+      if (ctaContainer) {
+        ctaContainer = ctaContainer.parentElement; // Go up to cta container
+      }
     }
 
-    if (!buttonContainer) {
-      // Alternative: try to find any button area or the popover inner content
-      const altContainer =
-        popup.querySelector('[class*="course-card--footer"]') ||
-        popup.querySelector('[class*="popover-module--inner"]') ||
-        popup.querySelector('[data-testid="course-details-content"]') ||
-        popup.querySelector('[class*="popper-module--popper-content"] > div > div:last-child');
-      if (altContainer) {
-        const saveBtn = createPopupSaveButton(popup);
-        altContainer.appendChild(saveBtn);
-        return;
-      }
+    // Strategy 5: Find popover inner content as fallback
+    if (!ctaContainer) {
+      ctaContainer = popupElement.querySelector('[class*="popover-module--inner"]');
+    }
+
+    // Strategy 6: Find the course details content div
+    if (!ctaContainer) {
+      ctaContainer = popupElement.querySelector('[data-testid="course-details-content"]');
+    }
+
+    if (!ctaContainer) {
+      console.log('[UFO] Could not find container for save button in popup');
       return;
     }
 
-    const saveBtn = createPopupSaveButton(popup);
-    buttonContainer.appendChild(saveBtn);
+    const saveBtn = createPopupSaveButton(popupElement);
+    
+    // If we're adding to the CTA container, append it
+    // If we found the cta-button placeholder, replace its content
+    const ctaBtnPlaceholder = ctaContainer.querySelector('[class*="course-details-quick-view-box-module--cta-button--"]');
+    if (ctaBtnPlaceholder) {
+      ctaBtnPlaceholder.appendChild(saveBtn);
+    } else {
+      ctaContainer.appendChild(saveBtn);
+    }
   }
 
-  function createPopupSaveButton(popup) {
+  function createPopupSaveButton(popupElement) {
     const saveBtn = document.createElement('button');
-    saveBtn.className = 'ufo-popup-save-btn ud-btn ud-btn-small ud-btn-secondary ud-heading-sm';
+    saveBtn.className = 'ufo-popup-save-btn ud-btn ud-btn-medium ud-btn-secondary ud-heading-sm';
     saveBtn.style.cssText = `
       margin-left: 8px;
-      margin-top: 8px;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
       border: none;
@@ -2262,8 +2271,9 @@
       align-items: center;
       gap: 6px;
       transition: all 0.2s ease;
+      white-space: nowrap;
     `;
-    saveBtn.innerHTML = `${ICONS.bookmark} Save`;
+    saveBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor" style="width:16px;height:16px"><path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg> Save`;
     saveBtn.title = 'Save course to folder';
 
     saveBtn.addEventListener('mouseenter', () => {
@@ -2279,11 +2289,11 @@
     saveBtn.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      const courseInfo = getCourseInfoFromPopup(popup);
-      if (courseInfo.id && courseInfo.title) {
+      const courseInfo = getCourseInfoFromPopup(popupElement);
+      if (courseInfo.id && courseInfo.title && courseInfo.title !== 'Unknown Course') {
         showAddCourseModal(courseInfo);
       } else {
-        showNotification('Could not get course info', 'error');
+        showNotification('Could not get course info from popup', 'error');
       }
     });
 
@@ -2291,12 +2301,12 @@
   }
 
   function observeCoursePopups() {
-    // Selectors for course hover popups
+    // Selectors for course hover popups - Udemy uses popover-module (not popper)
     const popupSelectors = [
-      '[class*="popper-module--popper-content"]',
-      '[data-testid="popover-render-content"]',
-      '[data-purpose="course-card-popover"]',
-      '[class*="course-details-quick-view-box-module--popover"]',
+      '[class*="popover-module--popover--"]',           // Main popup container
+      '[class*="popper-module--popper-content"]',       // Alternative wrapper
+      '[data-testid="popover-render-content"]',         // Data attribute selector
+      '[data-testid="course-details-content"]',         // Course details container
     ].join(', ');
 
     // Watch for course hover popups
@@ -2308,23 +2318,35 @@
           // Check if this is a course popup or contains one
           const popups = [];
 
-          // Direct popup detection
+          // Direct popup detection - check if the added node matches
           if (node.matches && node.matches(popupSelectors)) {
             popups.push(node);
           }
 
-          // Child popup detection
-          const childPopups = node.querySelectorAll?.(popupSelectors) || [];
-          popups.push(...childPopups);
+          // Also check children of the added node
+          if (node.querySelectorAll) {
+            const childPopups = node.querySelectorAll(popupSelectors);
+            popups.push(...childPopups);
+          }
+
+          // Also check if parent might be a popup (for deeply nested additions)
+          let parent = node.parentElement;
+          while (parent && parent !== document.body) {
+            if (parent.matches && parent.matches(popupSelectors)) {
+              if (!popups.includes(parent)) {
+                popups.push(parent);
+              }
+              break;
+            }
+            parent = parent.parentElement;
+          }
 
           for (const popup of popups) {
-            // Check if this popup contains course info (title link)
-            const hasCourseLink = popup.querySelector(
-              '[data-testid="quick-view-box-title"], a[href*="/course/"]'
-            );
-            if (hasCourseLink) {
+            // Check if this popup contains the course title (quick-view-box-title)
+            const hasCourseTitle = popup.querySelector('[data-testid="quick-view-box-title"]');
+            if (hasCourseTitle) {
               // Small delay to let the popup fully render
-              setTimeout(() => injectSaveButtonToPopup(popup), 100);
+              setTimeout(() => injectSaveButtonToPopup(popup), 150);
             }
           }
         }
@@ -2335,6 +2357,17 @@
       childList: true,
       subtree: true,
     });
+
+    // Also try to inject into any existing popups on page load
+    setTimeout(() => {
+      const existingPopups = document.querySelectorAll(popupSelectors);
+      existingPopups.forEach(popup => {
+        const hasCourseTitle = popup.querySelector('[data-testid="quick-view-box-title"]');
+        if (hasCourseTitle) {
+          injectSaveButtonToPopup(popup);
+        }
+      });
+    }, 1000);
   }
 
   // =====================================================
