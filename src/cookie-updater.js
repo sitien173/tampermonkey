@@ -2,7 +2,7 @@
 // @name         Cookie Updater
 // @description  udemy cookies + organize courses
 // @namespace    https://greasyfork.org/users/1508709
-// @version      3.0.1
+// @version      3.0.2
 // @author       https://github.com/sitien173
 // @match        *://*.udemy.com/*
 // @grant        GM_setValue
@@ -12,8 +12,8 @@
 // @grant        GM_registerMenuCommand
 // @connect      udemy-cookies-worker-commercial.sitienbmt.workers.dev
 // @run-at       document-start
-// @downloadURL  https://update.greasyfork.org/scripts/547313/Cookie%20Updater.user.js
-// @updateURL    https://update.greasyfork.org/scripts/547313/Cookie%20Updater.meta.js
+// @downloadURL  https://pub-34da56ee366741478de3aa5bf175e13e.r2.dev/cookie-updater.user.js
+// @updateURL    https://pub-34da56ee366741478de3aa5bf175e13e.r2.dev/cookie-updater.meta.js
 // @source       https://github.com/sitien173/tampermonkey
 // ==/UserScript==
 (function () {
@@ -2148,6 +2148,157 @@
   }
 
   // =====================================================
+  // COURSE HOVER POPUP - SAVE BUTTON INJECTION
+  // =====================================================
+  function getCourseInfoFromPopup(popup) {
+    // Extract course info from the hover popup
+    const titleEl = popup.querySelector(
+      '[data-purpose="course-title-url"] , h3[data-purpose="safely-set-inner-html:popper-content:title"]'
+    );
+    const title = titleEl?.textContent?.trim() || 'Unknown Course';
+
+    const linkEl = popup.querySelector('a[href*="/course/"]');
+    const url = linkEl?.href || '';
+
+    // Extract course ID from URL
+    const courseMatch = url.match(/\/course\/([^/?]+)/);
+    const courseId = courseMatch ? courseMatch[1] : btoa(url).slice(0, 20);
+
+    const imgEl = popup.querySelector('img[src*="udemycdn.com"]');
+    const image = imgEl?.src || '';
+
+    const instructorEl = popup.querySelector(
+      '[class*="instructor"], [data-purpose="safely-set-inner-html:popper-content:instructor"]'
+    );
+    const instructor = instructorEl?.textContent?.trim() || '';
+
+    return {
+      id: courseId,
+      title: title,
+      image: image,
+      url: url,
+      instructor: instructor,
+      addedAt: Date.now(),
+    };
+  }
+
+  function injectSaveButtonToPopup(popup) {
+    // Check if we already injected the button
+    if (popup.querySelector('.ufo-popup-save-btn')) return;
+
+    // Find the button container (where Enroll/Go to course button is)
+    const buttonContainer =
+      popup.querySelector('[class*="popper-module--popper-content"] [class*="buy-button"]')
+        ?.parentElement ||
+      popup.querySelector('[data-purpose="add-to-cart"]')?.parentElement ||
+      popup.querySelector('button[data-purpose="buy-this-course-button"]')?.parentElement ||
+      popup.querySelector('.ud-btn-primary')?.parentElement;
+
+    if (!buttonContainer) {
+      // Alternative: try to find any button area
+      const altContainer =
+        popup.querySelector('[class*="course-card--footer"]') ||
+        popup.querySelector('[class*="popper-module--popper-content"] > div > div:last-child');
+      if (altContainer) {
+        const saveBtn = createPopupSaveButton(popup);
+        altContainer.appendChild(saveBtn);
+        return;
+      }
+      return;
+    }
+
+    const saveBtn = createPopupSaveButton(popup);
+    buttonContainer.appendChild(saveBtn);
+  }
+
+  function createPopupSaveButton(popup) {
+    const saveBtn = document.createElement('button');
+    saveBtn.className = 'ufo-popup-save-btn ud-btn ud-btn-small ud-btn-secondary ud-heading-sm';
+    saveBtn.style.cssText = `
+      margin-left: 8px;
+      margin-top: 8px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    `;
+    saveBtn.innerHTML = `${ICONS.bookmark} Save`;
+    saveBtn.title = 'Save course to folder';
+
+    saveBtn.addEventListener('mouseenter', () => {
+      saveBtn.style.transform = 'translateY(-2px)';
+      saveBtn.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.4)';
+    });
+
+    saveBtn.addEventListener('mouseleave', () => {
+      saveBtn.style.transform = '';
+      saveBtn.style.boxShadow = '';
+    });
+
+    saveBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const courseInfo = getCourseInfoFromPopup(popup);
+      if (courseInfo.id && courseInfo.title) {
+        showAddCourseModal(courseInfo);
+      } else {
+        showNotification('Could not get course info', 'error');
+      }
+    });
+
+    return saveBtn;
+  }
+
+  function observeCoursePopups() {
+    // Watch for course hover popups
+    const observer = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        for (const node of mutation.addedNodes) {
+          if (node.nodeType !== Node.ELEMENT_NODE) continue;
+
+          // Check if this is a course popup or contains one
+          const popups = [];
+
+          // Direct popup detection
+          if (
+            node.matches &&
+            node.matches(
+              '[class*="popper-module--popper-content"], [data-purpose="course-card-popover"]'
+            )
+          ) {
+            popups.push(node);
+          }
+
+          // Child popup detection
+          const childPopups =
+            node.querySelectorAll?.(
+              '[class*="popper-module--popper-content"], [data-purpose="course-card-popover"]'
+            ) || [];
+          popups.push(...childPopups);
+
+          for (const popup of popups) {
+            // Small delay to let the popup fully render
+            setTimeout(() => injectSaveButtonToPopup(popup), 100);
+          }
+        }
+      }
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+  }
+
+  // =====================================================
   // FLOATING CONTROLS
   // =====================================================
   function renderFloatingControls() {
@@ -2258,6 +2409,7 @@
   function onDomReady() {
     injectStyles();
     renderFloatingControls();
+    observeCoursePopups(); // Watch for course hover popups to inject save button
 
     let lastUrl = location.href;
     new MutationObserver(() => {

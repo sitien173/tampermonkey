@@ -1,65 +1,108 @@
 const gulp = require('gulp');
 const babel = require('gulp-babel');
+const uglify = require('gulp-uglify');
 const sourcemaps = require('gulp-sourcemaps');
 const del = require('del');
-const stripComments = require('gulp-strip-comments');
-const through2 = require('through2');
+const rename = require('gulp-rename');
 const eslint = require('gulp-eslint-new');
-const gulpPrettier = require('gulp-prettier');
-const prettier = gulpPrettier.default;
+const prettier = require('gulp-prettier');
+const through2 = require('through2');
+const CleanCSS = require('clean-css');
 
-// Configuration
 const config = {
   src: 'src/*.js',
-  dist: 'export'
+  dist: 'dist'
 };
 
-// Extract UserScript header from source
-function extractUserScriptHeader() {
-  return through2.obj(function(file, enc, cb) {
+const userscriptHeaderRegex = /\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/;
+
+function extractHeader(content) {
+  const match = content.match(userscriptHeaderRegex);
+  return match ? match[0] : null;
+}
+
+const fileHeaders = new Map();
+
+function extractUserscriptHeader() {
+  return through2.obj(function (file, enc, cb) {
     if (file.isBuffer()) {
       const content = file.contents.toString();
-      const headerMatch = content.match(/\/\/\s*==UserScript==[\s\S]*?\/\/\s*==\/UserScript==/);
-      if (headerMatch) {
-        file.userScriptHeader = headerMatch[0];
+      const header = extractHeader(content);
+      if (header) {
+        fileHeaders.set(file.stem, header);
       }
     }
     cb(null, file);
   });
 }
 
-// Restore UserScript header to output
-function restoreUserScriptHeader() {
-  return through2.obj(function(file, enc, cb) {
-    if (file.isBuffer() && file.userScriptHeader) {
-      const content = file.contents.toString();
-      file.contents = Buffer.from(file.userScriptHeader + '\n' + content);
+function prependUserscriptHeader() {
+  return through2.obj(function (file, enc, cb) {
+    if (file.isBuffer()) {
+      const baseName = file.stem.replace('.user', '');
+      const header = fileHeaders.get(baseName);
+      if (header) {
+        const content = file.contents.toString();
+        file.contents = Buffer.from(header + '\n' + content);
+      }
     }
     cb(null, file);
   });
 }
 
-// Remove empty lines (keeps max 1 empty line between code blocks)
-function removeEmptyLines() {
-  return through2.obj(function(file, enc, cb) {
+const cleanCss = new CleanCSS({
+  level: 2,
+  format: false
+});
+
+function minifyCssInJs() {
+  return through2.obj(function (file, enc, cb) {
     if (file.isBuffer()) {
       let content = file.contents.toString();
-      // Replace multiple consecutive empty lines with a single empty line
-      content = content.replace(/\n\s*\n\s*\n/g, '\n\n');
-      // Remove empty lines at the start of the file
-      content = content.replace(/^\s*\n+/, '');
+
+      // Pattern 1: Minify CSS in template literals (backtick strings) that look like CSS
+      // Match template literals containing CSS-like content (selectors, properties)
+      content = content.replace(/`([\s\S]*?)`/g, (match, cssContent) => {
+        if (cssContent.includes('{') && cssContent.includes('}') && 
+            (cssContent.includes(':') || cssContent.includes('@'))) {
+          try {
+            const result = cleanCss.minify(cssContent);
+            if (result.styles && !result.errors?.length) {
+              return '`' + result.styles + '`';
+            }
+          } catch {
+          }
+        }
+        return match;
+      });
+
+      // Pattern 2: Minify inline style.cssText = `...` or style.cssText = '...'
+      content = content.replace(
+        /\.cssText\s*=\s*`([\s\S]*?)`/g,
+        (match, cssContent) => {
+          try {
+            const wrapped = `.x{${cssContent}}`;
+            const result = cleanCss.minify(wrapped);
+            if (result.styles && !result.errors?.length) {
+              const minified = result.styles.replace(/^\.x\{/, '').replace(/\}$/, '');
+              return '.cssText=`' + minified + '`';
+            }
+          } catch{
+          }
+          return match;
+        }
+      );
+
       file.contents = Buffer.from(content);
     }
     cb(null, file);
   });
 }
 
-// Clean dist folder
 function clean() {
   return del([config.dist]);
 }
 
-// Lint source files with ESLint
 function lint() {
   return gulp.src(config.src)
     .pipe(eslint())
@@ -67,65 +110,79 @@ function lint() {
     .pipe(eslint.failAfterError());
 }
 
-// Format source files with Prettier (writes back to src)
+function formatCheck() {
+  return gulp.src(config.src)
+    .pipe(prettier.check());
+}
+
 function format() {
   return gulp.src(config.src)
     .pipe(prettier())
     .pipe(gulp.dest('src'));
 }
 
-// Check formatting without modifying files
-function formatCheck() {
-  return gulp.src(config.src)
-    .pipe(prettier.check())
-    .on('error', function() {
-      console.error('Prettier check failed. Run "npx gulp format" to fix formatting.');
-      process.exit(1);
-    });
-}
-
-// Development build (with sourcemaps)
 function buildDev() {
   return gulp.src(config.src)
+    .pipe(extractUserscriptHeader())
     .pipe(sourcemaps.init())
     .pipe(babel({ presets: ['@babel/preset-env'] }))
+    .pipe(rename({ suffix: '.user', extname: '.js' }))
+    .pipe(prependUserscriptHeader())
     .pipe(sourcemaps.write('.'))
     .pipe(gulp.dest(config.dist));
 }
 
-// Production build for Greasy Fork (readable, not minified)
-// - Removes console.log/debug/info statements
-// - Removes comments (except UserScript header)
-// - Keeps code readable and properly formatted
+// Production build (minified, console.log removed, header preserved, CSS minified)
 function buildProd() {
   return gulp.src(config.src)
-    .pipe(extractUserScriptHeader())
+    .pipe(extractUserscriptHeader())
+    .pipe(minifyCssInJs())
     .pipe(babel({
-      presets: [['@babel/preset-env', {
-        targets: { firefox: '60', chrome: '70' },
-        modules: false  // Preserve ES modules
-      }]],
-      plugins: [
-        ['transform-remove-console', { exclude: ['error', 'warn'] }]
-      ]
+      presets: [['@babel/preset-env', { targets: { firefox: '60', chrome: '70' } }]]
     }))
-    .pipe(stripComments({ safe: true }))  // Remove comments
-    .pipe(removeEmptyLines())  // Remove excessive empty lines
-    .pipe(restoreUserScriptHeader())  // Restore UserScript header
+    .pipe(uglify({
+      compress: { drop_console: true, dead_code: true, drop_debugger: true },
+      mangle: { toplevel: false },
+      output: {
+        comments: false,
+        beautify: false
+      }
+    }))
+    .pipe(rename({ suffix: '.user', extname: '.js' }))
+    .pipe(prependUserscriptHeader())
     .pipe(gulp.dest(config.dist));
 }
 
-// Watch for changes
-function watch() {
-  gulp.watch(config.src, buildDev);
+function generateMeta() {
+  return gulp.src(config.src)
+    .pipe(through2.obj(function (file, enc, cb) {
+      if (file.isBuffer()) {
+        const content = file.contents.toString();
+        const header = extractHeader(content);
+        if (header) {
+          file.contents = Buffer.from(header + '\n');
+          cb(null, file);
+        } else {
+          cb();
+        }
+      } else {
+        cb();
+      }
+    }))
+    .pipe(rename({ suffix: '.meta', extname: '.js' }))
+    .pipe(gulp.dest(config.dist));
 }
 
-// Export tasks
+function watch() {
+  gulp.watch(config.src, gulp.series(lint, buildDev, generateMeta));
+}
+
 exports.clean = clean;
 exports.lint = lint;
 exports.format = format;
 exports.formatCheck = formatCheck;
-exports.dev = gulp.series(clean, buildDev);
-exports.build = gulp.series(lint, formatCheck, clean, buildProd);
-exports.watch = gulp.series(clean, buildDev, watch);
+exports.meta = generateMeta;
+exports.dev = gulp.series(clean, lint, buildDev, generateMeta);
+exports.build = gulp.series(clean, lint, buildProd, generateMeta);
+exports.watch = gulp.series(clean, lint, buildDev, generateMeta, watch);
 exports.default = exports.build;
