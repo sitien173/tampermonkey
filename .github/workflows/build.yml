@@ -35,11 +35,11 @@ jobs:
           AWS_S3_BUCKET: userscripts
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-          SOURCE_DIR: dist
+          SOURCE_DIR: export
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: userscripts
-          path: dist/*.user.js
+          path: export/*.user.js
           retention-days: 30

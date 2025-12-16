@@ -25,9 +25,12 @@
     "globals": "^15.14.0",
     "gulp": "^5.0.1",
     "gulp-babel": "^8.0.0",
+    "gulp-eslint-new": "^2.5.0",
+    "gulp-prettier": "^6.0.0",
     "gulp-sourcemaps": "^2.6.5",
     "gulp-strip-comments": "^2.5.2",
-    "prettier": "^3.4.2"
+    "prettier": "^3.4.2",
+    "through2": "^4.0.2"
   },
   "author": "",
   "license": "ISC",
