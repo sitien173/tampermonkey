@@ -2,7 +2,7 @@
 // @name         Cookie Updater
 // @description  udemy cookies + organize courses
 // @namespace    https://greasyfork.org/users/1508709
-// @version      3.0.2
+// @version      3.0.3
 // @author       https://github.com/sitien173
 // @match        *://*.udemy.com/*
 // @grant        GM_setValue
@@ -2152,23 +2152,40 @@
   // =====================================================
   function getCourseInfoFromPopup(popup) {
     // Extract course info from the hover popup
+    // Try multiple selectors for title - new Udemy structure uses data-testid
     const titleEl = popup.querySelector(
-      '[data-purpose="course-title-url"] , h3[data-purpose="safely-set-inner-html:popper-content:title"]'
+      '[data-testid="quick-view-box-title"], ' +
+      '[data-purpose="course-title-url"], ' +
+      'a[class*="course-details-quick-view-box-module--title"], ' +
+      'h3[data-purpose="safely-set-inner-html:popper-content:title"]'
     );
     const title = titleEl?.textContent?.trim() || 'Unknown Course';
 
-    const linkEl = popup.querySelector('a[href*="/course/"]');
-    const url = linkEl?.href || '';
+    // Find link to course page
+    const linkEl = popup.querySelector(
+      '[data-testid="quick-view-box-title"], ' +
+      'a[href*="/course/"]'
+    );
+    let url = linkEl?.href || '';
+    
+    // Make sure we have a full URL
+    if (url && !url.startsWith('http')) {
+      url = 'https://www.udemy.com' + url;
+    }
 
     // Extract course ID from URL
     const courseMatch = url.match(/\/course\/([^/?]+)/);
     const courseId = courseMatch ? courseMatch[1] : btoa(url).slice(0, 20);
 
+    // Find course image
     const imgEl = popup.querySelector('img[src*="udemycdn.com"]');
     const image = imgEl?.src || '';
 
+    // Find instructor - try multiple selectors
     const instructorEl = popup.querySelector(
-      '[class*="instructor"], [data-purpose="safely-set-inner-html:popper-content:instructor"]'
+      '[class*="instructor"], ' +
+      '[data-purpose="safely-set-inner-html:popper-content:instructor"], ' +
+      '[data-testid="quick-view-box-headline"]'
     );
     const instructor = instructorEl?.textContent?.trim() || '';
 
@@ -2186,18 +2203,34 @@
     // Check if we already injected the button
     if (popup.querySelector('.ufo-popup-save-btn')) return;
 
-    // Find the button container (where Enroll/Go to course button is)
-    const buttonContainer =
-      popup.querySelector('[class*="popper-module--popper-content"] [class*="buy-button"]')
-        ?.parentElement ||
-      popup.querySelector('[data-purpose="add-to-cart"]')?.parentElement ||
-      popup.querySelector('button[data-purpose="buy-this-course-button"]')?.parentElement ||
-      popup.querySelector('.ud-btn-primary')?.parentElement;
+    // Find the CTA/button container in new Udemy structure
+    let buttonContainer = popup.querySelector('[class*="course-details-quick-view-box-module--cta"]');
+    
+    // Fallback: Find Enroll button's parent container
+    if (!buttonContainer) {
+      const enrollBtn = popup.querySelector('[data-testid="enroll-now-button"]');
+      if (enrollBtn) {
+        buttonContainer = enrollBtn.closest('[class*="cta"]') || enrollBtn.parentElement?.parentElement;
+      }
+    }
+
+    // Fallback: Old selectors for legacy popup structure
+    if (!buttonContainer) {
+      buttonContainer =
+        popup.querySelector('[class*="popper-module--popper-content"] [class*="buy-button"]')
+          ?.parentElement ||
+        popup.querySelector('[data-purpose="add-to-cart"]')?.parentElement ||
+        popup.querySelector('button[data-purpose="buy-this-course-button"]')?.parentElement ||
+        popup.querySelector('.ud-btn-primary')?.parentElement ||
+        popup.querySelector('.ud-btn-brand')?.parentElement;
+    }
 
     if (!buttonContainer) {
-      // Alternative: try to find any button area
+      // Alternative: try to find any button area or the popover inner content
       const altContainer =
         popup.querySelector('[class*="course-card--footer"]') ||
+        popup.querySelector('[class*="popover-module--inner"]') ||
+        popup.querySelector('[data-testid="course-details-content"]') ||
         popup.querySelector('[class*="popper-module--popper-content"] > div > div:last-child');
       if (altContainer) {
         const saveBtn = createPopupSaveButton(popup);
@@ -2258,6 +2291,14 @@
   }
 
   function observeCoursePopups() {
+    // Selectors for course hover popups
+    const popupSelectors = [
+      '[class*="popper-module--popper-content"]',
+      '[data-testid="popover-render-content"]',
+      '[data-purpose="course-card-popover"]',
+      '[class*="course-details-quick-view-box-module--popover"]',
+    ].join(', ');
+
     // Watch for course hover popups
     const observer = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
@@ -2268,25 +2309,23 @@
           const popups = [];
 
           // Direct popup detection
-          if (
-            node.matches &&
-            node.matches(
-              '[class*="popper-module--popper-content"], [data-purpose="course-card-popover"]'
-            )
-          ) {
+          if (node.matches && node.matches(popupSelectors)) {
             popups.push(node);
           }
 
           // Child popup detection
-          const childPopups =
-            node.querySelectorAll?.(
-              '[class*="popper-module--popper-content"], [data-purpose="course-card-popover"]'
-            ) || [];
+          const childPopups = node.querySelectorAll?.(popupSelectors) || [];
           popups.push(...childPopups);
 
           for (const popup of popups) {
-            // Small delay to let the popup fully render
-            setTimeout(() => injectSaveButtonToPopup(popup), 100);
+            // Check if this popup contains course info (title link)
+            const hasCourseLink = popup.querySelector(
+              '[data-testid="quick-view-box-title"], a[href*="/course/"]'
+            );
+            if (hasCourseLink) {
+              // Small delay to let the popup fully render
+              setTimeout(() => injectSaveButtonToPopup(popup), 100);
+            }
           }
         }
       }
