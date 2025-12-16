@@ -2,7 +2,7 @@
 // @name         Cookie Updater
 // @description  udemy cookies + organize courses
 // @namespace    https://greasyfork.org/users/1508709
-// @version      3.0.4
+// @version      3.0.5
 // @author       https://github.com/sitien173
 // @match        *://*.udemy.com/*
 // @grant        GM_setValue
@@ -2150,6 +2150,47 @@
   // =====================================================
   // COURSE HOVER POPUP - SAVE BUTTON INJECTION
   // =====================================================
+  
+  // Find the course card that triggered the popup to get the image
+  function findCourseCardImage(courseUrl) {
+    if (!courseUrl) return '';
+    
+    // Extract the course slug from the URL
+    const slugMatch = courseUrl.match(/\/course\/([^/?]+)/);
+    if (!slugMatch) return '';
+    const courseSlug = slugMatch[1];
+    
+    // Find all course cards on the page that link to this course
+    const courseLinks = document.querySelectorAll(`a[href*="/course/${courseSlug}"]`);
+    
+    for (const link of courseLinks) {
+      // Look for an image in the same card/container
+      const card = link.closest('[class*="course-card"]') || 
+                   link.closest('[class*="card--container"]') ||
+                   link.closest('[data-purpose="container"]') ||
+                   link.closest('div[class*="browse-course"]') ||
+                   link.parentElement?.parentElement;
+      
+      if (card) {
+        const img = card.querySelector('img[src*="udemycdn.com/course"]');
+        if (img?.src) {
+          return img.src;
+        }
+      }
+    }
+    
+    // Fallback: search for any course image with matching slug in src
+    const allCourseImages = document.querySelectorAll('img[src*="udemycdn.com/course"]');
+    for (const img of allCourseImages) {
+      // Course images sometimes have the course ID in the path
+      if (img.src && img.closest('a[href*="/course/' + courseSlug + '"]')) {
+        return img.src;
+      }
+    }
+    
+    return '';
+  }
+  
   function getCourseInfoFromPopup(popupElement) {
     // Extract course info from the hover popup
     // Try multiple selectors for title - Udemy uses data-testid="quick-view-box-title"
@@ -2180,9 +2221,15 @@
       courseId = btoa(url).slice(0, 20);
     }
 
-    // Find course image (might not be in popup, but try)
+    // Find course image - first try in popup, then look for the course card
+    let image = '';
     const imgEl = popupElement.querySelector('img[src*="udemycdn.com"]');
-    const image = imgEl?.src || '';
+    if (imgEl?.src) {
+      image = imgEl.src;
+    } else {
+      // Image not in popup - find it from the course card on the page
+      image = findCourseCardImage(url);
+    }
 
     // Find headline/description as instructor fallback
     const headlineEl = popupElement.querySelector('[data-testid="quick-view-box-headline"]');
@@ -2202,55 +2249,44 @@
     // Check if we already injected the button anywhere in this popup
     if (popupElement.querySelector('.ufo-popup-save-btn')) return;
 
-    // Strategy 1: Find the CTA container div (best location)
+    // Find the CTA button placeholder (the empty div next to Enroll button)
+    // This is the best place to put our button
+    const ctaBtnPlaceholder = popupElement.querySelector('[class*="course-details-quick-view-box-module--cta-button--"]');
+    
+    if (ctaBtnPlaceholder && !ctaBtnPlaceholder.querySelector('.ufo-popup-save-btn')) {
+      const saveBtn = createPopupSaveButton(popupElement);
+      ctaBtnPlaceholder.appendChild(saveBtn);
+      return;
+    }
+
+    // Fallback: Find the CTA container div
     let ctaContainer = popupElement.querySelector('[class*="course-details-quick-view-box-module--cta--"]');
     
-    // Strategy 2: Find the empty cta-button placeholder div
-    if (!ctaContainer) {
-      ctaContainer = popupElement.querySelector('[class*="course-details-quick-view-box-module--cta-button--"]');
-    }
-    
-    // Strategy 3: Find the Enroll button and get its parent's parent (the CTA container)
+    // Fallback: Find the Enroll button and get its parent's parent (the CTA container)
     if (!ctaContainer) {
       const enrollBtn = popupElement.querySelector('[data-testid="enroll-now-button"]');
       if (enrollBtn) {
-        // Go up to find the cta container: enroll-btn -> add-to-cart div -> cta div
         ctaContainer = enrollBtn.parentElement?.parentElement;
       }
     }
 
-    // Strategy 4: Find the add-to-cart container
-    if (!ctaContainer) {
-      ctaContainer = popupElement.querySelector('[class*="course-details-quick-view-box-module--add-to-cart--"]');
-      if (ctaContainer) {
-        ctaContainer = ctaContainer.parentElement; // Go up to cta container
-      }
-    }
-
-    // Strategy 5: Find popover inner content as fallback
-    if (!ctaContainer) {
-      ctaContainer = popupElement.querySelector('[class*="popover-module--inner"]');
-    }
-
-    // Strategy 6: Find the course details content div
-    if (!ctaContainer) {
-      ctaContainer = popupElement.querySelector('[data-testid="course-details-content"]');
-    }
-
-    if (!ctaContainer) {
-      console.log('[UFO] Could not find container for save button in popup');
+    if (ctaContainer && !ctaContainer.querySelector('.ufo-popup-save-btn')) {
+      const saveBtn = createPopupSaveButton(popupElement);
+      ctaContainer.appendChild(saveBtn);
       return;
     }
 
-    const saveBtn = createPopupSaveButton(popupElement);
-    
-    // If we're adding to the CTA container, append it
-    // If we found the cta-button placeholder, replace its content
-    const ctaBtnPlaceholder = ctaContainer.querySelector('[class*="course-details-quick-view-box-module--cta-button--"]');
-    if (ctaBtnPlaceholder) {
-      ctaBtnPlaceholder.appendChild(saveBtn);
-    } else {
-      ctaContainer.appendChild(saveBtn);
+    // Last fallback: Find the course details content div
+    const contentDiv = popupElement.querySelector('[data-testid="course-details-content"]');
+    if (contentDiv && !contentDiv.querySelector('.ufo-popup-save-btn')) {
+      const saveBtn = createPopupSaveButton(popupElement);
+      // Insert after the last child div (before the close button)
+      const lastDiv = contentDiv.querySelector(':scope > div');
+      if (lastDiv) {
+        lastDiv.appendChild(saveBtn);
+      } else {
+        contentDiv.appendChild(saveBtn);
+      }
     }
   }
 
