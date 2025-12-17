@@ -2,7 +2,7 @@
 // @name         Cookie Updater
 // @description  udemy cookies + organize courses
 // @namespace    https://greasyfork.org/users/1508709
-// @version      3.0.7
+// @version      3.0.8
 // @author       https://github.com/sitien173
 // @match        *://*.udemy.com/*
 // @grant        GM_setValue
@@ -756,13 +756,14 @@
                 right: 20px;
                 display: flex;
                 flex-direction: column;
+                align-items: flex-end;
                 gap: 10px;
                 z-index: 99990;
                 font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
             }
 
             .ucc-btn {
-                padding: 12px 16px;
+                padding: 12px;
                 border: none;
                 border-radius: 12px;
                 cursor: pointer;
@@ -770,15 +771,40 @@
                 font-weight: 600;
                 display: flex;
                 align-items: center;
-                gap: 8px;
-                transition: all 0.2s ease;
+                gap: 0;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
                 box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
                 font-family: inherit;
+                overflow: hidden;
+                white-space: nowrap;
+            }
+
+            .ucc-btn svg {
+                width: 18px;
+                height: 18px;
+                flex-shrink: 0;
+            }
+
+            .ucc-btn .ucc-btn-text {
+                max-width: 0;
+                opacity: 0;
+                overflow: hidden;
+                transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+                            opacity 0.2s ease 0.1s,
+                            margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                margin-left: 0;
             }
 
             .ucc-btn:hover {
+                padding: 12px 16px;
                 transform: translateY(-2px);
                 box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            }
+
+            .ucc-btn:hover .ucc-btn-text {
+                max-width: 120px;
+                opacity: 1;
+                margin-left: 8px;
             }
 
             .ucc-btn:disabled {
@@ -790,7 +816,6 @@
             .ucc-btn.primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
             .ucc-btn.secondary { background: #1f2937; color: white; }
             .ucc-btn.success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; }
-            .ucc-btn svg { width: 18px; height: 18px; }
 
             .ufo-overlay {
                 position: fixed;
@@ -2603,12 +2628,12 @@
 
     const settingsBtn = document.createElement('button');
     settingsBtn.className = 'ucc-btn secondary';
-    settingsBtn.innerHTML = `${ICONS.settings} Settings`;
+    settingsBtn.innerHTML = `${ICONS.settings}<span class="ucc-btn-text">Settings</span>`;
     settingsBtn.addEventListener('click', showSettingsModal);
 
     const fetchBtn = document.createElement('button');
     fetchBtn.className = 'ucc-btn secondary';
-    fetchBtn.innerHTML = `${ICONS.refresh} Fetch Cookies`;
+    fetchBtn.innerHTML = `${ICONS.refresh}<span class="ucc-btn-text">Fetch Cookies</span>`;
     fetchBtn.addEventListener('click', async () => {
       await updateCookiesFromWorker();
     });
@@ -2621,7 +2646,7 @@
     if (config.showFolderOrganizer) {
       const folderBtn = document.createElement('button');
       folderBtn.className = 'ucc-btn primary';
-      folderBtn.innerHTML = `${ICONS.bookmark} My Folders`;
+      folderBtn.innerHTML = `${ICONS.bookmark}<span class="ucc-btn-text">My Folders</span>`;
       folderBtn.addEventListener('click', () => {
         if (isOrganizerPopupOpen) {
           closeMainPopup();
@@ -2636,7 +2661,7 @@
     if (isCourse && config.showFolderOrganizer) {
       const saveBtn = document.createElement('button');
       saveBtn.className = 'ucc-btn success';
-      saveBtn.innerHTML = `${ICONS.plus} Save Course`;
+      saveBtn.innerHTML = `${ICONS.plus}<span class="ucc-btn-text">Save Course</span>`;
       saveBtn.addEventListener('click', () => {
         const courseInfo = getCurrentCourseInfo();
         showAddCourseModal(courseInfo);
