@@ -2,7 +2,7 @@
 // @name         Cookie Updater
 // @description  udemy cookies + organize courses
 // @namespace    https://greasyfork.org/users/1508709
-// @version      3.0.8
+// @version      3.0.9
 // @author       https://github.com/sitien173
 // @match        *://*.udemy.com/*
 // @grant        GM_setValue
@@ -293,6 +293,160 @@
       console.error('API DELETE error:', error);
       throw error;
     }
+  }
+
+  // =====================================================
+  // LESSON PROGRESS TRACKING
+  // =====================================================
+  let lastSavedLessonUrl = '';
+  let lessonSaveTimeout = null;
+
+  function isLessonPage() {
+    // Lesson URLs look like: /course/{course-slug}/learn/lecture/{lecture-id}
+    return /\/course\/[^/]+\/learn\//.test(window.location.pathname);
+  }
+
+  function getCourseSlugFromUrl(url = window.location.href) {
+    const match = url.match(/\/course\/([^/?]+)/);
+    return match ? match[1] : null;
+  }
+
+  function isCourseInFolders(courseSlug) {
+    for (const folder of folders) {
+      if (folder.courses) {
+        for (const course of folder.courses) {
+          const cSlug = course.udemy_course_id || course.course_id;
+          if (cSlug === courseSlug) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  async function saveLessonProgress(lessonUrl) {
+    const courseSlug = getCourseSlugFromUrl(lessonUrl);
+    if (!courseSlug) return;
+
+    // Only save if course is in our folders
+    if (!isCourseInFolders(courseSlug)) {
+      console.log('Course not in folders, skipping lesson save:', courseSlug);
+      return;
+    }
+
+    // Don't save the same URL twice
+    if (lessonUrl === lastSavedLessonUrl) return;
+
+    if (!config.licenseKey) {
+      // Local mode - save to local storage
+      const lessonProgress = GM_getValue('lessonProgress', {});
+      lessonProgress[courseSlug] = lessonUrl;
+      GM_setValue('lessonProgress', lessonProgress);
+      lastSavedLessonUrl = lessonUrl;
+      console.log('Saved lesson progress locally:', courseSlug, lessonUrl);
+      
+      // Update local folders cache
+      for (const folder of folders) {
+        if (folder.courses) {
+          for (const course of folder.courses) {
+            const cSlug = course.udemy_course_id || course.course_id;
+            if (cSlug === courseSlug) {
+              course.last_lesson_url = lessonUrl;
+            }
+          }
+        }
+      }
+      GM_setValue('cachedFolders', folders);
+      return;
+    }
+
+    try {
+      await apiRequest('PUT', '/api/courses/progress', {
+        course_id: courseSlug,
+        last_lesson_url: lessonUrl,
+      });
+      lastSavedLessonUrl = lessonUrl;
+      console.log('Saved lesson progress to server:', courseSlug, lessonUrl);
+      
+      // Update local cache
+      for (const folder of folders) {
+        if (folder.courses) {
+          for (const course of folder.courses) {
+            const cSlug = course.udemy_course_id || course.course_id;
+            if (cSlug === courseSlug) {
+              course.last_lesson_url = lessonUrl;
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Failed to save lesson progress:', error);
+    }
+  }
+
+  function debouncedSaveLessonProgress(url) {
+    if (lessonSaveTimeout) {
+      clearTimeout(lessonSaveTimeout);
+    }
+    // Debounce to avoid saving too frequently during rapid navigation
+    lessonSaveTimeout = setTimeout(() => {
+      saveLessonProgress(url);
+    }, 2000); // Wait 2 seconds before saving
+  }
+
+  function startLessonTracking() {
+    let lastUrl = window.location.href;
+
+    // Initial check
+    if (isLessonPage()) {
+      debouncedSaveLessonProgress(lastUrl);
+    }
+
+    // Watch for URL changes (SPA navigation)
+    const observer = new MutationObserver(() => {
+      if (window.location.href !== lastUrl) {
+        lastUrl = window.location.href;
+        if (isLessonPage()) {
+          debouncedSaveLessonProgress(lastUrl);
+        }
+      }
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    // Also listen to popstate for back/forward navigation
+    window.addEventListener('popstate', () => {
+      if (isLessonPage()) {
+        debouncedSaveLessonProgress(window.location.href);
+      }
+    });
+
+    // Check periodically as backup
+    setInterval(() => {
+      if (window.location.href !== lastUrl) {
+        lastUrl = window.location.href;
+        if (isLessonPage()) {
+          debouncedSaveLessonProgress(lastUrl);
+        }
+      }
+    }, 3000);
+  }
+
+  function getCourseOpenUrl(course) {
+    // Return last lesson URL if available, otherwise the course landing page
+    if (course.last_lesson_url) {
+      return course.last_lesson_url;
+    }
+    // For local mode, check local storage
+    if (!config.licenseKey) {
+      const lessonProgress = GM_getValue('lessonProgress', {});
+      const courseSlug = course.udemy_course_id || course.course_id;
+      if (lessonProgress[courseSlug]) {
+        return lessonProgress[courseSlug];
+      }
+    }
+    return course.url || '#';
   }
 
   async function loadCoursesForFolder(folderId) {
@@ -2110,18 +2264,20 @@
         // course_id is the database ID, udemy_course_id is the slug
         const dbCourseId = course.course_id || course.id;
         const imageUrl = course.image_url || course.image || PLACEHOLDER_IMAGE;
-        const courseUrl = course.url || '#';
+        const courseUrl = getCourseOpenUrl(course);
+        const hasProgress = course.last_lesson_url || (!config.licenseKey && GM_getValue('lessonProgress', {})[course.udemy_course_id || course.course_id]);
+        const progressIndicator = hasProgress ? `<span style="color: #10b981; margin-left: 4px;" title="Resume from last lesson">▶</span>` : '';
 
         return `
                 <div class="ufo-course-card" data-course-id="${dbCourseId}">
-                    <a href="${courseUrl}" target="_blank" class="ufo-course-image-link" title="Open course">
+                    <a href="${courseUrl}" target="_blank" class="ufo-course-image-link" title="${hasProgress ? 'Resume last lesson' : 'Open course'}">
                         <img class="ufo-course-image" src="${imageUrl}" alt="${course.title}" onerror="this.src='${PLACEHOLDER_IMAGE}'">
                     </a>
                     <div class="ufo-course-info">
-                        <a href="${courseUrl}" target="_blank" class="ufo-course-title" style="text-decoration: none; cursor: pointer;">${course.title}</a>
+                        <a href="${courseUrl}" target="_blank" class="ufo-course-title" style="text-decoration: none; cursor: pointer;">${course.title}${progressIndicator}</a>
                         ${course.instructor ? `<div class="ufo-course-instructor">${course.instructor}</div>` : ''}
                         <div class="ufo-course-actions">
-                            <button class="ufo-course-btn primary" data-action="open" data-url="${courseUrl}">Open ${ICONS.external}</button>
+                            <button class="ufo-course-btn primary" data-action="open" data-url="${courseUrl}">${hasProgress ? 'Resume' : 'Open'} ${ICONS.external}</button>
                             <button class="ufo-course-btn danger" data-action="remove" data-course-id="${dbCourseId}" data-folder-id="${currentFolderId || ''}">Remove</button>
                         </div>
                     </div>
@@ -2728,6 +2884,7 @@
     injectStyles();
     renderFloatingControls();
     observeCoursePopups(); // Watch for course hover popups to inject save button
+    startLessonTracking(); // Track lesson progress
 
     let lastUrl = location.href;
     new MutationObserver(() => {
