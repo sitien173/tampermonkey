@@ -26,7 +26,7 @@ jobs:
       - name: Build scripts
         run: npm run build
 
-      - name: Upload to Cloudflare R2
+      - name: Upload dist to Cloudflare R2
         uses: jakejarvis/s3-sync-action@v0.5.1
         with:
           args: --acl public-read
@@ -36,6 +36,17 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           SOURCE_DIR: dist
+
+      - name: Upload src to Cloudflare R2
+        uses: jakejarvis/s3-sync-action@v0.5.1
+        with:
+          args: --acl public-read
+        env:
+          AWS_S3_ENDPOINT: https://dac4697bb7584fefde4095995aed0191.r2.cloudflarestorage.com
+          AWS_S3_BUCKET: userscripts
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          SOURCE_DIR: src
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
