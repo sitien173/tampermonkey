@@ -19,6 +19,7 @@
 (function () {
   'use strict';
   const workerUrl = 'https://api-gateway.sitienbmt.workers.dev/udemy';
+
   // =====================================================
   // CONFIGURATION
   // =====================================================
@@ -29,10 +30,9 @@
     showFolderOrganizer: true,
   };
   let config = { ...DEFAULT_CONFIG };
-  let folders = [];
+  let folders = []; // Array of folder objects with courses
   let isOrganizerPopupOpen = false;
   let isSyncing = false;
-  let lastSyncTime = 0;
   // =====================================================
   // STORAGE & INITIALIZATION
   // =====================================================
@@ -64,6 +64,22 @@
     return id;
   }
 
+  // Generate a UUID v4
+  function generateUUID() {
+    try {
+      if (crypto && crypto.randomUUID) {
+        return crypto.randomUUID();
+      }
+    } catch {
+      // Fallback
+    }
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  }
+
   // Get user info for display
   function getUserInfo() {
     const totalCourses = folders.reduce(
@@ -84,7 +100,6 @@
   function apiRequest(method, endpoint, body = null) {
     return new Promise((resolve, reject) => {
       const url = workerUrl + endpoint;
-
       GM_xmlhttpRequest({
         method: method,
         url: url,
@@ -113,6 +128,43 @@
     });
   }
 
+  /**
+   * Helper to handle async actions with button loading states
+   * @param {HTMLButtonElement} btn The button element to disable and show loading
+   * @param {Function} asyncFn The async function to execute
+   * @param {string} loadingText Optional text to show during loading
+   */
+  async function withLoading(btn, asyncFn, loadingText = null) {
+    if (!btn || btn.disabled) return;
+
+    const originalText = btn.innerHTML;
+    const originalWidth = btn.offsetWidth;
+
+    btn.disabled = true;
+    btn.classList.add('ufo-btn-loading');
+
+    if (loadingText) {
+      btn.textContent = loadingText;
+    } else {
+      // Add a small spinner if no text provided
+      btn.innerHTML = `<span class="ufo-spinner-small"></span> ${originalText}`;
+    }
+
+    // Keep the width consistent if possible to prevent layout shift
+    if (originalWidth > 0) {
+      btn.style.minWidth = `${originalWidth}px`;
+    }
+
+    try {
+      await asyncFn();
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove('ufo-btn-loading');
+      btn.innerHTML = originalText;
+      btn.style.minWidth = '';
+    }
+  }
+
   // =====================================================
   // FOLDER API OPERATIONS
   // =====================================================
@@ -128,11 +180,6 @@
     try {
       const data = await apiRequest('GET', '/api/sync');
       folders = data.folders || [];
-      lastSyncTime = data.synced_at || Date.now();
-
-      // Cache locally for offline use
-      GM_setValue('cachedFolders', folders);
-      GM_setValue('lastSyncTime', lastSyncTime);
     } catch (error) {
       loadFoldersFromLocal();
     } finally {
@@ -141,18 +188,14 @@
   }
 
   function loadFoldersFromLocal() {
-    const cached = GM_getValue('cachedFolders', null);
-    if (cached && Array.isArray(cached)) {
-      folders = cached;
-    } else {
-      // Default folders for first-time users without license
-      folders = [
-        { id: 1, name: 'My Courses', color: '#6366f1', courses: [], course_count: 0 },
-        { id: 2, name: 'Favorites', color: '#ec4899', courses: [], course_count: 0 },
-        { id: 3, name: 'In Progress', color: '#f59e0b', courses: [], course_count: 0 },
-        { id: 4, name: 'Completed', color: '#10b981', courses: [], course_count: 0 },
-      ];
-    }
+    // Default folders for first-time users or fallback
+    // Using UUID format for IDs to match database schema
+    folders = [
+      { id: generateUUID(), name: 'My Courses', color: '#6366f1', courses: [], course_count: 0 },
+      { id: generateUUID(), name: 'Favorites', color: '#ec4899', courses: [], course_count: 0 },
+      { id: generateUUID(), name: 'In Progress', color: '#f59e0b', courses: [], course_count: 0 },
+      { id: generateUUID(), name: 'Completed', color: '#10b981', courses: [], course_count: 0 },
+    ];
   }
 
   async function initDefaultFolders() {
@@ -166,22 +209,32 @@
     }
   }
 
-  async function createFolderAPI(name, color) {
+  async function createFolderAPI(name, color, icon = '📁') {
     if (!config.licenseKey) {
-      // Local mode
+      // Local mode - generate UUID for ID
       const newFolder = {
-        id: Date.now(),
+        id: generateUUID(),
         name: name,
         color: color,
+        icon: icon,
+        sort_order: folders.length,
+        is_default: false,
         courses: [],
         course_count: 0,
+        created_at: Math.floor(Date.now() / 1000),
+        updated_at: Math.floor(Date.now() / 1000),
       };
       folders.push(newFolder);
-      GM_setValue('cachedFolders', folders);
       return newFolder;
     }
 
-    const data = await apiRequest('POST', '/api/folders', { name, color });
+    const data = await apiRequest('POST', '/api/folders', {
+      name,
+      color,
+      icon,
+      sort_order: folders.length,
+      is_default: false,
+    });
     await syncFoldersFromServer();
     return data.folder;
   }
@@ -192,7 +245,6 @@
       const folder = folders.find((f) => f.id === folderId);
       if (folder) {
         Object.assign(folder, updates);
-        GM_setValue('cachedFolders', folders);
       }
       return folder;
     }
@@ -206,7 +258,6 @@
     if (!config.licenseKey) {
       // Local mode
       folders = folders.filter((f) => f.id !== folderId);
-      GM_setValue('cachedFolders', folders);
       return;
     }
 
@@ -218,34 +269,44 @@
     if (!config.licenseKey) {
       // Local mode
       let added = 0;
+      const now = Math.floor(Date.now() / 1000);
+
       folderIds.forEach((folderId) => {
         const folder = folders.find((f) => f.id === folderId);
         if (folder) {
           if (!folder.courses) folder.courses = [];
+          // Check by course_id (slug) to avoid duplicates
           const exists = folder.courses.some(
-            (c) => c.udemy_course_id === courseInfo.id || c.id === courseInfo.id
+            (c) => c.course_id === courseInfo.id || c.id === courseInfo.id
           );
           if (!exists) {
-            folder.courses.push({
-              udemy_course_id: courseInfo.id,
+            // Create course entry matching database schema
+            const courseEntry = {
+              id: generateUUID(), // folder_courses.id (junction table ID)
+              course_id: courseInfo.id, // The course slug
+              folder_id: folderId,
               title: courseInfo.title,
               url: courseInfo.url,
               image_url: courseInfo.image,
               instructor: courseInfo.instructor,
-              added_at: Math.floor(Date.now() / 1000),
-            });
+              notes: null,
+              progress: 0,
+              is_completed: false,
+              added_at: now,
+              last_lesson_url: null,
+            };
+            folder.courses.push(courseEntry);
             folder.course_count = folder.courses.length;
             added++;
           }
         }
       });
-      GM_setValue('cachedFolders', folders);
       return { added };
     }
 
     const data = await apiRequest('POST', '/api/courses/add-to-folders', {
       folder_ids: folderIds,
-      course_id: courseInfo.id,
+      course_id: courseInfo.id, // The course slug
       title: courseInfo.title,
       url: courseInfo.url,
       image_url: courseInfo.image,
@@ -257,28 +318,44 @@
 
   async function removeCourseFromFolderAPI(folderId, courseId) {
     if (!config.licenseKey) {
-      // Local mode
+      // Local mode - courseId can be either the junction table ID or course slug
       const folder = folders.find((f) => f.id === folderId);
       if (folder && folder.courses) {
-        const beforeCount = folder.courses.length;
         folder.courses = folder.courses.filter((c) => {
-          const cId = c.course_id || c.id;
-          return cId !== courseId && cId !== String(courseId);
+          // Match against both id (junction) and course_id (slug)
+          return c.id !== courseId && c.course_id !== courseId && c.course_id !== String(courseId);
         });
         folder.course_count = folder.courses.length;
       }
-      GM_setValue('cachedFolders', folders);
       return;
     }
 
     try {
       console.log('Calling API DELETE:', `/api/folders/${folderId}/courses/${courseId}`);
-      const result = await apiRequest('DELETE', `/api/folders/${folderId}/courses/${courseId}`);
+      await apiRequest('DELETE', `/api/folders/${folderId}/courses/${courseId}`);
       await syncFoldersFromServer();
     } catch (error) {
       console.error('API DELETE error:', error);
       throw error;
     }
+  }
+
+  // Update course notes/progress in folder
+  async function updateFolderCourseAPI(folderId, courseId, updates) {
+    if (!config.licenseKey) {
+      // Local mode
+      const folder = folders.find((f) => f.id === folderId);
+      if (folder && folder.courses) {
+        const course = folder.courses.find((c) => c.id === courseId || c.course_id === courseId);
+        if (course) {
+          Object.assign(course, updates);
+        }
+      }
+      return;
+    }
+
+    await apiRequest('PUT', `/api/folders/${folderId}/courses/${courseId}`, updates);
+    await syncFoldersFromServer();
   }
 
   // =====================================================
@@ -301,8 +378,8 @@
     for (const folder of folders) {
       if (folder.courses) {
         for (const course of folder.courses) {
-          const cSlug = course.udemy_course_id || course.course_id;
-          if (cSlug === courseSlug) {
+          // course_id is the slug in new schema
+          if (course.course_id === courseSlug) {
             return true;
           }
         }
@@ -335,14 +412,12 @@
       for (const folder of folders) {
         if (folder.courses) {
           for (const course of folder.courses) {
-            const cSlug = course.udemy_course_id || course.course_id;
-            if (cSlug === courseSlug) {
+            if (course.course_id === courseSlug) {
               course.last_lesson_url = lessonUrl;
             }
           }
         }
       }
-      GM_setValue('cachedFolders', folders);
       return;
     }
 
@@ -357,8 +432,7 @@
       for (const folder of folders) {
         if (folder.courses) {
           for (const course of folder.courses) {
-            const cSlug = course.udemy_course_id || course.course_id;
-            if (cSlug === courseSlug) {
+            if (course.course_id === courseSlug) {
               course.last_lesson_url = lessonUrl;
             }
           }
@@ -425,9 +499,9 @@
     // For local mode, check local storage
     if (!config.licenseKey) {
       const lessonProgress = GM_getValue('lessonProgress', {});
-      const courseSlug = course.udemy_course_id || course.course_id;
-      if (lessonProgress[courseSlug]) {
-        return lessonProgress[courseSlug];
+      // course_id is the slug in new schema
+      if (lessonProgress[course.course_id]) {
+        return lessonProgress[course.course_id];
       }
     }
     return course.url || '#';
@@ -463,7 +537,6 @@
     for (let attempt = 1; attempt <= config.retryAttempts; attempt++) {
       try {
         console.log(`Fetching cookies from worker (attempt ${attempt}/${config.retryAttempts})...`);
-
         return new Promise((resolve, reject) => {
           GM_xmlhttpRequest({
             method: 'GET',
@@ -948,7 +1021,30 @@
             .ucc-btn:disabled {
                 opacity: 0.6;
                 cursor: not-allowed;
-                transform: none;
+                transform: none !important;
+                box-shadow: none !important;
+            }
+
+            .ufo-btn-loading {
+                position: relative;
+                color: rgba(255, 255, 255, 0.7) !important;
+                pointer-events: none;
+            }
+
+            .ufo-spinner-small {
+                display: inline-block;
+                width: 12px;
+                height: 12px;
+                border: 2px solid rgba(255,255,255,0.3);
+                border-radius: 50%;
+                border-top-color: #fff;
+                animation: ufo-spin 0.8s linear infinite;
+                margin-right: 6px;
+                vertical-align: middle;
+            }
+
+            @keyframes ufo-spin {
+                to { transform: rotate(360deg); }
             }
 
             .ucc-btn.primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
@@ -1299,6 +1395,7 @@
             .ufo-course-btn.primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4); }
             .ufo-course-btn.danger { background: rgba(239, 68, 68, 0.2); color: #f87171; }
             .ufo-course-btn.danger:hover { background: rgba(239, 68, 68, 0.3); }
+            .ufo-course-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
 
             .ufo-empty-state {
                 display: flex;
@@ -1399,7 +1496,7 @@
             .ufo-modal-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
             .ufo-dropdown {
-                position: absolute;
+                position: fixed;
                 background: #1e1e2e;
                 border-radius: 10px;
                 box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
@@ -1563,7 +1660,7 @@
     items.forEach((item) => {
       const el = document.createElement('div');
       el.className = `ufo-dropdown-item ${item.danger ? 'danger' : ''}`;
-      el.innerHTML = `${item.icon || ''} ${item.label}`;
+      el.innerHTML = `${item.icon ? item.icon + ' ' : ''}${item.label}`;
       el.addEventListener('click', (e) => {
         e.stopPropagation();
         closeAllDropdowns();
@@ -1641,23 +1738,25 @@
     };
 
     modal.querySelector('.cancel').addEventListener('click', closeModal);
-    modal.querySelector('.primary').addEventListener('click', async () => {
+    modal.querySelector('.primary').addEventListener('click', async (e) => {
       const name = modal.querySelector('input').value.trim();
       if (name) {
-        modal.querySelector('.primary').disabled = true;
-        modal.querySelector('.primary').textContent = 'Creating...';
-        await callback(name, selectedColor);
-        closeModal();
+        await withLoading(e.currentTarget, async () => {
+          await callback(name, selectedColor);
+          closeModal();
+        });
       }
     });
 
     modal.querySelector('input').addEventListener('keydown', async (e) => {
       if (e.key === 'Enter') {
         const name = modal.querySelector('input').value.trim();
-        if (name) {
-          modal.querySelector('.primary').disabled = true;
-          await callback(name, selectedColor);
-          closeModal();
+        const btn = modal.querySelector('.primary');
+        if (name && !btn.disabled) {
+          await withLoading(btn, async () => {
+            await callback(name, selectedColor);
+            closeModal();
+          });
         }
       } else if (e.key === 'Escape') {
         closeModal();
@@ -1700,23 +1799,25 @@
     };
 
     modal.querySelector('.cancel').addEventListener('click', closeModal);
-    modal.querySelector('.primary').addEventListener('click', async () => {
+    modal.querySelector('.primary').addEventListener('click', async (e) => {
       const name = modal.querySelector('input').value.trim();
       if (name && name !== currentName) {
-        modal.querySelector('.primary').disabled = true;
-        modal.querySelector('.primary').textContent = 'Renaming...';
-        await callback(name, folderId);
-        closeModal();
+        await withLoading(e.currentTarget, async () => {
+          await callback(name, folderId);
+          closeModal();
+        });
       }
     });
 
     modal.querySelector('input').addEventListener('keydown', async (e) => {
       if (e.key === 'Enter') {
         const name = modal.querySelector('input').value.trim();
-        if (name && name !== currentName) {
-          modal.querySelector('.primary').disabled = true;
-          await callback(name, folderId);
-          closeModal();
+        const btn = modal.querySelector('.primary');
+        if (name && name !== currentName && !btn.disabled) {
+          await withLoading(btn, async () => {
+            await callback(name, folderId);
+            closeModal();
+          });
         }
       } else if (e.key === 'Escape') {
         closeModal();
@@ -1773,7 +1874,8 @@
 
     modal.querySelectorAll('.ufo-folder-select-option').forEach((opt) => {
       opt.addEventListener('click', () => {
-        const folderId = parseInt(opt.dataset.folderId);
+        // Folder IDs are now UUIDs (strings)
+        const folderId = opt.dataset.folderId;
         if (selectedFolderIds.has(folderId)) {
           selectedFolderIds.delete(folderId);
           opt.classList.remove('selected');
@@ -1794,20 +1896,18 @@
     };
 
     modal.querySelector('.cancel').addEventListener('click', closeModal);
-    modal.querySelector('.primary').addEventListener('click', async () => {
+    modal.querySelector('.primary').addEventListener('click', async (e) => {
       if (selectedFolderIds.size > 0) {
-        modal.querySelector('.primary').disabled = true;
-        modal.querySelector('.primary').textContent = 'Saving...';
-
-        try {
-          await addCourseToFoldersAPI(Array.from(selectedFolderIds), courseInfo);
-          closeModal();
-          showNotification(`Course saved to ${selectedFolderIds.size} folder(s)!`, 'success');
-        } catch (error) {
-          showNotification('Failed to save course: ' + error.message, 'error');
-          modal.querySelector('.primary').disabled = false;
-          modal.querySelector('.primary').textContent = 'Save';
-        }
+        await withLoading(e.currentTarget, async () => {
+          try {
+            await addCourseToFoldersAPI(Array.from(selectedFolderIds), courseInfo);
+            closeModal();
+            showNotification(`Course saved to ${selectedFolderIds.size} folder(s)!`, 'success');
+          } catch (error) {
+            showNotification('Failed to save course: ' + error.message, 'error');
+            throw error; // Re-throw to let withLoading know it failed
+          }
+        });
       }
     });
   }
@@ -1905,28 +2005,30 @@
     };
 
     modal.querySelector('.cancel').addEventListener('click', closeModal);
-    modal.querySelector('.primary').addEventListener('click', async () => {
-      const oldLicenseKey = config.licenseKey;
+    modal.querySelector('.primary').addEventListener('click', async (e) => {
+      await withLoading(e.currentTarget, async () => {
+        const oldLicenseKey = config.licenseKey;
 
-      config.licenseKey = modal.querySelector('#settings-license-key').value;
+        config.licenseKey = modal.querySelector('#settings-license-key').value;
 
-      config.showUiButtons = modal
-        .querySelector('[data-setting="showUiButtons"]')
-        .classList.contains('active');
-      config.showFolderOrganizer = modal
-        .querySelector('[data-setting="showFolderOrganizer"]')
-        .classList.contains('active');
+        config.showUiButtons = modal
+          .querySelector('[data-setting="showUiButtons"]')
+          .classList.contains('active');
+        config.showFolderOrganizer = modal
+          .querySelector('[data-setting="showFolderOrganizer"]')
+          .classList.contains('active');
 
-      saveConfig();
-      closeModal();
-      showNotification('Settings saved!', 'success');
-      renderFloatingControls();
+        saveConfig();
+        closeModal();
+        showNotification('Settings saved!', 'success');
+        renderFloatingControls();
 
-      // If license key changed, sync folders
-      if (config.licenseKey && config.licenseKey !== oldLicenseKey) {
-        await initDefaultFolders();
-        await syncFoldersFromServer();
-      }
+        // If license key changed, sync folders
+        if (config.licenseKey && config.licenseKey !== oldLicenseKey) {
+          await initDefaultFolders();
+          await syncFoldersFromServer();
+        }
+      });
     });
   }
 
@@ -2003,18 +2105,13 @@
 
     popup.querySelector('.ufo-close-btn').addEventListener('click', closeMainPopup);
 
-    popup.querySelector('#ufo-sync-btn').addEventListener('click', async () => {
-      const btn = popup.querySelector('#ufo-sync-btn');
-      btn.classList.add('syncing');
-      btn.disabled = true;
-
-      await syncFoldersFromServer();
-      renderFolderList();
-      await renderCourseGrid();
-
-      btn.classList.remove('syncing');
-      btn.disabled = false;
-      showNotification('Synced with cloud!', 'success');
+    popup.querySelector('#ufo-sync-btn').addEventListener('click', async (e) => {
+      await withLoading(e.currentTarget, async () => {
+        await syncFoldersFromServer();
+        renderFolderList();
+        await renderCourseGrid();
+        showNotification('Synced with cloud!', 'success');
+      });
     });
 
     popup.querySelector('.ufo-new-folder-btn').addEventListener('click', () => {
@@ -2078,7 +2175,10 @@
     const container = document.getElementById('ufo-folder-list');
     if (!container) return;
 
-    container.innerHTML = folders
+    // Sort folders by sort_order before rendering
+    const sortedFolders = [...folders].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+
+    container.innerHTML = sortedFolders
       .map(
         (folder) => `
             <div class="ufo-folder-item ${currentFolderId === folder.id ? 'active' : ''}" data-folder-id="${folder.id}">
@@ -2086,7 +2186,7 @@
                     ${ICONS.folder}
                 </div>
                 <div class="ufo-folder-info">
-                    <div class="ufo-folder-name">${folder.name}</div>
+                    <div class="ufo-folder-name">${folder.name}${folder.is_default ? ' <span style="font-size:10px;opacity:0.5;">(default)</span>' : ''}</div>
                     <div class="ufo-folder-count">${folder.courses?.length || folder.course_count || 0} courses</div>
                 </div>
                 <button class="ufo-folder-menu-btn" data-folder-id="${folder.id}">${ICONS.more}</button>
@@ -2098,7 +2198,8 @@
     container.querySelectorAll('.ufo-folder-item').forEach((item) => {
       item.addEventListener('click', async (e) => {
         if (e.target.closest('.ufo-folder-menu-btn')) return;
-        currentFolderId = parseInt(item.dataset.folderId);
+        // Folder IDs are now UUIDs (strings)
+        currentFolderId = item.dataset.folderId;
         currentPage = 1; // Reset to first page when switching folders
         renderFolderList();
         await renderCourseGrid();
@@ -2108,12 +2209,12 @@
     container.querySelectorAll('.ufo-folder-menu-btn').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        const folderId = parseInt(btn.dataset.folderId);
+        // Folder IDs are now UUIDs (strings)
+        const folderId = btn.dataset.folderId;
         const folder = folders.find((f) => f.id === folderId);
 
         showDropdown(btn, [
           {
-            icon: ICONS.edit,
             label: 'Rename',
             onClick: () => {
               showRenameFolderModal(folder.name, folderId, async (newName) => {
@@ -2128,7 +2229,6 @@
             },
           },
           {
-            icon: ICONS.trash,
             label: 'Delete',
             danger: true,
             onClick: async () => {
@@ -2164,23 +2264,20 @@
         title = folder.name;
         titleEl.innerHTML = `<span style="display: inline-block; width: 16px; height: 16px; border-radius: 4px; background: ${folder.color}; margin-right: 8px;"></span> ${title}`;
 
-        // Load courses for this folder
-        if (!folder.courses || folder.courses.length === 0) {
-          container.innerHTML = `<div class="ufo-loading" style="grid-column: 1 / -1;"><div class="ufo-loading-spinner"></div></div>`;
-          courses = await loadCoursesForFolder(currentFolderId);
-          folder.courses = courses;
-        } else {
-          courses = folder.courses;
-        }
+        // Always load fresh courses for the folder
+        container.innerHTML = `<div class="ufo-loading" style="grid-column: 1 / -1;"><div class="ufo-loading-spinner"></div></div>`;
+        courses = await loadCoursesForFolder(currentFolderId);
+        folder.courses = courses;
       }
     } else {
       titleEl.innerHTML = `${ICONS.folder} All Courses`;
-      // Collect all courses from all folders
+      // Collect all courses from all folders (deduplicated by course_id/slug)
       const seen = new Set();
       for (const folder of folders) {
         const folderCourses = folder.courses || [];
         for (const course of folderCourses) {
-          const courseKey = course.udemy_course_id || course.course_id || course.id;
+          // course_id is the unique identifier (slug)
+          const courseKey = course.course_id || course.id;
           if (!seen.has(courseKey)) {
             seen.add(courseKey);
             courses.push(course);
@@ -2245,24 +2342,30 @@
 
     container.innerHTML = pageCourses
       .map((course) => {
-        // course_id is the database ID, udemy_course_id is the slug
-        const dbCourseId = course.course_id || course.id;
+        // In new schema: id is folder_courses.id (junction), course_id is the slug
+        const courseSlug = course.course_id;
+        const junctionId = course.id;
         const imageUrl = course.image_url || course.image || PLACEHOLDER_IMAGE;
         const courseUrl = getCourseOpenUrl(course);
-        const hasProgress = course.last_lesson_url || (!config.licenseKey && GM_getValue('lessonProgress', {})[course.udemy_course_id || course.course_id]);
+        const hasProgress = course.last_lesson_url || (!config.licenseKey && GM_getValue('lessonProgress', {})[courseSlug]);
         const progressIndicator = hasProgress ? `<span style="color: #10b981; margin-left: 4px;" title="Resume from last lesson">▶</span>` : '';
 
+        // Show progress and completion status if available
+        const progressBar = course.progress > 0 ? `<div style="height:3px;background:rgba(255,255,255,0.1);border-radius:2px;margin-top:4px;"><div style="height:100%;width:${course.progress}%;background:#10b981;border-radius:2px;"></div></div>` : '';
+        const completedBadge = course.is_completed ? `<span style="color: #10b981; font-size: 10px; margin-left: 4px;">✓ Completed</span>` : '';
+
         return `
-                <div class="ufo-course-card" data-course-id="${dbCourseId}">
+                <div class="ufo-course-card" data-course-id="${courseSlug}" data-junction-id="${junctionId}">
                     <a href="${courseUrl}" target="_blank" class="ufo-course-image-link" title="${hasProgress ? 'Resume last lesson' : 'Open course'}">
                         <img class="ufo-course-image" src="${imageUrl}" alt="${course.title}" onerror="this.src='${PLACEHOLDER_IMAGE}'">
                     </a>
                     <div class="ufo-course-info">
-                        <a href="${courseUrl}" target="_blank" class="ufo-course-title" style="text-decoration: none; cursor: pointer;">${course.title}${progressIndicator}</a>
+                        <a href="${courseUrl}" target="_blank" class="ufo-course-title" style="text-decoration: none; cursor: pointer;">${course.title}${progressIndicator}${completedBadge}</a>
                         ${course.instructor ? `<div class="ufo-course-instructor">${course.instructor}</div>` : ''}
+                        ${progressBar}
                         <div class="ufo-course-actions">
                             <button class="ufo-course-btn primary" data-action="open" data-url="${courseUrl}">${hasProgress ? 'Resume' : 'Open'} ${ICONS.external}</button>
-                            <button class="ufo-course-btn danger" data-action="remove" data-course-id="${dbCourseId}" data-folder-id="${currentFolderId || ''}">Remove</button>
+                            <button class="ufo-course-btn danger" data-action="remove" data-course-id="${courseSlug}" data-folder-id="${currentFolderId || ''}">Remove</button>
                         </div>
                     </div>
                 </div>
@@ -2275,39 +2378,34 @@
     });
 
     container.querySelectorAll('[data-action="remove"]').forEach((btn) => {
-      btn.addEventListener('click', async () => {
-        const courseId = parseInt(btn.dataset.courseId) || btn.dataset.courseId;
-        const folderId = btn.dataset.folderId ? parseInt(btn.dataset.folderId) : null;
+      btn.addEventListener('click', async (e) => {
+        const courseId = btn.dataset.courseId;
+        const folderId = btn.dataset.folderId || null;
 
-        console.log('Remove clicked - courseId:', courseId, 'folderId:', folderId);
+        if (!confirm('Are you sure you want to remove this course?')) return;
 
-        try {
-          if (folderId) {
-            // Remove from specific folder
-            console.log('Removing course from folder:', folderId, courseId);
-            await removeCourseFromFolderAPI(folderId, courseId);
-          } else {
-            // Remove from all folders
-            console.log('Removing course from all folders');
-            for (const folder of folders) {
-              const hasCourse = folder.courses?.some((c) => {
-                const cId = c.course_id || c.id;
-                return cId === courseId || cId === String(courseId);
-              });
-              if (hasCourse) {
-                console.log('Removing from folder:', folder.id, folder.name);
-                await removeCourseFromFolderAPI(folder.id, courseId);
+        await withLoading(e.currentTarget, async () => {
+          try {
+            if (folderId) {
+              await removeCourseFromFolderAPI(folderId, courseId);
+            } else {
+              for (const folder of folders) {
+                const hasCourse = folder.courses?.some((c) => c.course_id === courseId);
+                if (hasCourse) {
+                  await removeCourseFromFolderAPI(folder.id, courseId);
+                }
               }
             }
-          }
 
-          renderFolderList();
-          await renderCourseGrid();
-          showNotification('Course removed!', 'success');
-        } catch (error) {
-          console.error('Remove error:', error);
-          showNotification('Failed to remove course: ' + error.message, 'error');
-        }
+            renderFolderList();
+            await renderCourseGrid();
+            showNotification('Course removed!', 'success');
+          } catch (error) {
+            console.error('Remove error:', error);
+            showNotification('Failed to remove course: ' + error.message, 'error');
+            throw error;
+          }
+        });
       });
     });
   }
@@ -2774,8 +2872,10 @@
     const fetchBtn = document.createElement('button');
     fetchBtn.className = 'ucc-btn secondary';
     fetchBtn.innerHTML = `${ICONS.refresh}<span class="ucc-btn-text">Fetch Cookies</span>`;
-    fetchBtn.addEventListener('click', async () => {
-      await updateCookiesFromWorker();
+    fetchBtn.addEventListener('click', async (e) => {
+      await withLoading(e.currentTarget, async () => {
+        await updateCookiesFromWorker();
+      });
     });
 
     if (config.showUiButtons) {
