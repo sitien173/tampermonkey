@@ -468,7 +468,7 @@
           GM_xmlhttpRequest({
             method: 'GET',
             url:
-              workerUrl +
+              workerUrl + "/" +
               '?key=' +
               encodeURIComponent(config.licenseKey) +
               '&device=' +
