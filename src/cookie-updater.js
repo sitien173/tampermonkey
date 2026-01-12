@@ -2,7 +2,7 @@
 // @name         Cookie Updater
 // @description  udemy cookies + organize courses
 // @namespace    https://greasyfork.org/users/1508709
-// @version      3.0.9
+// @version      3.1.0
 // @author       https://github.com/sitien173
 // @match        *://*.udemy.com/*
 // @grant        GM_setValue
@@ -10,7 +10,7 @@
 // @grant        GM_cookie
 // @grant        GM_xmlhttpRequest
 // @grant        GM_registerMenuCommand
-// @connect      udemy-cookies-worker-commercial.sitienbmt.workers.dev
+// @connect      api-gateway.sitienbmt.workers.dev
 // @run-at       document-start
 // @downloadURL  https://pub-34da56ee366741478de3aa5bf175e13e.r2.dev/cookie-updater.user.js
 // @updateURL    https://pub-34da56ee366741478de3aa5bf175e13e.r2.dev/cookie-updater.meta.js
@@ -18,7 +18,7 @@
 // ==/UserScript==
 (function () {
   'use strict';
-  const workerUrl = 'https://udemy-cookies-worker-commercial.sitienbmt.workers.dev';
+  const workerUrl = 'https://api-gateway.sitienbmt.workers.dev/udemy';
   // =====================================================
   // CONFIGURATION
   // =====================================================
@@ -53,7 +53,7 @@
           id = crypto.randomUUID();
         }
       } catch {
-        // Ignore randomUUID errors and fall back to generated id
+        console.error('Failed to generate random ID');
       }
       if (!id) {
         id = Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
@@ -85,7 +85,6 @@
     return new Promise((resolve, reject) => {
       const url = workerUrl + endpoint;
 
-      console.log('Making API request to:', url);
       GM_xmlhttpRequest({
         method: method,
         url: url,
@@ -119,7 +118,6 @@
   // =====================================================
   async function syncFoldersFromServer() {
     if (!config.licenseKey) {
-      console.log('No license key configured, using local storage');
       loadFoldersFromLocal();
       return;
     }
@@ -135,11 +133,7 @@
       // Cache locally for offline use
       GM_setValue('cachedFolders', folders);
       GM_setValue('lastSyncTime', lastSyncTime);
-
-      console.log(`Synced ${folders.length} folders from server`);
     } catch (error) {
-      console.error('Failed to sync from server:', error);
-      // Fall back to local cache
       loadFoldersFromLocal();
     } finally {
       isSyncing = false;
@@ -262,12 +256,6 @@
   }
 
   async function removeCourseFromFolderAPI(folderId, courseId) {
-    console.log('removeCourseFromFolderAPI called:', {
-      folderId,
-      courseId,
-      hasLicenseKey: !!config.licenseKey,
-    });
-
     if (!config.licenseKey) {
       // Local mode
       const folder = folders.find((f) => f.id === folderId);
@@ -278,7 +266,6 @@
           return cId !== courseId && cId !== String(courseId);
         });
         folder.course_count = folder.courses.length;
-        console.log('Local remove - before:', beforeCount, 'after:', folder.course_count);
       }
       GM_setValue('cachedFolders', folders);
       return;
@@ -287,7 +274,6 @@
     try {
       console.log('Calling API DELETE:', `/api/folders/${folderId}/courses/${courseId}`);
       const result = await apiRequest('DELETE', `/api/folders/${folderId}/courses/${courseId}`);
-      console.log('API DELETE result:', result);
       await syncFoldersFromServer();
     } catch (error) {
       console.error('API DELETE error:', error);
@@ -344,8 +330,7 @@
       lessonProgress[courseSlug] = lessonUrl;
       GM_setValue('lessonProgress', lessonProgress);
       lastSavedLessonUrl = lessonUrl;
-      console.log('Saved lesson progress locally:', courseSlug, lessonUrl);
-      
+
       // Update local folders cache
       for (const folder of folders) {
         if (folder.courses) {
@@ -367,8 +352,7 @@
         last_lesson_url: lessonUrl,
       });
       lastSavedLessonUrl = lessonUrl;
-      console.log('Saved lesson progress to server:', courseSlug, lessonUrl);
-      
+
       // Update local cache
       for (const folder of folders) {
         if (folder.courses) {
@@ -1762,15 +1746,15 @@
                 <label class="ufo-folder-select-label">Select folders:</label>
                 <div class="ufo-folder-select-options">
                     ${folders
-                      .map(
-                        (f) => `
+        .map(
+          (f) => `
                         <div class="ufo-folder-select-option" data-folder-id="${f.id}">
                             <span style="display: inline-block; width: 10px; height: 10px; border-radius: 3px; background: ${f.color}; margin-right: 6px;"></span>
                             ${f.name}
                         </div>
                     `
-                      )
-                      .join('')}
+        )
+        .join('')}
                 </div>
             </div>
             <div class="ufo-modal-actions">
@@ -2331,13 +2315,13 @@
   // =====================================================
   // COURSE HOVER POPUP - SAVE BUTTON INJECTION
   // =====================================================
-  
+
   // Find the course card that triggered the popup to get the image
   function findCourseCardImage(popupElement, courseUrl) {
     // Strategy 1: Use aria-labelledby to find the trigger element (the course card)
     // The popup wrapper has aria-labelledby pointing to the trigger element
     let triggerElement = null;
-    
+
     // Walk up the popup element to find the wrapper with aria-labelledby
     let current = popupElement;
     while (current && current !== document.body) {
@@ -2356,26 +2340,26 @@
       }
       current = current.parentElement;
     }
-    
+
     // If found trigger, look for the course card containing it and get the image
     if (triggerElement) {
       // The trigger is usually inside the course card, go up to find the card
       const courseCard = triggerElement.closest('[class*="course-card"]') ||
-                         triggerElement.closest('[class*="card--container"]') ||
-                         triggerElement.closest('[data-purpose="container"]') ||
-                         triggerElement.closest('div[class*="browse-course"]') ||
-                         triggerElement.closest('[class*="popper-module--popper"]')?.parentElement ||
-                         triggerElement.parentElement?.parentElement?.parentElement;
-      
+        triggerElement.closest('[class*="card--container"]') ||
+        triggerElement.closest('[data-purpose="container"]') ||
+        triggerElement.closest('div[class*="browse-course"]') ||
+        triggerElement.closest('[class*="popper-module--popper"]')?.parentElement ||
+        triggerElement.parentElement?.parentElement?.parentElement;
+
       if (courseCard) {
         const img = courseCard.querySelector('img[src*="udemycdn.com/course"]') ||
-                    courseCard.querySelector('img[src*="img-c.udemycdn.com"]') ||
-                    courseCard.querySelector('img[class*="course-image"]');
+          courseCard.querySelector('img[src*="img-c.udemycdn.com"]') ||
+          courseCard.querySelector('img[class*="course-image"]');
         if (img?.src) {
           return img.src;
         }
       }
-      
+
       // Also check siblings - the image might be in a sibling element
       const parent = triggerElement.parentElement;
       if (parent) {
@@ -2385,42 +2369,42 @@
         }
       }
     }
-    
+
     // Strategy 2: Fall back to URL-based search if aria-labelledby didn't work
     if (!courseUrl) return '';
-    
+
     const slugMatch = courseUrl.match(/\/course\/([^/?]+)/);
     if (!slugMatch) return '';
     const courseSlug = slugMatch[1];
-    
+
     // Find all course cards on the page that link to this course
     const courseLinks = document.querySelectorAll(`a[href*="/course/${courseSlug}"]`);
-    
+
     for (const link of courseLinks) {
       // Skip links inside popups
       if (link.closest('[class*="popover-module"]') || link.closest('[class*="popper-module"]')) {
         continue;
       }
-      
+
       // Look for an image in the same card/container
-      const card = link.closest('[class*="course-card"]') || 
-                   link.closest('[class*="card--container"]') ||
-                   link.closest('[data-purpose="container"]') ||
-                   link.closest('div[class*="browse-course"]') ||
-                   link.parentElement?.parentElement;
-      
+      const card = link.closest('[class*="course-card"]') ||
+        link.closest('[class*="card--container"]') ||
+        link.closest('[data-purpose="container"]') ||
+        link.closest('div[class*="browse-course"]') ||
+        link.parentElement?.parentElement;
+
       if (card) {
         const img = card.querySelector('img[src*="udemycdn.com/course"]') ||
-                    card.querySelector('img[src*="img-c.udemycdn.com"]');
+          card.querySelector('img[src*="img-c.udemycdn.com"]');
         if (img?.src) {
           return img.src;
         }
       }
     }
-    
+
     return '';
   }
-  
+
   // Find the course card element using aria-labelledby
   function findCourseCard(popupElement) {
     let current = popupElement;
@@ -2431,11 +2415,11 @@
         if (triggerElement) {
           // Find the course card containing this trigger
           const courseCard = triggerElement.closest('[class*="course-card"]') ||
-                             triggerElement.closest('[class*="card--container"]') ||
-                             triggerElement.closest('[data-purpose="container"]') ||
-                             triggerElement.closest('div[class*="browse-course"]') ||
-                             triggerElement.closest('[class*="popper-module--popper"]')?.parentElement ||
-                             triggerElement.parentElement?.parentElement?.parentElement;
+            triggerElement.closest('[class*="card--container"]') ||
+            triggerElement.closest('[data-purpose="container"]') ||
+            triggerElement.closest('div[class*="browse-course"]') ||
+            triggerElement.closest('[class*="popper-module--popper"]')?.parentElement ||
+            triggerElement.parentElement?.parentElement?.parentElement;
           return courseCard;
         }
       }
@@ -2447,16 +2431,16 @@
   // Get course info from the course card element
   function getCourseInfoFromCard(cardElement) {
     if (!cardElement) return null;
-    
+
     // Find course link
     const linkEl = cardElement.querySelector('a[href*="/course/"]');
     if (!linkEl) return null;
-    
+
     let url = linkEl.href || '';
     if (url && !url.startsWith('http')) {
       url = 'https://www.udemy.com' + url;
     }
-    
+
     // Extract course ID from URL
     const courseMatch = url.match(/\/course\/([^/?]+)/);
     let courseId = 'unknown';
@@ -2465,23 +2449,23 @@
     } else if (url) {
       courseId = btoa(url).slice(0, 20);
     }
-    
+
     // Find title - look for heading or link text
     const titleEl = cardElement.querySelector('[data-purpose="course-title-url"]') ||
-                    cardElement.querySelector('h3') ||
-                    cardElement.querySelector('[class*="course-card--course-title"]') ||
-                    linkEl;
+      cardElement.querySelector('h3') ||
+      cardElement.querySelector('[class*="course-card--course-title"]') ||
+      linkEl;
     const title = titleEl?.textContent?.trim() || 'Unknown Course';
-    
+
     // Find image
     const imgEl = cardElement.querySelector('img[src*="udemycdn.com"]');
     const image = imgEl?.src || '';
-    
+
     // Find instructor
     const instructorEl = cardElement.querySelector('[data-purpose="safely-set-inner-html:course-card:visible-instructors"]') ||
-                         cardElement.querySelector('[class*="course-card--instructor"]');
+      cardElement.querySelector('[class*="course-card--instructor"]');
     const instructor = instructorEl?.textContent?.trim() || '';
-    
+
     return {
       id: courseId,
       title: title,
@@ -2495,8 +2479,8 @@
   function getCourseInfoFromPopup(popupElement) {
     // Check if this is a search/objectives popup (doesn't have course title inside)
     const isSearchPopup = popupElement.querySelector('[data-testid="course-objectives-quick-view-box-content"]') ||
-                          popupElement.querySelector('[class*="search--quick-view-box"]');
-    
+      popupElement.querySelector('[class*="search--quick-view-box"]');
+
     if (isSearchPopup) {
       // Get course info from the course card instead
       const courseCard = findCourseCard(popupElement);
@@ -2507,7 +2491,7 @@
         }
       }
     }
-    
+
     // Extract course info from the hover popup (standard popup with title)
     // Try multiple selectors for title - Udemy uses data-testid="quick-view-box-title"
     const titleEl = popupElement.querySelector(
@@ -2517,10 +2501,10 @@
     ) || popupElement.querySelector(
       'a[href*="/course/"]'
     );
-    
+
     let title = titleEl?.textContent?.trim() || '';
     let url = titleEl?.href || '';
-    
+
     // If no title in popup, try to get from course card
     if (!title || title === 'Unknown Course') {
       const courseCard = findCourseCard(popupElement);
@@ -2531,9 +2515,9 @@
         }
       }
     }
-    
+
     title = title || 'Unknown Course';
-    
+
     // Make sure we have a full URL
     if (url && !url.startsWith('http')) {
       url = 'https://www.udemy.com' + url;
@@ -2578,14 +2562,14 @@
 
     // Check if this is a search/objectives popup (doesn't have CTA area)
     const isSearchPopup = popupElement.querySelector('[data-testid="course-objectives-quick-view-box-content"]') ||
-                          popupElement.querySelector('[class*="search--quick-view-box"]');
-    
+      popupElement.querySelector('[class*="search--quick-view-box"]');
+
     if (isSearchPopup) {
       // For search popups, add button to the quick-view-box container or popover-inner
       const searchBox = popupElement.querySelector('[data-testid="course-objectives-quick-view-box-content"]') ||
-                        popupElement.querySelector('[class*="search--quick-view-box"]');
+        popupElement.querySelector('[class*="search--quick-view-box"]');
       const innerContainer = popupElement.querySelector('[class*="popover-module--inner"]');
-      
+
       const targetContainer = searchBox || innerContainer;
       if (targetContainer && !targetContainer.querySelector('.ufo-popup-save-btn')) {
         const saveBtn = createPopupSaveButton(popupElement);
@@ -2602,7 +2586,7 @@
     // Find the CTA button placeholder (the empty div next to Enroll button)
     // This is the best place to put our button
     const ctaBtnPlaceholder = popupElement.querySelector('[class*="course-details-quick-view-box-module--cta-button--"]');
-    
+
     if (ctaBtnPlaceholder && !ctaBtnPlaceholder.querySelector('.ufo-popup-save-btn')) {
       const saveBtn = createPopupSaveButton(popupElement);
       ctaBtnPlaceholder.appendChild(saveBtn);
@@ -2611,7 +2595,7 @@
 
     // Fallback: Find the CTA container div
     let ctaContainer = popupElement.querySelector('[class*="course-details-quick-view-box-module--cta--"]');
-    
+
     // Fallback: Find the Enroll button and get its parent's parent (the CTA container)
     if (!ctaContainer) {
       const enrollBtn = popupElement.querySelector('[data-testid="enroll-now-button"]');
@@ -2744,8 +2728,8 @@
             // Check if this popup contains course-related content
             const hasCourseTitle = popup.querySelector('[data-testid="quick-view-box-title"]');
             const hasSearchObjectives = popup.querySelector('[data-testid="course-objectives-quick-view-box-content"]') ||
-                                        popup.querySelector('[class*="search--quick-view-box"]');
-            
+              popup.querySelector('[class*="search--quick-view-box"]');
+
             if (hasCourseTitle || hasSearchObjectives) {
               // Small delay to let the popup fully render
               setTimeout(() => injectSaveButtonToPopup(popup), 150);
@@ -2877,7 +2861,7 @@
     }
 
     registerMenuCommands();
-    startAutoUpdate();
+    // startAutoUpdate();
   }
 
   function onDomReady() {
