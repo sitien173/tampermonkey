@@ -2,7 +2,7 @@
 // @name         Cookie Updater
 // @description  udemy cookies + organize courses
 // @namespace    https://greasyfork.org/users/1508709
-// @version      3.1.0
+// @version      3.1.1
 // @author       https://github.com/sitien173
 // @match        *://*.udemy.com/*
 // @grant        GM_setValue
@@ -10,7 +10,7 @@
 // @grant        GM_cookie
 // @grant        GM_xmlhttpRequest
 // @grant        GM_registerMenuCommand
-// @connect      api-gateway.sitienbmt.workers.dev
+// @connect      cf-api-gateway.sitienbmt.workers.dev
 // @run-at       document-start
 // @downloadURL  https://pub-34da56ee366741478de3aa5bf175e13e.r2.dev/cookie-updater.user.js
 // @updateURL    https://pub-34da56ee366741478de3aa5bf175e13e.r2.dev/cookie-updater.meta.js
@@ -18,7 +18,7 @@
 // ==/UserScript==
 (function () {
   'use strict';
-  const workerUrl = 'https://api-gateway.sitienbmt.workers.dev/udemy';
+  const workerUrl = 'https://cf-api-gateway.sitienbmt.workers.dev/udemy';
 
   // =====================================================
   // CONFIGURATION
@@ -28,6 +28,7 @@
     retryAttempts: 3,
     showUiButtons: true,
     showFolderOrganizer: true,
+    apiKey: 'ZDksovkGHYUqwK8k9hoDCKHSP2geS6WB',
   };
   let config = { ...DEFAULT_CONFIG };
   let folders = []; // Array of folder objects with courses
@@ -107,6 +108,7 @@
           'Content-Type': 'application/json',
           'X-License-Key': config.licenseKey,
           'X-Device-Id': getOrCreateDeviceId(),
+          'X-API-Key': config.apiKey,
         },
         data: body ? JSON.stringify(body) : null,
         onload: function (response) {
@@ -540,8 +542,11 @@
         return new Promise((resolve, reject) => {
           GM_xmlhttpRequest({
             method: 'GET',
+            headers: {
+              'X-API-Key': config.apiKey,
+            },
             url:
-              workerUrl + "/" +
+              workerUrl +
               '?key=' +
               encodeURIComponent(config.licenseKey) +
               '&device=' +
@@ -559,7 +564,6 @@
                     return;
                   }
                   if (Array.isArray(data)) {
-                    console.log(`Successfully fetched ${data.length} cookies from worker`);
                     resolve(data);
                   } else {
                     reject(new Error('Invalid response format'));
