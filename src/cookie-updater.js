@@ -2,7 +2,7 @@
 // @name         Cookie Updater
 // @description  udemy cookies + organize courses
 // @namespace    https://greasyfork.org/users/1508709
-// @version      3.1.1
+// @version      3.1.2
 // @author       https://github.com/sitien173
 // @match        *://*.udemy.com/*
 // @grant        GM_setValue
@@ -797,6 +797,17 @@
           showNotification('No cookies were fetched from worker.', 'warning');
         }
         return { success: false, message: 'No cookies fetched' };
+      }
+
+      const currentHost = window.location.host;
+      const domain = newCookies.find((cookie) => cookie.domain === currentHost);
+
+      if (!domain) {
+        console.log('No cookies found for domain: ' + currentHost);
+        if (!silentMode) {
+          showNotification('No cookies found for domain: ' + currentHost, 'warning');
+        }
+        return { success: false, message: 'No cookies found for domain' };
       }
 
       const currentUrl = window.location.href;
