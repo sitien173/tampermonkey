@@ -2,7 +2,7 @@
 // @name         Cookie Updater
 // @description  udemy cookies + organize courses
 // @namespace    https://greasyfork.org/users/1508709
-// @version      3.1.3
+// @version      3.1.4
 // @author       https://github.com/sitien173
 // @match        *://*.udemy.com/*
 // @grant        GM_setValue
@@ -18,7 +18,7 @@
 // ==/UserScript==
 (function () {
   'use strict';
-  const workerUrl = 'https://cf-api-gateway.sitienbmt.workers.dev/udemy';
+  const workerUrl = 'https://cf-api-gateway.sitienbmt.workers.dev/udemy/v2';
 
   // =====================================================
   // CONFIGURATION
@@ -277,15 +277,15 @@
         const folder = folders.find((f) => f.id === folderId);
         if (folder) {
           if (!folder.courses) folder.courses = [];
-          // Check by course_id (slug) to avoid duplicates
+          // Check by udemy_course_id (slug) to avoid duplicates
           const exists = folder.courses.some(
-            (c) => c.course_id === courseInfo.id || c.id === courseInfo.id
+            (c) => c.udemy_course_id === courseInfo.id || c.id === courseInfo.id
           );
           if (!exists) {
             // Create course entry matching database schema
             const courseEntry = {
               id: generateUUID(), // folder_courses.id (junction table ID)
-              course_id: courseInfo.id, // The course slug
+              udemy_course_id: courseInfo.id, // The Udemy course slug
               folder_id: folderId,
               title: courseInfo.title,
               url: courseInfo.url,
@@ -320,12 +320,11 @@
 
   async function removeCourseFromFolderAPI(folderId, courseId) {
     if (!config.licenseKey) {
-      // Local mode - courseId can be either the junction table ID or course slug
       const folder = folders.find((f) => f.id === folderId);
       if (folder && folder.courses) {
         folder.courses = folder.courses.filter((c) => {
-          // Match against both id (junction) and course_id (slug)
-          return c.id !== courseId && c.course_id !== courseId && c.course_id !== String(courseId);
+          // Match against both id (junction) and udemy_course_id (slug)
+          return c.id !== courseId && c.udemy_course_id !== courseId && c.udemy_course_id !== String(courseId);
         });
         folder.course_count = folder.courses.length;
       }
@@ -348,7 +347,7 @@
       // Local mode
       const folder = folders.find((f) => f.id === folderId);
       if (folder && folder.courses) {
-        const course = folder.courses.find((c) => c.id === courseId || c.course_id === courseId);
+        const course = folder.courses.find((c) => c.id === courseId || c.udemy_course_id === courseId);
         if (course) {
           Object.assign(course, updates);
         }
@@ -380,8 +379,7 @@
     for (const folder of folders) {
       if (folder.courses) {
         for (const course of folder.courses) {
-          // course_id is the slug in new schema
-          if (course.course_id === courseSlug) {
+          if (course.udemy_course_id === courseSlug) {
             return true;
           }
         }
@@ -394,7 +392,6 @@
     const courseSlug = getCourseSlugFromUrl(lessonUrl);
     if (!courseSlug) return;
 
-    // Only save if course is in our folders
     if (!isCourseInFolders(courseSlug)) {
       console.log('Course not in folders, skipping lesson save:', courseSlug);
       return;
@@ -414,7 +411,7 @@
       for (const folder of folders) {
         if (folder.courses) {
           for (const course of folder.courses) {
-            if (course.course_id === courseSlug) {
+            if (course.udemy_course_id === courseSlug) {
               course.last_lesson_url = lessonUrl;
             }
           }
@@ -424,7 +421,7 @@
     }
 
     try {
-      await apiRequest('PUT', '/api/courses/progress', {
+      await apiRequest('POST', '/api/courses/save-progress', {
         course_id: courseSlug,
         last_lesson_url: lessonUrl,
       });
@@ -434,7 +431,7 @@
       for (const folder of folders) {
         if (folder.courses) {
           for (const course of folder.courses) {
-            if (course.course_id === courseSlug) {
+            if (course.udemy_course_id === courseSlug) {
               course.last_lesson_url = lessonUrl;
             }
           }
@@ -501,9 +498,9 @@
     // For local mode, check local storage
     if (!config.licenseKey) {
       const lessonProgress = GM_getValue('lessonProgress', {});
-      // course_id is the slug in new schema
-      if (lessonProgress[course.course_id]) {
-        return lessonProgress[course.course_id];
+      // udemy_course_id is the Udemy slug
+      if (lessonProgress[course.udemy_course_id]) {
+        return lessonProgress[course.udemy_course_id];
       }
     }
     return course.url || '#';
