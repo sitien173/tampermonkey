@@ -2,7 +2,7 @@
 // @name         Cookie Updater
 // @description  udemy cookies + organize courses
 // @namespace    https://greasyfork.org/users/1508709
-// @version      3.1.2
+// @version      3.1.3
 // @author       https://github.com/sitien173
 // @match        *://*.udemy.com/*
 // @grant        GM_setValue
@@ -2928,25 +2928,6 @@
   }
 
   // =====================================================
-  // AUTO UPDATE
-  // =====================================================
-  function startAutoUpdate() {
-    const lastUpdate = GM_getValue('lastCookieUpdate', 0);
-    const now = Date.now();
-
-    const autoUpdateInterval = 4 * 60 * 60 * 1000; // 4 hours
-    if (now - lastUpdate > autoUpdateInterval) {
-      updateCookiesFromWorker(true);
-      GM_setValue('lastCookieUpdate', now);
-    }
-
-    setInterval(() => {
-      updateCookiesFromWorker(true);
-      GM_setValue('lastCookieUpdate', Date.now());
-    }, autoUpdateInterval);
-  }
-
-  // =====================================================
   // MENU COMMANDS
   // =====================================================
   function registerMenuCommands() {
@@ -2962,7 +2943,25 @@
   async function initialize() {
     loadConfig();
 
-    // Load folders from server or local cache
+    // Check if we're on the correct Udemy domain and redirect if needed
+    try {
+      const response = await apiRequest('GET', '/api/public/udemy-base-url');
+
+      if (response.udemyBaseUrl) {
+        const expectedUrl = new URL(response.udemyBaseUrl);
+        const currentHost = window.location.hostname;
+
+        if (expectedUrl.hostname !== currentHost) {
+          const newUrl = expectedUrl.origin + window.location.pathname + window.location.search + window.location.hash;
+          console.log(`[Cookie Updater] Redirecting from ${currentHost} to ${expectedUrl.hostname}`);
+          window.location.href = newUrl;
+          return;
+        }
+      }
+    } catch (error) {
+      console.warn('[Cookie Updater] Failed to check Udemy base URL:', error.message);
+    }
+
     if (config.licenseKey) {
       await syncFoldersFromServer();
     } else {
@@ -2976,7 +2975,6 @@
     }
 
     registerMenuCommands();
-    // startAutoUpdate();
   }
 
   function onDomReady() {
