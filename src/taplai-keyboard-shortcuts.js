@@ -2,7 +2,7 @@
 // @name         Taplai Keyboard Shortcuts
 // @description  Keyboard shortcuts for taplai.com traffic simulation quiz
 // @namespace    https://greasyfork.org/users/1508709
-// @version      1.3.0
+// @version      1.3.1
 // @author       https://github.com/sitien173
 // @match        https://taplai.com/pham-mem-thi-thu-mo-phong-120-tinh-huong-giao-thong.html
 // @grant        none
@@ -104,7 +104,7 @@
       { key: 'H', desc: 'Hint' },
       { key: 'G', desc: 'Toggle guide' },
       { key: 'F', desc: 'Fullscreen' },
-      { key: '?', desc: 'Toggle help' },
+      { key: '~', desc: 'Toggle help' },
     ];
 
     keymapOverlay.innerHTML = `
@@ -175,7 +175,7 @@
       return;
     }
 
-    if (event.key === '?' || event.key === '/') {
+    if (event.key === '~') {
       toggleKeymapOverlay();
       return;
     }
