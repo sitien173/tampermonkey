@@ -10,9 +10,14 @@ const through2 = require('through2');
 const CleanCSS = require('clean-css');
 
 const config = {
+  scripts: ['cookie-updater', 'taplai-keyboard-shortcuts'],
   src: 'src/*.js',
   dist: 'dist'
 };
+
+function getScriptSources() {
+  return config.scripts.map((scriptName) => `src/${scriptName}.js`);
+}
 
 const userscriptHeaderRegex = /\/\/ ==UserScript==[\s\S]*?\/\/ ==\/UserScript==/;
 
@@ -104,25 +109,25 @@ function clean() {
 }
 
 function lint() {
-  return gulp.src(config.src)
+  return gulp.src(getScriptSources())
     .pipe(eslint())
     .pipe(eslint.format())
     .pipe(eslint.failAfterError());
 }
 
 function formatCheck() {
-  return gulp.src(config.src)
+  return gulp.src(getScriptSources())
     .pipe(prettier.check());
 }
 
 function format() {
-  return gulp.src(config.src)
+  return gulp.src(getScriptSources())
     .pipe(prettier())
     .pipe(gulp.dest('src'));
 }
 
 function buildDev() {
-  return gulp.src(config.src)
+  return gulp.src(getScriptSources())
     .pipe(extractUserscriptHeader())
     .pipe(sourcemaps.init())
     .pipe(babel({ presets: ['@babel/preset-env'] }))
@@ -134,7 +139,7 @@ function buildDev() {
 
 // Production build (minified, console.log removed, header preserved, CSS minified)
 function buildProd() {
-  return gulp.src(config.src)
+  return gulp.src(getScriptSources())
     .pipe(extractUserscriptHeader())
     .pipe(minifyCssInJs())
     .pipe(babel({
@@ -154,7 +159,7 @@ function buildProd() {
 }
 
 function generateMeta() {
-  return gulp.src(config.src)
+  return gulp.src(getScriptSources())
     .pipe(through2.obj(function (file, enc, cb) {
       if (file.isBuffer()) {
         const content = file.contents.toString();
@@ -174,7 +179,7 @@ function generateMeta() {
 }
 
 function watch() {
-  gulp.watch(config.src, gulp.series(lint, buildDev, generateMeta));
+  gulp.watch(getScriptSources(), gulp.series(lint, buildDev, generateMeta));
 }
 
 exports.clean = clean;
