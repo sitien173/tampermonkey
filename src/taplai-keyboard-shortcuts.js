@@ -2,7 +2,7 @@
 // @name         Taplai Keyboard Shortcuts
 // @description  Keyboard shortcuts for taplai.com traffic simulation quiz
 // @namespace    https://greasyfork.org/users/1508709
-// @version      1.4.0
+// @version      1.3.1
 // @author       https://github.com/sitien173
 // @match        https://taplai.com/pham-mem-thi-thu-mo-phong-120-tinh-huong-giao-thong.html
 // @grant        none
@@ -29,7 +29,6 @@
   let overlay;
   let overlayTimer = null;
   let keymapOverlay;
-  let statusOverlay;
 
   function initOverlay() {
     const container = document.querySelector('#videoContainer');
@@ -105,7 +104,6 @@
       { key: 'H', desc: 'Hint' },
       { key: 'G', desc: 'Toggle guide' },
       { key: 'F', desc: 'Fullscreen' },
-      { key: 'K', desc: 'Toggle status' },
       { key: '~', desc: 'Toggle help' },
     ];
 
@@ -128,38 +126,9 @@
     document.body.appendChild(keymapOverlay);
   }
 
-  function initStatusOverlay() {
-    statusOverlay = document.createElement('div');
-    statusOverlay.id = 'taplai-status-overlay';
-    Object.assign(statusOverlay.style, {
-      position: 'fixed',
-      top: '0',
-      left: '0',
-      width: '200px',
-      height: '50px',
-      backgroundColor: 'black',
-      color: 'white',
-      fontSize: '14px',
-      fontWeight: 'bold',
-      fontFamily: 'system-ui, -apple-system, sans-serif',
-      display: 'none',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: '10001',
-      pointerEvents: 'none',
-    });
-    statusOverlay.textContent = 'Keyboard Active';
-    document.body.appendChild(statusOverlay);
-  }
-
   function toggleKeymapOverlay() {
     if (!keymapOverlay) return;
     keymapOverlay.style.display = keymapOverlay.style.display === 'none' ? 'block' : 'none';
-  }
-
-  function toggleStatusOverlay() {
-    if (!statusOverlay) return;
-    statusOverlay.style.display = statusOverlay.style.display === 'none' ? 'flex' : 'none';
   }
 
   function hideOverlay() {
@@ -211,11 +180,6 @@
       return;
     }
 
-    if (event.key === 'k' || event.key === 'K') {
-      toggleStatusOverlay();
-      return;
-    }
-
     if (event.key === 'f' || event.key === 'F') {
       toggleFullscreen();
       return;
@@ -246,5 +210,4 @@
 
   initOverlay();
   initKeymapOverlay();
-  initStatusOverlay();
 })();
