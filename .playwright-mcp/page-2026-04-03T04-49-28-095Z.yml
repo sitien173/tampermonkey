@@ -1,0 +1,918 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]: 
+        - text: 0961 587 766
+      - generic [ref=e8]:
+        - generic [ref=e9]: 
+        - text: 07:00 - 23:00
+      - generic [ref=e10]:
+        - generic [ref=e11]: 
+        - text: Ghi danh toàn quốc
+      - generic [ref=e12]:
+        - link "Read more about Seminole tax hike" [ref=e13] [cursor=pointer]:
+          - /url: https://www.facebook.com/taplaicom
+          - generic [ref=e14]: 
+        - link "Read more about Seminole tax hike" [ref=e15] [cursor=pointer]:
+          - /url: https://twitter.com/Hcbnglixet1
+          - generic [ref=e16]: 
+        - link "Read more about Seminole tax hike" [ref=e17] [cursor=pointer]:
+          - /url: https://zalo.me/0975840339
+          - img "zalo" [ref=e18]
+        - link "Read more about Seminole tax hike" [ref=e19] [cursor=pointer]:
+          - /url: https://www.youtube.com/@taplai2188
+          - generic [ref=e20]: 
+    - generic [ref=e22]:
+      - generic [ref=e23]:   
+      - generic [ref=e24]:
+        - link "icon trang chủ" [ref=e25] [cursor=pointer]:
+          - /url: https://taplai.com/
+          - img "icon trang chủ" [ref=e26]
+        - generic [ref=e27]:
+          - link [ref=e28] [cursor=pointer]:
+            - /url: "#nav"
+          - navigation:    
+  - generic [ref=e33]:
+    - generic [ref=e34]:
+      - heading [level=2] [ref=e35]
+      - generic [ref=e36]:
+        - link "Trang Chủ /" [ref=e37] [cursor=pointer]:
+          - /url: https://taplai.com/
+        - link "Học mô phỏng 120 tình huống | v2.2 mới nhất | Chuẩn dễ thi nhất" [ref=e39] [cursor=pointer]:
+          - /url: https://taplai.com/pham-mem-thi-thu-mo-phong-120-tinh-huong-giao-thong.html
+    - generic [ref=e41]:
+      - textbox "Nhập điều bạn muốn tìm tại đây..." [ref=e42]
+      - button "tìm kiếm" [ref=e43] [cursor=pointer]:
+        - generic [ref=e44]: 
+  - generic [ref=e46]:
+    - generic [ref=e47]:
+      - generic [ref=e48]:
+        - generic [ref=e50]:
+          - generic [ref=e51]:
+            - link "Đăng ký học lái xe ô tô Toàn Quốc | Hạng B1-B2-C":
+              - /url: https://taplai.com/
+            - generic [ref=e52]:
+              - generic [ref=e53]: 
+              - text: "Biên Tập Viên: TNH"
+          - generic [ref=e55]:
+            - generic [ref=e56]: 
+            - text: "Ngày Đăng: 31-03-2026"
+        - generic [ref=e57]:
+          - img "start1" [ref=e59] [cursor=pointer]
+          - img "start2" [ref=e61] [cursor=pointer]
+          - img "start3" [ref=e63] [cursor=pointer]
+          - img "start4" [ref=e65] [cursor=pointer]
+          - img "start5" [ref=e67] [cursor=pointer]
+          - generic [ref=e68]: 4.8 / 5 ( 33011 lượt đánh giá)
+      - heading "Học mô phỏng 120 tình huống | v2.2 mới nhất | Chuẩn dễ thi nhất" [level=1] [ref=e69]
+      - separator [ref=e70]
+      - generic [ref=e71]:
+        - paragraph [ref=e72]
+        - generic [ref=e73]:
+          - generic [ref=e74]:
+            - generic [ref=e77]: 0%
+            - img "Banner" [ref=e79]
+            - text: Trình duyệt của bạn không hỗ trợ video.
+          - generic [ref=e82]:
+            - button "Play" [ref=e83] [cursor=pointer]:
+              - img "Play" [ref=e84]
+            - button "Rewind" [ref=e85] [cursor=pointer]:
+              - img "Rewind" [ref=e86]
+            - button "Gợi Ý" [ref=e87] [cursor=pointer]
+          - generic [ref=e88]:
+            - button "Câu Trước" [ref=e89] [cursor=pointer]
+            - button "Space" [ref=e90] [cursor=pointer]
+            - button "Câu Sau" [ref=e91] [cursor=pointer]
+          - generic [ref=e93]:
+            - generic [ref=e94]:
+              - generic [ref=e95]: "Time: 0.00s"
+              - generic [ref=e96]: "Điểm: 0"
+              - generic [ref=e97]: "Câu: 1/120"
+            - generic [ref=e98]:
+              - button "Tắt hướng dẫn" [ref=e99] [cursor=pointer]
+              - button "Xóa Điểm" [ref=e100] [cursor=pointer]
+              - button "Thi Thử" [ref=e101] [cursor=pointer]
+        - generic [ref=e103]:
+          - generic [ref=e104]:
+            - generic [ref=e105]: "Phân loại:"
+            - combobox "Phân loại:" [ref=e106]:
+              - option "Tất cả câu hỏi" [selected]
+              - option "Ôn tập theo chủ đề"
+              - option "Ôn theo độ khó"
+          - generic [ref=e107]:
+            - generic [ref=e108]: "Chi tiết:"
+            - combobox "Chi tiết:" [ref=e109]:
+              - option "Hiển thị tất cả" [selected]
+        - generic [ref=e112]:
+          - 'heading "Chương 1: Giao thông trong đô thị" [level=5] [ref=e113]'
+          - generic [ref=e114]:
+            - paragraph [ref=e118] [cursor=pointer]: Câu 1
+            - paragraph [ref=e122] [cursor=pointer]: Câu 2
+            - paragraph [ref=e126] [cursor=pointer]: Câu 3
+            - paragraph [ref=e130] [cursor=pointer]: Câu 4
+            - paragraph [ref=e134] [cursor=pointer]: Câu 5
+            - paragraph [ref=e138] [cursor=pointer]: Câu 6
+            - paragraph [ref=e142] [cursor=pointer]: Câu 7
+            - paragraph [ref=e146] [cursor=pointer]: Câu 8
+            - paragraph [ref=e150] [cursor=pointer]: Câu 9
+            - paragraph [ref=e154] [cursor=pointer]: Câu 10
+            - paragraph [ref=e158] [cursor=pointer]: Câu 11
+            - paragraph [ref=e162] [cursor=pointer]: Câu 12
+            - paragraph [ref=e166] [cursor=pointer]: Câu 13
+            - paragraph [ref=e170] [cursor=pointer]: Câu 14
+            - paragraph [ref=e174] [cursor=pointer]: Câu 15
+            - paragraph [ref=e178] [cursor=pointer]: Câu 16
+            - paragraph [ref=e182] [cursor=pointer]: Câu 17
+            - paragraph [ref=e186] [cursor=pointer]: Câu 18
+            - paragraph [ref=e190] [cursor=pointer]: Câu 19
+            - paragraph [ref=e194] [cursor=pointer]: Câu 20
+            - paragraph [ref=e198] [cursor=pointer]: Câu 21
+            - paragraph [ref=e202] [cursor=pointer]: Câu 22
+            - paragraph [ref=e206] [cursor=pointer]: Câu 23
+            - paragraph [ref=e210] [cursor=pointer]: Câu 24
+            - paragraph [ref=e214] [cursor=pointer]: Câu 25
+            - paragraph [ref=e218] [cursor=pointer]: Câu 26
+            - paragraph [ref=e222] [cursor=pointer]: Câu 27
+            - paragraph [ref=e226] [cursor=pointer]: Câu 28
+            - paragraph [ref=e230] [cursor=pointer]: Câu 29
+          - 'heading "Chương 2: Giao thông ngoài đô thị" [level=5] [ref=e231]'
+          - generic [ref=e232]:
+            - paragraph [ref=e236] [cursor=pointer]: Câu 30
+            - paragraph [ref=e240] [cursor=pointer]: Câu 31
+            - paragraph [ref=e244] [cursor=pointer]: Câu 32
+            - paragraph [ref=e248] [cursor=pointer]: Câu 33
+            - paragraph [ref=e252] [cursor=pointer]: Câu 34
+            - paragraph [ref=e256] [cursor=pointer]: Câu 35
+            - paragraph [ref=e260] [cursor=pointer]: Câu 36
+            - paragraph [ref=e264] [cursor=pointer]: Câu 37
+            - paragraph [ref=e268] [cursor=pointer]: Câu 38
+            - paragraph [ref=e272] [cursor=pointer]: Câu 39
+            - paragraph [ref=e276] [cursor=pointer]: Câu 40
+            - paragraph [ref=e280] [cursor=pointer]: Câu 41
+            - paragraph [ref=e284] [cursor=pointer]: Câu 42
+            - paragraph [ref=e288] [cursor=pointer]: Câu 43
+          - 'heading "Chương 3: Giao thông trên cao tốc" [level=5] [ref=e289]'
+          - generic [ref=e290]:
+            - paragraph [ref=e294] [cursor=pointer]: Câu 44
+            - paragraph [ref=e298] [cursor=pointer]: Câu 45
+            - paragraph [ref=e302] [cursor=pointer]: Câu 46
+            - paragraph [ref=e306] [cursor=pointer]: Câu 47
+            - paragraph [ref=e310] [cursor=pointer]: Câu 48
+            - paragraph [ref=e314] [cursor=pointer]: Câu 49
+            - paragraph [ref=e318] [cursor=pointer]: Câu 50
+            - paragraph [ref=e322] [cursor=pointer]: Câu 51
+            - paragraph [ref=e326] [cursor=pointer]: Câu 52
+            - paragraph [ref=e330] [cursor=pointer]: Câu 53
+            - paragraph [ref=e334] [cursor=pointer]: Câu 54
+            - paragraph [ref=e338] [cursor=pointer]: Câu 55
+            - paragraph [ref=e342] [cursor=pointer]: Câu 56
+            - paragraph [ref=e346] [cursor=pointer]: Câu 57
+            - paragraph [ref=e350] [cursor=pointer]: Câu 58
+            - paragraph [ref=e354] [cursor=pointer]: Câu 59
+            - paragraph [ref=e358] [cursor=pointer]: Câu 60
+            - paragraph [ref=e362] [cursor=pointer]: Câu 61
+            - paragraph [ref=e366] [cursor=pointer]: Câu 62
+            - paragraph [ref=e370] [cursor=pointer]: Câu 63
+          - 'heading "Chương 4: Giao thông trên đường núi" [level=5] [ref=e371]'
+          - generic [ref=e372]:
+            - paragraph [ref=e376] [cursor=pointer]: Câu 64
+            - paragraph [ref=e380] [cursor=pointer]: Câu 65
+            - paragraph [ref=e384] [cursor=pointer]: Câu 66
+            - paragraph [ref=e388] [cursor=pointer]: Câu 67
+            - paragraph [ref=e392] [cursor=pointer]: Câu 68
+            - paragraph [ref=e396] [cursor=pointer]: Câu 69
+            - paragraph [ref=e400] [cursor=pointer]: Câu 70
+            - paragraph [ref=e404] [cursor=pointer]: Câu 71
+            - paragraph [ref=e408] [cursor=pointer]: Câu 72
+            - paragraph [ref=e412] [cursor=pointer]: Câu 73
+          - 'heading "Chương 5: Giao thông trên đường quốc lộ" [level=5] [ref=e413]'
+          - generic [ref=e414]:
+            - paragraph [ref=e418] [cursor=pointer]: Câu 74
+            - paragraph [ref=e422] [cursor=pointer]: Câu 75
+            - paragraph [ref=e426] [cursor=pointer]: Câu 76
+            - paragraph [ref=e430] [cursor=pointer]: Câu 77
+            - paragraph [ref=e434] [cursor=pointer]: Câu 78
+            - paragraph [ref=e438] [cursor=pointer]: Câu 79
+            - paragraph [ref=e442] [cursor=pointer]: Câu 80
+            - paragraph [ref=e446] [cursor=pointer]: Câu 81
+            - paragraph [ref=e450] [cursor=pointer]: Câu 82
+            - paragraph [ref=e454] [cursor=pointer]: Câu 83
+            - paragraph [ref=e458] [cursor=pointer]: Câu 84
+            - paragraph [ref=e462] [cursor=pointer]: Câu 85
+            - paragraph [ref=e466] [cursor=pointer]: Câu 86
+            - paragraph [ref=e470] [cursor=pointer]: Câu 87
+            - paragraph [ref=e474] [cursor=pointer]: Câu 88
+            - paragraph [ref=e478] [cursor=pointer]: Câu 89
+            - paragraph [ref=e482] [cursor=pointer]: Câu 90
+          - 'heading "Chương 6: Tai nạn giao thông thực tế" [level=5] [ref=e483]'
+          - generic [ref=e484]:
+            - paragraph [ref=e488] [cursor=pointer]: Câu 91
+            - paragraph [ref=e492] [cursor=pointer]: Câu 92
+            - paragraph [ref=e496] [cursor=pointer]: Câu 93
+            - paragraph [ref=e500] [cursor=pointer]: Câu 94
+            - paragraph [ref=e504] [cursor=pointer]: Câu 95
+            - paragraph [ref=e508] [cursor=pointer]: Câu 96
+            - paragraph [ref=e512] [cursor=pointer]: Câu 97
+            - paragraph [ref=e516] [cursor=pointer]: Câu 98
+            - paragraph [ref=e520] [cursor=pointer]: Câu 99
+            - paragraph [ref=e524] [cursor=pointer]: Câu 100
+            - paragraph [ref=e528] [cursor=pointer]: Câu 101
+            - paragraph [ref=e532] [cursor=pointer]: Câu 102
+            - paragraph [ref=e536] [cursor=pointer]: Câu 103
+            - paragraph [ref=e540] [cursor=pointer]: Câu 104
+            - paragraph [ref=e544] [cursor=pointer]: Câu 105
+            - paragraph [ref=e548] [cursor=pointer]: Câu 106
+            - paragraph [ref=e552] [cursor=pointer]: Câu 107
+            - paragraph [ref=e556] [cursor=pointer]: Câu 108
+            - paragraph [ref=e560] [cursor=pointer]: Câu 109
+            - paragraph [ref=e564] [cursor=pointer]: Câu 110
+            - paragraph [ref=e568] [cursor=pointer]: Câu 111
+            - paragraph [ref=e572] [cursor=pointer]: Câu 112
+            - paragraph [ref=e576] [cursor=pointer]: Câu 113
+            - paragraph [ref=e580] [cursor=pointer]: Câu 114
+            - paragraph [ref=e584] [cursor=pointer]: Câu 115
+            - paragraph [ref=e588] [cursor=pointer]: Câu 116
+            - paragraph [ref=e592] [cursor=pointer]: Câu 117
+            - paragraph [ref=e596] [cursor=pointer]: Câu 118
+            - paragraph [ref=e600] [cursor=pointer]: Câu 119
+            - paragraph [ref=e604] [cursor=pointer]: Câu 120
+        - paragraph [ref=e605]
+        - generic [ref=e607]:
+          - strong [ref=e609]: Thông tin học và phần mềm tải về mới nhất
+          - generic [ref=e611]:
+            - generic [ref=e613]:
+              - generic [ref=e614]:
+                - img "Zalo Thầy Ngọc" [ref=e615]
+                - link "Tham gia" [ref=e617] [cursor=pointer]:
+                  - /url: https://taplai.com/donate.html
+              - strong [ref=e619]: Cộng đồng Zalo Thầy Ngọc
+            - generic [ref=e621]:
+              - generic [ref=e622]:
+                - img "600 Câu Hỏi Lý Thuyết" [ref=e623]
+                - generic [ref=e625]:
+                  - link "Học Luật Mới" [ref=e626] [cursor=pointer]:
+                    - /url: https://taplai.com/hoc-ly-thuyet-600-cau-lai-xe-o-to-truc-tuyen-moi-nhat.html
+                  - link "Thi Luật Mới" [ref=e627] [cursor=pointer]:
+                    - /url: https://taplai.com/thi-ly-thuyet-600-cau-lai-xe-o-to-truc-tuyen-moi-nhat.html
+                  - link "Học Luật Cũ" [ref=e628] [cursor=pointer]:
+                    - /url: https://taplai.com/hoc-on-tap-ly-thuyet-600-cau.html
+                  - link "Thi Luật Cũ" [ref=e629] [cursor=pointer]:
+                    - /url: https://taplai.com/thi-ly-thuyet-600-cau-online.html
+              - strong [ref=e631]: Ô tô lý thuyết 600 câu ( học và thi )
+            - generic [ref=e633]:
+              - generic [ref=e634]:
+                - img "120 Câu Mô Phỏng" [ref=e635]
+                - generic [ref=e637]:
+                  - link "Học" [ref=e638] [cursor=pointer]:
+                    - /url: https://taplai.com/pham-mem-thi-thu-mo-phong-120-tinh-huong-giao-thong.html
+                  - link "Thi" [ref=e639] [cursor=pointer]:
+                    - /url: https://taplai.com/thi-thu-mo-phong-120-tinh-huong-giao-thong-online.html
+              - strong [ref=e641]: 120 câu mô phỏng ( học và thi )
+            - generic [ref=e643]:
+              - generic [ref=e644]:
+                - img "200 Câu Lý Thuyết Xe Máy" [ref=e645]
+                - generic [ref=e647]:
+                  - link "Học" [ref=e648] [cursor=pointer]:
+                    - /url: https://taplai.com/hoc-ly-thuyet-200-cau-lai-xe-may-online.html
+                  - link "Thi" [ref=e649] [cursor=pointer]:
+                    - /url: https://taplai.com/thi-thu-mo-phong-120-tinh-huong-giao-thong-online.html
+              - strong [ref=e651]: 200 câu lý thuyết xe máy ( học và thi )
+            - generic [ref=e653]:
+              - generic [ref=e654]:
+                - img "600 Câu Thi" [ref=e655]
+                - generic [ref=e657]:
+                  - link "Google Drive" [ref=e658] [cursor=pointer]:
+                    - /url: https://drive.google.com/file/d/1PiwesQBpQ2O8BlpQ6izo34wQdQMYns6O/view?usp=sharing
+                  - link "Mediafire" [ref=e659] [cursor=pointer]:
+                    - /url: https://www.mediafire.com/file/x7otvxm5wgwp5ft/PhamMemTuLuyen_600Cau_BCA.rar/file
+              - strong [ref=e661]: Tải xuống 600 câu lý thuyết về máy tính
+            - generic [ref=e663]:
+              - generic [ref=e664]:
+                - img "120 Câu Thi" [ref=e665]
+                - generic [ref=e667]:
+                  - link "Mediafire 1" [ref=e668] [cursor=pointer]:
+                    - /url: https://www.mediafire.com/file/5hcff4p8xgs684s/OnTapMoPhongSetup_v200_x86.rar/file
+                  - link "Mediafire 2" [ref=e669] [cursor=pointer]:
+                    - /url: https://www.mediafire.com/file/a4e3ju7tgtje1n8/UpdateOnTap_v2.0.0_x86.rar/file
+                  - link "Google Drive 1" [ref=e670] [cursor=pointer]:
+                    - /url: https://drive.google.com/file/d/1pjPj9inNJy1qbbptmRcNMiIQhfgCBgOE/view?usp=sharing
+                  - link "Google Drive 2" [ref=e671] [cursor=pointer]:
+                    - /url: https://drive.google.com/file/d/1QVRT9VtNfr8HRSl0vEnf771ragwcm2AI/view?usp=sharing
+              - strong [ref=e673]: Tải xuống 120 câu mô phỏng về máy tính
+        - paragraph [ref=e674]
+        - paragraph [ref=e675]
+        - generic [ref=e676]:
+          - paragraph [ref=e677]:
+            - text: Nếu trong quá trình ôn tập, bạn cảm thấy câu nào sai hãy góp ý bằng cách
+            - strong [ref=e678]: conment dưới phần bình luận
+            - text: nhé, Hoặc
+            - strong [ref=e679]: tham gia nhóm bên dưới
+            - text: để có thể được hỗ trợ nhanh nhất nhé ♥
+          - paragraph [ref=e680]:
+            - text: "Nhóm:"
+            - strong [ref=e681]:
+              - link "facebook.com/groups/hocbanglai" [ref=e682] [cursor=pointer]:
+                - /url: https://www.facebook.com/groups/hocbanglai
+        - paragraph [ref=e683]:
+          - text: Nhằm hỗ trợ anh/chị học viên có được sự chuẩn bị tốt nhất trong quá trình ôn tập và luyện thi
+          - strong [ref=e684]: phần mềm mô phỏng 120 tình huống giao thông
+          - img "????" [ref=e685]
+          - text: dưới đây là video hướng dẫn cách nhận diện, xác định điểm canh đơn giản và chính xác nhất.
+        - paragraph [ref=e686]
+        - heading " ÔN TẬP PHẦN MỀM 120 TÌNH HUỐNG MÔ PHỎNG TRONG HỌC LÁI XE Ô TÔ" [level=2] [ref=e687]
+        - paragraph [ref=e688]:
+          - text: Phần mềm mô phỏng 120 tình huống giao thông được áp dụng vào chương trình dạy và học lái xe ô tô các hạng B1, B2, C, D, E, F… kể từ ngày 15/06/2022. Dựa trên những bổ sung quan trọng của
+          - strong [ref=e689]: Tổng cục đường bộ Việt Nam
+          - text: ","
+          - link "TAPLAI.COM" [ref=e690] [cursor=pointer]:
+            - /url: https://taplai.com/
+            - strong [ref=e691]: TAPLAI.COM
+          - text: biên soạn và phát triển
+          - strong [ref=e692]:
+            - link "phần mềm thi thử mô phỏng 120 tình huống giao thông online" [ref=e693] [cursor=pointer]:
+              - /url: https://taplai.com/pham-mem-thi-thu-mo-phong-120-tinh-huong-giao-thong.html
+          - text: .
+        - paragraph [ref=e694]:
+          - strong [ref=e695]: "Phần mềm này mô phỏng lại các tình huống thực tế khi tham gia giao thông, trong đó cấu trúc nội dung được chia ra như sau:"
+        - paragraph [ref=e696]:
+          - img "????" [ref=e697]
+          - strong [ref=e698]: "Chương I:"
+          - text: Gồm 29 tình huống từ 01 – 29 xoay quanh các tình huống thực tế thường xuyên gặp phải khi tham gia giao thông trên đường phố trong khu đô thị, khu dân cư đông đúc
+        - paragraph [ref=e699]:
+          - img "????" [ref=e700]
+          - strong [ref=e701]: "Chương II:"
+          - text: Gồm 14 tình huống từ 30 - 43 xoay quanh các tình huống thực tế thường xuyên gặp phải khi tham gia giao thông trên đường ở nông thôn ở các đoạn đường gấp khúc, vào buổi tối, có gia súc, sử dụng đèn chiếu xa,...
+        - paragraph [ref=e702]:
+          - img "????" [ref=e703]
+          - strong [ref=e704]: "Chương III:"
+          - text: Gồm 20 tình huống từ 44 - 63 xoay quanh các tình huống thực tế như chuyển làn, vượt xe, phanh gấp, nhập làn, lùi trên cao tốc,…thường xuyên gặp phải khi tham gia giao thông trên đường cao tốc.
+        - paragraph [ref=e705]:
+          - img "????" [ref=e706]
+          - strong [ref=e707]: "Chương IV:"
+          - text: Gồm 10 tình huống từ 64 - 73 xoay quanh các tình huống thực tế khi điều khiển tham gia giao thông trên đường núi như vượt xe, lên dốc xuống dốc, khúc cua gấp,...
+        - paragraph [ref=e708]:
+          - img "????" [ref=e709]
+          - strong [ref=e710]: "Chương V:"
+          - text: Gồm 17 tình huống từ 64 - 90 xoay quanh các tình huống thực tế điều khiển giao thông trên quốc lộ như người đi bộ, giao cắt với đường sắt, vượt xe trên đường…
+        - paragraph [ref=e711]:
+          - img "????" [ref=e712]
+          - strong [ref=e713]: "Chương VI:"
+          - text: Gồm 30 tình huống từ 91 - 120 xoay quanh các tình huống va chạm thực tế khi tham gia giao thông hỗn hợp.
+        - generic [ref=e714]:
+          - paragraph [ref=e715]:
+            - strong [ref=e717]: "LƯU Ý:"
+          - paragraph [ref=e718]:
+            - strong [ref=e719]: ✔️
+            - strong [ref=e720]: Phần mềm thi thử mô phỏng 120 tình huống giao thông online v2.2
+            - text: của chúng tôi được phát triển dựa trên phần mềm offline do
+            - strong [ref=e721]: Tổng Cục Đường Bộ Việt Nam
+            - text: ban hành trước đó. Nhằm giúp học viên không có máy tính có thể học và ôn tập trực tiếp trên điện thoại, máy tính bảng hoặc máy tính có cấu hình yếu không đủ điều kiện tải phần mềm.
+          - paragraph [ref=e722]:
+            - strong [ref=e723]: ✔️
+            - text: Đây là tổng hợp các tình huống với mục đích kiểm tra nhận thức, phản xạ trước các mối nguy hiểm khi tham gia giao thông. Đã có rất nhiều nước phát triển trên thế giới như Anh, Hà Lan, Úc áp dụng phần mềm này vào sát hạch cấp GPLX và mang lại hiệu quả rõ rệt trong việc giảm thiểu số vụ tai nạn giao thông.
+          - paragraph [ref=e724]:
+            - strong [ref=e725]: ✔️
+            - strong [ref=e726]
+            - text: Có thể học thuộc và nắm rõ
+            - strong [ref=e727]: 120 tình huống mô phỏng
+            - text: này đồng nghĩa bạn sẽ vượt qua phần thi mô phỏng 1 cách dễ dàng, không cần lo lắng. Ngoài ra, bạn còn có thêm các kỹ năng phản xạ thực tế khi tham gia giao thông sau này.
+        - heading " Tổng hợp những Câu hỏi trong 120 tình huống mô phỏng phiên bản v2.2" [level=2] [ref=e728]
+        - 'heading " Chương 1: Giao thông trong đô thị" [level=3] [ref=e729]'
+        - paragraph [ref=e730]:
+          - strong [ref=e731]: "Câu 1:"
+          - text: Người đi bộ sang đường bị khuất sau xe tải
+        - paragraph [ref=e732]:
+          - strong [ref=e733]: "Câu 2:"
+          - text: Người đi bộ vượt đền đỏ sang đường
+        - paragraph [ref=e734]:
+          - strong [ref=e735]: "Câu 3:"
+          - text: Xe phía trước phanh gấp để tránh xe buýt đang dừng tại bến xe buýt
+        - paragraph [ref=e736]:
+          - strong [ref=e737]: "Câu 4:"
+          - text: Xe con từ đường nhanh đi nhanh ra tại ngã ba không có đèn tính hiệu giao thông
+        - paragraph [ref=e738]:
+          - strong [ref=e739]: "Câu 5:"
+          - text: Xe máy đang đi thẳng, đột ngột rẻ trái sang đường trước đầu xe bạn
+        - paragraph [ref=e740]:
+          - strong [ref=e741]: "Câu 6:"
+          - text: Xe buýt lấn làn để vượt tại ngã ba
+        - paragraph [ref=e742]:
+          - strong [ref=e743]: "Câu 7:"
+          - text: Xe phía trước phanh gấp tránh người đi bộ vượt đèn đỏ sang đường
+        - paragraph [ref=e744]:
+          - strong [ref=e745]: "Câu 8:"
+          - text: Xe đạp bất ngờ đi ra từ đường nhanh tại ngã ba
+        - paragraph [ref=e746]:
+          - strong [ref=e747]: "Câu 9:"
+          - text: Xe ô tô làn đường đối diện lấn làn vượt xe tải đang dừng đõ tại khu vực đông đúc
+        - paragraph [ref=e748]:
+          - strong [ref=e749]: "Câu 10:"
+          - text: Xe ô tô bất ngờ đi nhanh ra từ đường nhanh bên trái tại ngã ba
+        - paragraph [ref=e750]:
+          - strong [ref=e751]: "Câu 11:"
+          - text: Xe bồn bê tông từ đường nhanh lấn làn để rẻ tại ngã ba không có đèn giao thông có nhiều xe đang dừng đỗ
+        - paragraph [ref=e752]:
+          - strong [ref=e753]: "Câu 12:"
+          - text: Xe mô tô lấn làn vượt ẩu nguy hiểm tại giao lộ
+        - paragraph [ref=e754]:
+          - strong [ref=e755]: "Câu 13:"
+          - text: Người đi xe đạp từ vỉa hè bất ngờ đi xuống đường để sang đường
+        - paragraph [ref=e756]:
+          - strong [ref=e757]: "Câu 14:"
+          - text: Tình huống nguy hiểm khi gặp xe t ải lớn đi qua hầm chui dân sinh
+        - paragraph [ref=e758]:
+          - strong [ref=e759]: "Câu 15:"
+          - text: Xe phía trước phanh gấp để tránh xe chuyển làn rẽ trái tại ngã ba
+        - paragraph [ref=e760]:
+          - strong [ref=e761]: "Câu 16:"
+          - text: Xe ô tô từ đường nhanh bên trái bất ngờ đi nhanh ra có nguy cơ va chạm với xe bạn
+        - paragraph [ref=e762]:
+          - strong [ref=e763]: "Câu 17:"
+          - text: Xe buýt lấn làn đường vượt ẩu tại ngã tư có đèn giao thông
+        - paragraph [ref=e764]:
+          - strong [ref=e765]: "Câu 18:"
+          - text: Gặp tài xế xe đang dừng đỗ ven đường đột ngột mở cửa xe
+        - paragraph [ref=e766]:
+          - strong [ref=e767]: "Câu 19:"
+          - text: Tài xế xe dừng bên đường đang mở cửa xe
+        - paragraph [ref=e768]:
+          - strong [ref=e769]: "Câu 20:"
+          - text: Tài xế xe đang đỗ ven đường đi ra mở cửa xe tại khu vực đường hẹp
+        - paragraph [ref=e770]:
+          - strong [ref=e771]: "Câu 21:"
+          - text: Xe ô tô phía dừng lại và lùi vào nơi đỗ tại khu vực đường hẹp
+        - paragraph [ref=e772]:
+          - strong [ref=e773]: "Câu 22:"
+          - text: Gặp xe ô tô từ đường nhánh bên phải tại ngã ba đi ra với tốc độ nhanh
+        - paragraph [ref=e774]:
+          - strong [ref=e775]: "Câu 23:"
+          - text: Xe ô tô đối diện lấn làn vượt xe đang có tín hiệu dừng khẩn cấp
+        - paragraph [ref=e776]:
+          - strong [ref=e777]: "Câu 24:"
+          - text: Xe tải lớn ở làn đối diện lấn làn vượt xe đang thu gom rác
+        - paragraph [ref=e778]:
+          - strong [ref=e779]: "Câu 25:"
+          - text: Xe ô tô khách bất ngờ đi ra từ nơi đỗ tại đường hẹp
+        - paragraph [ref=e780]:
+          - strong [ref=e781]: "Câu 26:"
+          - text: Tránh xe tại khu vực công trình sửa đường xuất hiện sau khúc cua
+        - paragraph [ref=e782]:
+          - strong [ref=e783]: "Câu 27:"
+          - text: Xe khách bật đèn cảnh báo dường giữa ngã tư để đón khách
+        - paragraph [ref=e784]:
+          - strong [ref=e785]: "Câu 28:"
+          - text: Xe ô tô phía trước đang đi, đột ngột phan gấp khi gặp vũng nước trên đường
+        - paragraph [ref=e786]:
+          - strong [ref=e787]: "Câu 29:"
+          - text: Trời mưa, ô tô phía trước phanh gấp để tránh xe mô-tô tạt đầu khi gặp chướng ngại vật
+        - 'heading " Chương 2: Giao thông ngoài đô thị" [level=3] [ref=e788]'
+        - paragraph [ref=e789]:
+          - strong [ref=e790]: "Câu 30:"
+          - text: Đường nông thôn, xe đi gặp đàn bò đang đứng trên đường
+        - paragraph [ref=e791]:
+          - strong [ref=e792]: "Câu 31:"
+          - text: Đường nông thôn, gặp đàn bò đi từ dưới vệ đường bang qua đường
+        - paragraph [ref=e793]:
+          - strong [ref=e794]: "Câu 32:"
+          - text: Người đi bộ bang qua đường lúc chập tối ngay trước xe bạn
+        - paragraph [ref=e795]:
+          - strong [ref=e796]: "Câu 33:"
+          - text: Học sinh đi ra đường tại khu vực gần trường học
+        - paragraph [ref=e797]:
+          - strong [ref=e798]: "Câu 34:"
+          - text: Gặp xe khách tại đoạn đường cong vào cua chiếm hết làn đường tại khu vực đường hẹp
+        - paragraph [ref=e799]:
+          - strong [ref=e800]: "Câu 35:"
+          - text: Xe khách phía trước đột ngột phanh giảm tốc độ tránh xe dối diện tại đoạn đường cong
+        - paragraph [ref=e801]:
+          - strong [ref=e802]: "Câu 36:"
+          - text: Đường nông thôn, xuất hiện xe máy đi ra từ ngõ bên phải
+        - paragraph [ref=e803]:
+          - strong [ref=e804]: "Câu 37:"
+          - text: Đường nông thôn, nhóm xe đạp đi ra từ ngõ bên phải
+        - paragraph [ref=e805]:
+          - strong [ref=e806]: "Câu 38:"
+          - text: Ban đêm xe ô tô tải ngược chiều bật đèn chiếu xa làm 2 xe máy phía trước giảm tốc độ
+        - paragraph [ref=e807]:
+          - strong [ref=e808]: "Câu 39:"
+          - text: Xe tải từ đường nhánh nhập làn nguy hiểm
+        - paragraph [ref=e809]:
+          - strong [ref=e810]: "Câu 40:"
+          - text: Gần cổng làng, phía sau có xe mô-tô lấn làn để vượt xe ô tô đang dừng đỗ
+        - paragraph [ref=e811]:
+          - strong [ref=e812]: "Câu 41:"
+          - text: Xe con làn đối diện rẽ nhanh cắt qua đầu xe bạn tại ngã ba
+        - paragraph [ref=e813]:
+          - strong [ref=e814]: "Câu 42:"
+          - text: Tại ngã tư, đèn xanh , xe bạn bắt đầu di chuyển có xe mô-tô rẽ cắt ngang qua đầu xe bạn
+        - paragraph [ref=e815]:
+          - strong [ref=e816]: "Câu 43:"
+          - text: Trười mưa, xe con giảm nhanh tốc độ để tránh xe tải chuyển làn đột ngột tránh chướng ngại vật phía trước
+        - 'heading " Chương 3: Giao thông trên cao tốc" [level=3] [ref=e817]'
+        - paragraph [ref=e818]:
+          - strong [ref=e819]: "Câu 44:"
+          - text: Phía sau làn phải có xe con vượt lên và chuyển làn cắt ngang nguy hiểm trước mặt xe bạn
+        - paragraph [ref=e820]:
+          - strong [ref=e821]: "Câu 45:"
+          - text: Xe tải ở làn phải vượt lên và đột ngột chuyển làn sang làn giữa làm xe phía trước phải phanh gấp
+        - paragraph [ref=e822]:
+          - strong [ref=e823]: "Câu 46:"
+          - text: Xe ô tô con ở làn bên trái vượt lên và chuyển làn phải cắt qua nguy hiểm trước đầu xe bạn để rẽ ra đường gom
+        - paragraph [ref=e824]:
+          - strong [ref=e825]: "Câu 47:"
+          - text: Xe cấp cứu xin đường, xe con bên trái tang tốc vượt lên và chuyển làn cắt qua đầu xe bạn
+        - paragraph [ref=e826]:
+          - strong [ref=e827]: "Câu 48:"
+          - text: Xe bạn có tín hiệu để chuyển làn trái thì có xe phía sau nháy pha liên tục để vượt
+        - paragraph [ref=e828]:
+          - strong [ref=e829]: "Câu 49:"
+          - text: Ô tô phía trước phanh gấp do có xe tải tạt sang đột ngột vì gặp chướng ngại vật
+        - paragraph [ref=e830]:
+          - strong [ref=e831]: "Câu 50:"
+          - text: Xe tải phía trước làn phải đột ngột tang tốc và chuyển sang làn giữa làm xe con phía trước phanh gấp
+        - paragraph [ref=e832]:
+          - strong [ref=e833]: "Câu 51:"
+          - text: Xe tải bật đèn cảnh báo đi ngược đường ở làn bên phải cao tốc
+        - paragraph [ref=e834]:
+          - strong [ref=e835]: "Câu 52:"
+          - text: Qua đoạn đường cong đột nhiên có xe tải đi lùi trong làn khẩn cấp
+        - paragraph [ref=e836]:
+          - strong [ref=e837]: "Câu 53:"
+          - text: Trên đường cao tốc bân đêm, đột nhiên có xe tải đi chiều ngược lại ở làn khẩn cấp
+        - paragraph [ref=e838]:
+          - strong [ref=e839]: "Câu 54:"
+          - text: Xe tải từ đường nhanh nhập vào cao tốc với tốc độ cao
+        - paragraph [ref=e840]:
+          - strong [ref=e841]: "Câu 55:"
+          - text: Cao tốc, xe tải đột ngột giảm tốc và chuyển sang làn xe bạn do gặp xe đang gặp sự cố trên đường
+        - paragraph [ref=e842]:
+          - strong [ref=e843]: "Câu 56:"
+          - text: Xe con đang dừng ở làn khẩn cấp xi nhan nhập làn trước xe bạn
+        - paragraph [ref=e844]:
+          - strong [ref=e845]: "Câu 57:"
+          - text: Xe con phai trước giảm tốc độ và chuyển sang làn xe bạn do gặp đoạn đường đang sửa chữa phía trước
+        - paragraph [ref=e846]:
+          - strong [ref=e847]: "Câu 58:"
+          - text: Xe tải phía trước giảm tốc độ, chuyển sang làn giữa do gặp đoạn đường đang sửa chữa phía trước
+        - paragraph [ref=e848]:
+          - strong [ref=e849]: "Câu 59:"
+          - text: Xe container đang đi từ làn trái chuyển ra đường nhanh cắt qua làn đường xe bạn
+        - paragraph [ref=e850]:
+          - strong [ref=e851]: "Câu 60:"
+          - text: Xe 16 chỗ từ làn đường khẩn cấp đi ra vào làn xe bạn
+        - paragraph [ref=e852]:
+          - strong [ref=e853]: "Câu 61:"
+          - text: Xe con từ đường nhánh nhập làn nguy hiểm cắt qua đầu xe bạn
+        - paragraph [ref=e854]:
+          - strong [ref=e855]: "Câu 62:"
+          - text: Xe con đi ngược chiều nguy hiểm tại làn đường tốc đọ cao nhất trên cao tốc
+        - paragraph [ref=e856]:
+          - strong [ref=e857]: "Câu 63:"
+          - text: Đàn gia súc từ bên đường đi ra cắt qua làn đường xe bạn tại khu vực cao tốc bị hỏng hộ lan
+        - 'heading " Chương 4: Giao thông trên đường núi" [level=3] [ref=e858]'
+        - paragraph [ref=e859]:
+          - strong [ref=e860]: "Câu 64:"
+          - text: Phía đường cong xuất hiện xe tải đi đối diện làn xe khách phía trước giảm tốc độ đột ngột
+        - paragraph [ref=e861]:
+          - strong [ref=e862]: "Câu 65:"
+          - text: Đường đèo dốc ban đêm gần đoạn đường cong, đột ngột tại khúc cua có xe khách lấn làn vượt xe tải lớn
+        - paragraph [ref=e863]:
+          - strong [ref=e864]: "Câu 66:"
+          - text: Đi phia sau xe tải chở vật liệu không được chằng buộc cẩn thận
+        - paragraph [ref=e865]:
+          - strong [ref=e866]: "Câu 67:"
+          - text: Xe ô tô phía trước phanh gấp do có động vật hoang dã đứng ven đường
+        - paragraph [ref=e867]:
+          - strong [ref=e868]: "Câu 68:"
+          - text: Đường núi, sương mù, có đàn bò đứng sát đường ngay sau đoạn đường cong
+        - paragraph [ref=e869]:
+          - strong [ref=e870]: "Câu 69:"
+          - text: Xe con vào cua lấn làn nguy hiểm va chạm với xe ngược chiều trên đường đồi núi
+        - paragraph [ref=e871]:
+          - strong [ref=e872]: "Câu 70:"
+          - text: Xe khách lấn làn vượt xe container ngay tại khúc cua trên đường núi
+        - paragraph [ref=e873]:
+          - strong [ref=e874]: "Câu 71:"
+          - text: Đường núi, trời mưa, xe phía trước đột ngột dừng lại vì hỏng máy
+        - paragraph [ref=e875]:
+          - strong [ref=e876]: "Câu 72:"
+          - text: Xe tải lấn làn đường xe bạn để vượt các xe khách trên đường núi thời tiết sương mù
+        - paragraph [ref=e877]:
+          - strong [ref=e878]: "Câu 73:"
+          - text: Xe con lấn làn xe bạn để vượt xe tải trên đường núi ngay tại đoạn đường quanh co
+        - 'heading " Chương 5: Giao thông trên đường quốc lộ" [level=3] [ref=e879]'
+        - paragraph [ref=e880]:
+          - strong [ref=e881]: "Câu 74:"
+          - text: Xe ô tô phía trước phanh gấp để tránh đoàn xe đạt từ đường nhanh đi ra
+        - paragraph [ref=e882]:
+          - strong [ref=e883]: "Câu 75:"
+          - text: Trẻ em đột ngột lao ra để nhật quả bóng bị lăn ra đường
+        - paragraph [ref=e884]:
+          - strong [ref=e885]: "Câu 76:"
+          - text: Em bé đột ngột chạy ra đường
+        - paragraph [ref=e886]:
+          - strong [ref=e887]: "Câu 77:"
+          - text: Xe con từ làn phải (khuất tầm nhìn) cắt ngang qua các xe đang đi thẳng để sang đường
+        - paragraph [ref=e888]:
+          - strong [ref=e889]: "Câu 78:"
+          - text: Đèn vừa chuyển xanh, đột ngột xe mô-tô làn trái phía trước cố vượt đèn đỏ cắt qua trước đầu xe
+        - paragraph [ref=e890]:
+          - strong [ref=e891]: "Câu 79:"
+          - text: Xe mô-tô đi ra từ đường nhanh nguy hiểm phía sau xe buýt vừa đi qua
+        - paragraph [ref=e892]:
+          - strong [ref=e893]: "Câu 80:"
+          - text: Xe mô tô vượt lên đột ngột giảm tốc và chuyển sang làn xe bạn để tránh chướng ngại vật trên đường
+        - paragraph [ref=e894]:
+          - strong [ref=e895]: "Câu 81:"
+          - text: Xe bán tải từ đường bên kia quay đầu đột ngột lấn làn xe bạn
+        - paragraph [ref=e896]:
+          - strong [ref=e897]: "Câu 82:"
+          - text: Xe tải lớn ở làn đường ngược chiều lấn làn xe bạn để vượt qua xe buýet
+        - paragraph [ref=e898]:
+          - strong [ref=e899]: "Câu 83:"
+          - text: Xuất hiện gia súc từ vệ đường đi ra đường quốc lộ ngay trước mặt xe bạn
+        - paragraph [ref=e900]:
+          - strong [ref=e901]: "Câu 84:"
+          - text: Xe con phía trước giảm tốc độ đột ngột và chuyển làn để tránh xe buýt đang dừng
+        - paragraph [ref=e902]:
+          - strong [ref=e903]: "Câu 85:"
+          - text: Khúc gỗ trên xe tải phía trước bị rơi xuống do xe phanh gấp
+        - paragraph [ref=e904]:
+          - strong [ref=e905]: "Câu 86:"
+          - text: Xe con đi phía trước giảnh tốc và chuyển làn đột ngột để tránh chướng ngại vật
+        - paragraph [ref=e906]:
+          - strong [ref=e907]: "Câu 87:"
+          - text: Đi qua chỗ giao cắt với đường sắt ban đêm, không có đèn tín hiệu, phia sau xe con, đột nhiên có tàu đi tới
+        - paragraph [ref=e908]:
+          - strong [ref=e909]: "Câu 88:"
+          - text: Xe mô-tô phánh và chuyển làn để tránh xe buýt vào trả khách
+        - paragraph [ref=e910]:
+          - strong [ref=e911]: "Câu 89:"
+          - text: Xe đạt từ bên kia đường đối diện bang qua đường khong quan sát trước mặt xe bạn
+        - paragraph [ref=e912]:
+          - strong [ref=e913]: "Câu 90:"
+          - text: Xe bán tải phía trước giảm tốc độ và chuyển làn khẩn cấp để tránh xe mô-tô đi ngược chiều
+        - 'heading " Chương 6: Tai nạn giao thông thực tế" [level=3] [ref=e914]'
+        - paragraph [ref=e915]:
+          - strong [ref=e916]: "Câu 91:"
+          - text: "[Tai nạn] xe ô tô innova lùi trên cao tốc Hà Nội – Thái Nguyên"
+        - paragraph [ref=e917]:
+          - strong [ref=e918]: "Câu 92:"
+          - text: "[Tai nạn] xe mô-tô lấn làn vượt ẩu trên đường núi, va chạm với xe khách đi ngược chiều"
+        - paragraph [ref=e919]:
+          - strong [ref=e920]: "Câu 93:"
+          - text: "[Tai nạn] xe con từ làn trong cùng bên trái lần làn vượt ẩu để đi ra đường nhánh, va chạm với xe tải"
+        - paragraph [ref=e921]:
+          - strong [ref=e922]: "Câu 94:"
+          - text: "[Tai nạn] tai nạn liên hoàn giữa 3 xe khách do đâm vào xe đang dừng đỗ để sửa chữa"
+        - paragraph [ref=e923]:
+          - strong [ref=e924]: "Câu 95:"
+          - text: "[Tai nạn] tài xế giật mình đánh lái gấp đâm vào dải phân cách, xe đổ vào đám đông làm 5 người thiệt mạng"
+        - paragraph [ref=e925]:
+          - strong [ref=e926]: "Câu 96:"
+          - text: "[Tai nạn] tai nạn xe container không làm chủ tốc độ dâm trực diện vào xe ô tô con đang dừng chờ đèn đỏ"
+        - paragraph [ref=e927]:
+          - strong [ref=e928]: "Câu 97:"
+          - text: "[Tai nạn] xe khách vào cua với tốc độ cao, lấn sang đường ngược chiều va chạm với xe đi chiều ngược lại"
+        - paragraph [ref=e929]:
+          - strong [ref=e930]: "Câu 98:"
+          - text: "[Tai nạn] tai nạn đèn prenn xe khách mất lái đâm vào người điều tiết giao thông và xe khách đi ngược chiều"
+        - paragraph [ref=e931]:
+          - strong [ref=e932]: "Câu 99:"
+          - text: "[Tai nạn] hầm Hải Vân xe kéo rơ mooc mất lái lấn làn đâm trực diện vào xe tải đi chiều ngược lại gây tai nạn"
+        - paragraph [ref=e933]:
+          - strong [ref=e934]: "Câu 100:"
+          - text: "[Tai nạn] xe ô tô con chở người đi qua đường sắt tại Nam Định không chú ý va chạm với tàu hỏa"
+        - paragraph [ref=e935]:
+          - strong [ref=e936]: "Câu 101:"
+          - text: "[Tai nạn] xe ô tô 16 chỗ chở khách rẽ trái qua đường sắt không chú ý va chạm với tàu hỏa"
+        - paragraph [ref=e937]:
+          - strong [ref=e938]: "Câu 102:"
+          - text: "[Tai nạn] xe khác va chạm với xe cứu hỏa đi ngược chiều tại nút giao Pháp Vân"
+        - paragraph [ref=e939]:
+          - strong [ref=e940]: "Câu 103:"
+          - text: "[Tai nạn] Phía trước đột nhiên có xe ô tô từ làn đối diện đi ngược chiều va chạm với xe con"
+        - paragraph [ref=e941]:
+          - strong [ref=e942]: "Câu 104:"
+          - text: "[Tai nạn] Tai ngã tư Hàng Xanh, lái xe ô tô con trong tình trạng có nồng độ cồn không làm chủ tốc độ đâm vào loạt xe dừng chờ đèn đỏ"
+        - paragraph [ref=e943]:
+          - strong [ref=e944]: "Câu 105:"
+          - text: "[Tai nạn] xe khách 45 chỗ đâm vào xe đầu kéo rơ moóc chở máy ủi đi từ đường tránh ra gây tai nọn thảm khốc"
+        - paragraph [ref=e945]:
+          - strong [ref=e946]: "Câu 106:"
+          - text: "[Tai nạn] Xe khách 48 chỗ thiếu kỹ năng điều khiển, không thông thuốc địa hình lao xuống vực tại Kon Tum"
+        - paragraph [ref=e947]:
+          - strong [ref=e948]: "Câu 107:"
+          - text: "[Tai nạn] Xe Khách chạy vượt xe tải, đâm trực diện vào xe khách đi chiều ngược lại gây tai nạn liên hoàn 3 xe"
+        - paragraph [ref=e949]:
+          - strong [ref=e950]: "Câu 108:"
+          - text: "[Tai nạn] Trường mưa, đường trơn trược xe tải khi vào cua không làm chủ tốc độ đã đâm vào xe ben đi ngược chiều"
+        - paragraph [ref=e951]:
+          - strong [ref=e952]: "Câu 109:"
+          - text: "[Tai nạn] xe 16 chỗ từ đường nhanh, khuất tầm nhìn rẽ vào đường chính không giảm tốc độ, bị xe sơ mi rơ moóc đâm vào (tại Ngã 3 Nà Phặc – Bắc Kạn)"
+        - paragraph [ref=e953]:
+          - strong [ref=e954]: "Câu 110:"
+          - text: "[Tai nạn] Xe container bất ngờ tông vào hang loạt phương tiện đang dừng đèn đỏ tại quốc lộ 1, đoạn nút giao Mỹ Phước – Tân Vạn, Bình Dương"
+        - paragraph [ref=e955]:
+          - strong [ref=e956]: "Câu 111:"
+          - text: "[Tai nạn] Xe khách lấn làn vượt xe tải chỗ đường cong, đâm vào xe khách đi ngược chiều tai nạn tại km 1791+400 trên đường Hỗ Chí Minh, đoạn qua thôn 7, xã Hòa Phú, TP:Buôn Ma Thuột (Đắk Lắk)"
+        - paragraph [ref=e957]:
+          - strong [ref=e958]: "Câu 112:"
+          - text: "[Tai nạn] Xe khách 16 chỗ vượt ẩu qua xe đầu kéo va chạm với xe khách đang xuống dốc tốc độ cao, gây tai nạn liên hoàn giữa 3 xe tại km12+400 đoạn qua phường Hương Hồ, TP: Huế"
+        - paragraph [ref=e959]:
+          - strong [ref=e960]: "Câu 113:"
+          - text: "[Tai nạn] Khi đen tín hiệu chuyển sang xanh, đột ngột có xe con cố vượt từ đường giao bên trái sang làm va chạm với xe con"
+        - paragraph [ref=e961]:
+          - strong [ref=e962]: "Câu 114:"
+          - text: "[Tai nạn] ô tô 7 chỗ đi trên cầu treo hẹp ban đêm, tài xe lái xe va chạm với xe máy, xe dâm xuống song tại cầu treo qua song Giăng, Thanh Chương, Nghệ An"
+        - paragraph [ref=e963]:
+          - strong [ref=e964]: "Câu 115:"
+          - text: "[Tai nạn] Xe con phanh gấp tránh xe máy từ ngõ lao ra, xe khách không làm chủ tốc độ đã đâm trực diện vào xe con"
+        - paragraph [ref=e965]:
+          - strong [ref=e966]: "Câu 116:"
+          - text: "[Tai nạn] Phía trước có đá lở đột ngột và rơi xuống (tai nạn tại Đồng Văn, Hà Giang)"
+        - paragraph [ref=e967]:
+          - strong [ref=e968]: "Câu 117:"
+          - text: "[Tai nạn] Xe con phanh gấp tránh xe máy từ ngõ lao ra, xe khách không làm chủ tốc độ đã đâm trực diện vào xe con"
+        - paragraph [ref=e969]:
+          - strong [ref=e970]: "Câu 118:"
+          - text: "[Tai nạn] Xe 16 chỗ rẽ không quan sát, không làm chủ tốc độ đâm vào xe bán tải đang lùi"
+        - paragraph [ref=e971]:
+          - strong [ref=e972]: "Câu 119:"
+          - text: "[Tai nạn] Xe khách không tuân thủ khoảng cách an toàn xử lý tình huống không kịp dẫn tới va chạm với xe tải đang dừng đỗ"
+        - paragraph [ref=e973]:
+          - strong [ref=e974]: "Câu 120:"
+          - text: "[Tai nạn] Xe tải không làm chủ đường tốc độ mất lái lao vào chợ dân sinh và va chạm với các xe đang đi phía trước"
+        - heading " PHƯƠNG PHÁP CHẤM ĐIỂM" [level=2] [ref=e975]:
+          - text: 
+          - strong [ref=e976]:
+            - strong [ref=e977]: PHƯƠNG PHÁP CHẤM ĐIỂM
+        - paragraph [ref=e978]:
+          - strong [ref=e979]:
+            - strong [ref=e980]:
+              - strong [ref=e981]: "Trong mỗi tình huống có 02 mốc thời điểm 5đ và 0đ:"
+        - paragraph [ref=e982]:
+          - strong [ref=e983]:
+            - strong [ref=e984]:
+              - strong [ref=e985]: "+ 5 điểm:"
+              - text: thời điểm bắt đầu có dấu hiệu phát hiện ra tình huống nguy hiểm, lái xe cần xử lý.
+        - paragraph [ref=e986]:
+          - strong [ref=e987]:
+            - strong [ref=e988]:
+              - strong [ref=e989]: "+ 0 điểm:"
+              - text: mốc thời điểm mà xử lý từ thời điểm này vẫn xảy ra tai nạn
+        - paragraph [ref=e990]:
+          - strong [ref=e991]:
+            - strong [ref=e992]: Học viên lựa chọn được giữa 2 mốc này sẽ đạt mức điểm tương ứng từ 5-4-3-2-1 điểm (điểm tối đa cho mỗi tình huống là 5đ).
+        - paragraph [ref=e993]:
+          - strong [ref=e994]:
+            - strong [ref=e995]:
+              - strong [ref=e996]:
+                - img "????" [ref=e997]
+                - text: "Xem thêm:"
+              - link "Mẹo giải phần mềm mô phỏng 120 tình huống giao thông" [ref=e998] [cursor=pointer]:
+                - /url: https://taplai.com/tong-hop-meo-phan-mem-120-tinh-huong-mo-phong-giao-thong.html
+                - strong [ref=e999]: Mẹo giải phần mềm mô phỏng 120 tình huống giao thông
+        - paragraph [ref=e1000]:
+          - strong [ref=e1001]:
+            - strong [ref=e1002]:
+              - text: Trên đây là
+              - strong [ref=e1003]: phần mềm mô phỏng 120 tình huống giao thông online v2.2
+              - text: giúp học viên ôn luyện trực tuyến nhanh chóng.
+        - paragraph [ref=e1004]:
+          - strong [ref=e1005]:
+            - strong [ref=e1006]:
+              - text: Để xem hướng dẫn
+              - strong [ref=e1007]: download phần mềm mô phỏng 120 tình huống giao thông
+              - text: của Tổng cục đường bộ Việt Nam, vui lòng truy cập
+              - link "TẠI ĐÂY" [ref=e1008] [cursor=pointer]:
+                - /url: https://taplai.com/cai-dat-va-su-dung-phan-mem-mo-phong-120-tinh-huong-giao-thong.html
+                - strong [ref=e1009]: TẠI ĐÂY
+              - text: .
+        - generic [ref=e1010]:
+          - generic [ref=e1011]:
+            - generic [ref=e1013]: 
+            - text: "Từ khóa liên quan:"
+          - generic [ref=e1014]:
+            - button "học mô phỏng 120 tình huống lái xe" [ref=e1015] [cursor=pointer]
+            - button "học mô phỏng giao thông v2.2" [ref=e1016] [cursor=pointer]
+            - button "hướng dẫn xử lý tình huống lái xe" [ref=e1017] [cursor=pointer]
+            - button "học phản xạ mô phỏng online" [ref=e1018] [cursor=pointer]
+            - button "học thi mô phỏng lái xe ô tô" [ref=e1019] [cursor=pointer]
+            - button "video học mô phỏng lái xe" [ref=e1020] [cursor=pointer]
+            - button "luyện tập mô phỏng 120 tình huống" [ref=e1021] [cursor=pointer]
+            - button "học mô phỏng GPLX 2025" [ref=e1022] [cursor=pointer]
+      - text: CÁC BÀI ĐĂNG KHÁC
+      - list [ref=e1024]:
+        - listitem [ref=e1025]:
+          - generic [ref=e1026]: 
+          - link "Có bằng lái xe ô tô sẽ làm thay đổi cuộc sống của bạn" [ref=e1027] [cursor=pointer]:
+            - /url: https://taplai.com/co-bang-lai-xe-o-to-se-lam-thay-doi-cuoc-song-cua-ban.html
+        - listitem [ref=e1028]:
+          - generic [ref=e1029]: 
+          - link "Những điều quan trọng cần phải lưu ý khi đăng ký học lái xe ô tô" [ref=e1030] [cursor=pointer]:
+            - /url: https://taplai.com/nhung-dieu-quan-trong-can-phai-luu-y-khi-dang-ky-hoc-lai-xe-o-to.html
+        - listitem [ref=e1031]:
+          - generic [ref=e1032]: 
+          - link "Phần mềm thi lái xe B2 trên máy tính tốt nhất 2025" [ref=e1033] [cursor=pointer]:
+            - /url: https://taplai.com/phan-mem-thi-lai-xe-b2-tren-may-tinh-tot-nhat-2021.html
+        - listitem [ref=e1034]:
+          - generic [ref=e1035]: 
+          - link "Thi bằng lái xe A1 - Bộ đề 200 câu hỏi mới nhất có đáp án" [ref=e1036] [cursor=pointer]:
+            - /url: https://taplai.com/thi-bang-lai-xe-a1-bo-de-200-cau-hoi-moi-nhat-co-dap-an.html
+    - generic [ref=e1038]:
+      - generic [ref=e1040]:
+        - searchbox "Search" [ref=e1043]
+        - button "Search" [ref=e1045] [cursor=pointer]
+      - separator
+      - generic [ref=e1046]:
+        - paragraph [ref=e1047]:
+          - text: KỶ NIỆM 10 NĂM THÀNH LẬP
+          - text: GIẢM 50% HỌC PHÍ TOÀN QUỐC
+        - separator [ref=e1048]
+        - paragraph
+        - paragraph [ref=e1050]:
+          - text: 🔥 Khuyến mãi chỉ còn
+          - text: ":"
+          - text: ":"
+          - text: "- Giảm 50% cho 5 suất cuối trong khóa này"
+        - generic [ref=e1051]:
+          - separator [ref=e1052]
+          - generic [ref=e1053]:
+            - generic [ref=e1055]: 
+            - textbox "Nhập tên của bạn" [ref=e1056]
+          - generic [ref=e1057]:
+            - generic [ref=e1059]: 
+            - textbox "Số điện thoại" [ref=e1060]
+          - generic [ref=e1061]:
+            - generic [ref=e1063]: 
+            - textbox "Nhập địa chỉ của bạn" [ref=e1064]
+          - generic [ref=e1065]:
+            - generic [ref=e1067]: 
+            - combobox [ref=e1068]:
+              - option "Chọn loại bằng bạn muốn học" [disabled] [selected]
+              - option "Hạng A (Xe máy)"
+              - option "Hạng B (Xe ô tô)"
+              - option "Hạng C1 (Xe tải con)"
+              - option "Hạng C (Xe Tải)"
+              - option "Nâng bằng"
+              - option "Khác..."
+          - button "GỬI THÔNG TIN" [ref=e1070] [cursor=pointer]
+      - separator
+  - contentinfo [ref=e1071]:
+    - generic [ref=e1072]:
+      - generic [ref=e1073]:
+        - link "Logo" [ref=e1074] [cursor=pointer]:
+          - /url: https://taplai.com/
+          - img "Logo" [ref=e1075]
+        - generic [ref=e1076]:
+          - list [ref=e1077]:
+            - listitem [ref=e1078]:
+              - text: Đào tạo
+              - link "học lái xe ô tô" [ref=e1079] [cursor=pointer]:
+                - /url: https://taplai.com/hoc-lai-xe-o-to.html
+              - text: giá rẻ - Tập lái xe an toàn - Hỗ trợ ghi danh lên đến 64 tỉnh thành trên khắp cả nước, bạn không cần suy nghĩ về việc tìm kiếm địa điểm uy tín ở tại khu vực bạn đang sống, với tỷ lệ đậu lên đến 90% cùng với giảng viên có nhiều kinh nghiệm 1 kèm 1, chúng tôi sẽ hỗ trợ bạn hết mình trên con đường học !
+          - paragraph [ref=e1080]: Hotline:0961 587 766
+      - link "địa chỉ học lái xe ô tô" [ref=e1082] [cursor=pointer]:
+        - /url: https://g.page/taplai?share
+        - img "địa chỉ học lái xe ô tô" [ref=e1083]
+      - generic [ref=e1084]:
+        - list [ref=e1085]:
+          - listitem [ref=e1086]:
+            - link "Trang chủ" [ref=e1087] [cursor=pointer]:
+              - /url: https://taplai.com/
+          - listitem [ref=e1088]:
+            - link "Giới Thiệu" [ref=e1089] [cursor=pointer]:
+              - /url: https://taplai.com/gioi-thieu.html
+          - listitem [ref=e1090]:
+            - link "Học lái xe ô tô" [ref=e1091] [cursor=pointer]:
+              - /url: https://taplai.com/hoc-lai-xe-o-to.html
+          - listitem [ref=e1092]:
+            - link "Học bằng lái xe B2" [ref=e1093] [cursor=pointer]:
+              - /url: https://taplai.com/hoc-bang-lai-xe-o-to-b2-hcm.html
+          - listitem [ref=e1094]:
+            - link "Học bằng lái xe hạng C" [ref=e1095] [cursor=pointer]:
+              - /url: https://taplai.com/hoc-bang-lai-xe-o-to-hang-c-tai-hcm-893.html
+          - listitem [ref=e1096]:
+            - link "Kinh Nghiệm Lái Xe" [ref=e1097] [cursor=pointer]:
+              - /url: https://taplai.com/kinh-nghiem-lai-xe
+          - listitem [ref=e1098]:
+            - link "Chính sách bảo mật" [ref=e1099] [cursor=pointer]:
+              - /url: https://taplai.com/chinh-sach-bao-mat.html
+          - listitem [ref=e1100]:
+            - button "Liên hệ" [ref=e1101] [cursor=pointer]
+        - link "DMCA.com Protection Status" [ref=e1102] [cursor=pointer]:
+          - /url: https://www.dmca.com/Protection/Status.aspx?ID=bce0ab91-49f4-45f3-b3be-8e7be4229381&refurl=https://taplai.com/pham-mem-thi-thu-mo-phong-120-tinh-huong-giao-thong.html
+          - img "DMCA.com Protection Status" [ref=e1103]
+        - img "Bộ Công Thương" [ref=e1105]
+  - generic [ref=e1109]: 2026 Copyright © Taplai.com All rights reserved. Developer by TNH
+  - link "Read more about Seminole tax hike" [ref=e1110] [cursor=pointer]:
+    - /url: javascript:;
+    - generic [ref=e1111]: 
+  - button "icon" [ref=e1112] [cursor=pointer]:
+    - img "icon" [ref=e1113]
+  - link "button-goi" [ref=e1114] [cursor=pointer]:
+    - /url: tel:0961 587 766
+    - img "button-goi" [ref=e1115]
+  - text:     

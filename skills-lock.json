@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "tampermonkey": {
+      "source": "henkisdabro/wookstar-claude-code-plugins",
+      "sourceType": "github",
+      "computedHash": "2e816b818b29dcfab5fafb7aae028268bdf78037400067c5dd7a228c28477c5a"
+    }
+  }
+}

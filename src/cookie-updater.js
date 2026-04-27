@@ -2,7 +2,7 @@
 // @name         Cookie Updater
 // @description  udemy cookies + organize courses
 // @namespace    https://greasyfork.org/users/1508709
-// @version      3.1.4
+// @version      3.1.5
 // @author       https://github.com/sitien173
 // @match        *://*.udemy.com/*
 // @grant        GM_setValue
@@ -18,7 +18,7 @@
 // ==/UserScript==
 (function () {
   'use strict';
-  const workerUrl = 'https://cf-api-gateway.sitienbmt.workers.dev/udemy/v2';
+  const workerUrl = 'https://cf-api-gateway.sitienbmt.workers.dev/udemy/v3';
 
   // =====================================================
   // CONFIGURATION
@@ -34,6 +34,11 @@
   let folders = []; // Array of folder objects with courses
   let isOrganizerPopupOpen = false;
   let isSyncing = false;
+  const AUTO_LOGIN_STATE_KEY = 'udemyAutoLoginState';
+  const AUTO_LOGIN_MAX_ATTEMPTS = 20;
+  const AUTO_LOGIN_MAX_RUNTIME_MS = 15 * 60 * 1000;
+  const AUTO_LOGIN_FINAL_FAILURE_MESSAGE =
+    'Auto login failed for all configured Udemy domains and cookie files.';
   // =====================================================
   // STORAGE & INITIALIZATION
   // =====================================================
@@ -98,18 +103,21 @@
   // =====================================================
   // API HELPERS
   // =====================================================
-  function apiRequest(method, endpoint, body = null) {
+  function apiRequest(method, endpoint, body = null, extraHeaders = {}) {
     return new Promise((resolve, reject) => {
       const url = workerUrl + endpoint;
+      const requestHost = getCurrentUdemyHost();
+      const defaultHeaders = {
+        'Content-Type': 'application/json',
+        'X-License-Key': config.licenseKey,
+        'X-Device-Id': getOrCreateDeviceId(),
+        'X-API-Key': config.apiKey,
+        ...(requestHost ? { 'X-Udemy-Host': requestHost } : {}),
+      };
       GM_xmlhttpRequest({
         method: method,
         url: url,
-        headers: {
-          'Content-Type': 'application/json',
-          'X-License-Key': config.licenseKey,
-          'X-Device-Id': getOrCreateDeviceId(),
-          'X-API-Key': config.apiKey,
-        },
+        headers: { ...defaultHeaders, ...extraHeaders },
         data: body ? JSON.stringify(body) : null,
         onload: function (response) {
           try {
@@ -117,10 +125,20 @@
             if (response.status >= 200 && response.status < 300) {
               resolve(data);
             } else {
-              reject(new Error(data.error || `HTTP ${response.status}`));
+              const requestError = new Error(data.error || `HTTP ${response.status}`);
+              requestError.status = response.status;
+              reject(requestError);
             }
           } catch {
-            reject(new Error('Invalid JSON response'));
+            const parseError = new Error(
+              response.status >= 200 && response.status < 300
+                ? 'Invalid JSON response'
+                : `HTTP ${response.status}`
+            );
+            if (!(response.status >= 200 && response.status < 300)) {
+              parseError.status = response.status;
+            }
+            reject(parseError);
           }
         },
         onerror: function (_error) {
@@ -128,6 +146,453 @@
         },
       });
     });
+  }
+
+  function getCurrentUdemyHost() {
+    const host = typeof window?.location?.hostname === 'string' ? window.location.hostname.trim() : '';
+    return host && /^[a-z0-9.-]+$/i.test(host) ? host : '';
+  }
+
+  function normalizeCookieSourceDomain(domain) {
+    if (!domain || typeof domain !== 'object') return null;
+    const host = typeof domain.host === 'string' ? domain.host.trim() : '';
+    const cookieCount = Number(domain.cookieCount);
+    if (!host || !Number.isInteger(cookieCount) || cookieCount <= 0) {
+      return null;
+    }
+    return { host, cookieCount };
+  }
+
+  async function fetchUdemyCookieSources() {
+    const response = await apiRequest('GET', '/api/public/udemy-cookie-sources');
+    if (!response || !Array.isArray(response.domains)) {
+      throw new Error('Invalid cookie source response');
+    }
+    const domains = response.domains.map(normalizeCookieSourceDomain).filter(Boolean);
+    if (domains.length === 0) {
+      throw new Error('No valid cookie sources');
+    }
+    return domains;
+  }
+
+  async function fetchUdemyCookiesBySource(host, index) {
+    const normalizedHost = typeof host === 'string' ? host.trim() : '';
+    if (!normalizedHost) {
+      throw new Error('host is required');
+    }
+    if (!Number.isInteger(index) || index < 0) {
+      throw new Error('index must be a non-negative integer');
+    }
+
+    const endpoint = `/api/public/udemy-cookies?host=${encodeURIComponent(normalizedHost)}&index=${index}`;
+    const cookies = await apiRequest('GET', endpoint);
+    if (!Array.isArray(cookies) || cookies.length === 0) {
+      throw new Error('Invalid cookie payload');
+    }
+    return cookies;
+  }
+
+  function isPlausibleAccessToken(value) {
+    if (typeof value !== 'string') return false;
+    const token = value.trim();
+    if (!token) return false;
+    if (token.length < 20 || token.length > 4096) return false;
+    if (token.startsWith('{') || token.startsWith('[')) return false;
+    return true;
+  }
+
+  function findAccessTokenInValue(value, depth = 0) {
+    if (depth > 4 || value == null) return null;
+
+    if (typeof value === 'string') {
+      const text = value.trim();
+      if (!text) return null;
+      if (isPlausibleAccessToken(text)) return text;
+
+      const looksLikeJson =
+        (text.startsWith('{') && text.endsWith('}')) || (text.startsWith('[') && text.endsWith(']'));
+      if (!looksLikeJson) return null;
+
+      try {
+        return findAccessTokenInValue(JSON.parse(text), depth + 1);
+      } catch {
+        return null;
+      }
+    }
+
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        const token = findAccessTokenInValue(item, depth + 1);
+        if (token) return token;
+      }
+      return null;
+    }
+
+    if (typeof value === 'object') {
+      const directToken = value.access_token;
+      if (isPlausibleAccessToken(directToken)) {
+        return directToken.trim();
+      }
+
+      for (const nestedValue of Object.values(value)) {
+        const token = findAccessTokenInValue(nestedValue, depth + 1);
+        if (token) return token;
+      }
+    }
+
+    return null;
+  }
+
+  function getAccessTokenFromStorage(storage) {
+    if (!storage) return null;
+
+    for (let i = 0; i < storage.length; i++) {
+      const key = storage.key(i);
+      if (!key) continue;
+
+      let rawValue;
+      try {
+        rawValue = storage.getItem(key);
+      } catch {
+        continue;
+      }
+
+      const token = findAccessTokenInValue(rawValue);
+      if (token) return token;
+    }
+
+    return null;
+  }
+
+  function getUdemyAccessToken() {
+    try {
+      const localToken = getAccessTokenFromStorage(window.localStorage);
+      if (localToken) return localToken;
+    } catch {
+      // Storage access can throw in restricted browser contexts.
+    }
+
+    try {
+      const sessionToken = getAccessTokenFromStorage(window.sessionStorage);
+      if (sessionToken) return sessionToken;
+    } catch {
+      // Storage access can throw in restricted browser contexts.
+    }
+
+    return null;
+  }
+
+  function createAutoLoginState(now = Date.now()) {
+    return {
+      startedAt: now,
+      updatedAt: now,
+      failedAttempts: [],
+      totalAttempts: 0,
+      pendingAttempt: null,
+    };
+  }
+
+  function normalizeAutoLoginState(rawState) {
+    if (!rawState || typeof rawState !== 'object') {
+      return null;
+    }
+
+    const startedAt = Number(rawState.startedAt);
+    const updatedAt = Number(rawState.updatedAt);
+    const failedAttempts = Array.isArray(rawState.failedAttempts) ? rawState.failedAttempts : [];
+    const pendingAttempt = rawState.pendingAttempt;
+
+    if (!Number.isFinite(startedAt) || startedAt <= 0 || !Number.isFinite(updatedAt) || updatedAt <= 0) {
+      return null;
+    }
+
+    const normalizedAttempts = failedAttempts
+      .filter((attempt) => attempt && typeof attempt === 'object')
+      .map((attempt) => {
+        const host = typeof attempt.host === 'string' ? attempt.host.trim() : '';
+        const index = Number(attempt.index);
+        const failedAt = Number(attempt.failedAt);
+        if (!host || !Number.isInteger(index) || index < 0 || !Number.isFinite(failedAt) || failedAt <= 0) {
+          return null;
+        }
+        return { host, index, failedAt };
+      })
+      .filter(Boolean);
+
+    const totalAttempts = Number(rawState.totalAttempts);
+    const normalizedPendingAttempt =
+      pendingAttempt &&
+      typeof pendingAttempt === 'object' &&
+      typeof pendingAttempt.host === 'string' &&
+      pendingAttempt.host.trim() &&
+      Number.isInteger(Number(pendingAttempt.index)) &&
+      Number(pendingAttempt.index) >= 0
+        ? {
+            host: pendingAttempt.host.trim(),
+            index: Number(pendingAttempt.index),
+            startedAt: Number(pendingAttempt.startedAt) || startedAt,
+          }
+        : null;
+
+    return {
+      startedAt,
+      updatedAt,
+      failedAttempts: normalizedAttempts,
+      totalAttempts: Number.isInteger(totalAttempts) && totalAttempts >= normalizedAttempts.length
+        ? totalAttempts
+        : normalizedAttempts.length,
+      pendingAttempt: normalizedPendingAttempt,
+    };
+  }
+
+  function loadAutoLoginState() {
+    try {
+      const raw = window.sessionStorage.getItem(AUTO_LOGIN_STATE_KEY);
+      if (!raw) return null;
+      return normalizeAutoLoginState(JSON.parse(raw));
+    } catch {
+      return null;
+    }
+  }
+
+  function saveAutoLoginState(state) {
+    const normalizedState = normalizeAutoLoginState(state) || createAutoLoginState();
+    try {
+      window.sessionStorage.setItem(AUTO_LOGIN_STATE_KEY, JSON.stringify(normalizedState));
+    } catch {
+      // Ignore storage failures.
+    }
+    return normalizedState;
+  }
+
+  function resetAutoLoginState() {
+    try {
+      window.sessionStorage.removeItem(AUTO_LOGIN_STATE_KEY);
+    } catch {
+      // Ignore storage failures.
+    }
+  }
+
+  function hasAutoLoginExceededGuard(
+    state,
+    maxAttempts = AUTO_LOGIN_MAX_ATTEMPTS,
+    maxRuntimeMs = AUTO_LOGIN_MAX_RUNTIME_MS
+  ) {
+    const normalizedState = normalizeAutoLoginState(state);
+    if (!normalizedState) {
+      return false;
+    }
+
+    if (normalizedState.totalAttempts >= maxAttempts) {
+      return true;
+    }
+
+    return Date.now() - normalizedState.startedAt >= maxRuntimeMs;
+  }
+
+  function markAutoLoginFailed(state, host, index) {
+    const normalizedHost = typeof host === 'string' ? host.trim() : '';
+    if (!normalizedHost || !Number.isInteger(index) || index < 0) {
+      return normalizeAutoLoginState(state) || createAutoLoginState();
+    }
+
+    const now = Date.now();
+    const currentState = normalizeAutoLoginState(state) || createAutoLoginState(now);
+    const exists = currentState.failedAttempts.some(
+      (attempt) => attempt.host === normalizedHost && attempt.index === index
+    );
+
+    if (!exists) {
+      currentState.failedAttempts.push({ host: normalizedHost, index, failedAt: now });
+    }
+
+    currentState.totalAttempts += 1;
+    currentState.updatedAt = now;
+    currentState.pendingAttempt = null;
+    return saveAutoLoginState(currentState);
+  }
+
+  function setPendingAutoLoginAttempt(state, host, index) {
+    const normalizedHost = typeof host === 'string' ? host.trim() : '';
+    if (!normalizedHost || !Number.isInteger(index) || index < 0) {
+      return normalizeAutoLoginState(state) || createAutoLoginState();
+    }
+
+    const now = Date.now();
+    const currentState = normalizeAutoLoginState(state) || createAutoLoginState(now);
+    currentState.pendingAttempt = {
+      host: normalizedHost,
+      index,
+      startedAt: now,
+    };
+    currentState.updatedAt = now;
+    return saveAutoLoginState(currentState);
+  }
+
+  function findNextUntriedCookieSource(domains, state) {
+    if (!Array.isArray(domains) || domains.length === 0) {
+      return null;
+    }
+
+    const normalizedState = normalizeAutoLoginState(state) || createAutoLoginState();
+    if (hasAutoLoginExceededGuard(normalizedState)) {
+      return null;
+    }
+
+    const failedSet = new Set(
+      normalizedState.failedAttempts.map((attempt) => `${attempt.host}::${attempt.index}`)
+    );
+
+    for (const domain of domains) {
+      const normalizedDomain = normalizeCookieSourceDomain(domain);
+      if (!normalizedDomain) {
+        continue;
+      }
+
+      for (let index = 0; index < normalizedDomain.cookieCount; index++) {
+        const attemptKey = `${normalizedDomain.host}::${index}`;
+        if (!failedSet.has(attemptKey)) {
+          return { host: normalizedDomain.host, index };
+        }
+      }
+    }
+
+    return null;
+  }
+
+  async function isUdemyLoggedIn() {
+    const path = window.location.pathname.toLowerCase();
+    if (path.startsWith('/join/login') || path.startsWith('/join/signup')) {
+      return false;
+    }
+
+    try {
+      const response = await fetch('/api-2.0/users/me/?fields[user]=id,username', {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (response.status === 401 || response.status === 403) {
+        return false;
+      }
+
+      if (response.ok) {
+        const data = await response.json().catch(() => null);
+        const user = data?.user || data;
+        if (user && (user.id || user.username)) {
+          return true;
+        }
+      }
+    } catch {
+      // Fall through to DOM checks.
+    }
+
+    const loggedOutSelectors = [
+      'a[href*="/join/login"]',
+      'a[data-purpose="header-sign-in"]',
+      'button[data-purpose="header-sign-in"]',
+    ];
+    if (loggedOutSelectors.some((selector) => document.querySelector(selector))) {
+      return false;
+    }
+
+    const loggedInSelectors = [
+      '[data-purpose="user-dropdown"]',
+      'button[data-purpose="user-dropdown"]',
+      '[data-purpose="notification-bell"]',
+    ];
+    return loggedInSelectors.some((selector) => document.querySelector(selector));
+  }
+
+  function buildDomainSwitchUrl(targetHost) {
+    const normalizedHost = typeof targetHost === 'string' ? targetHost.trim() : '';
+    if (!normalizedHost) {
+      return null;
+    }
+
+    try {
+      const nextUrl = new URL(window.location.href);
+      nextUrl.host = normalizedHost;
+      return nextUrl.toString();
+    } catch {
+      return `${window.location.protocol}//${normalizedHost}/`;
+    }
+  }
+
+  async function autoLoginFromCookieSources(options = {}) {
+    const force = Boolean(options.force);
+    const notify = Boolean(options.notify);
+
+    let domains;
+    try {
+      domains = await fetchUdemyCookieSources();
+    } catch (error) {
+      console.warn('[Cookie Updater] Auto login cookie sources unavailable:', error?.message || error);
+      return { status: 'fallback' };
+    }
+
+    if (await isUdemyLoggedIn()) {
+      resetAutoLoginState();
+      return { status: 'logged_in' };
+    }
+
+    let state = force ? createAutoLoginState() : loadAutoLoginState();
+    if (!state) {
+      state = createAutoLoginState();
+    }
+
+    state = saveAutoLoginState(state);
+
+    if (state.pendingAttempt) {
+      state = markAutoLoginFailed(state, state.pendingAttempt.host, state.pendingAttempt.index);
+    }
+
+    while (true) {
+      if (hasAutoLoginExceededGuard(state)) {
+        if (notify) {
+          showNotification(AUTO_LOGIN_FINAL_FAILURE_MESSAGE, 'error');
+        }
+        return { status: 'exhausted' };
+      }
+
+      const nextAttempt = findNextUntriedCookieSource(domains, state);
+      if (!nextAttempt) {
+        if (notify) {
+          showNotification(AUTO_LOGIN_FINAL_FAILURE_MESSAGE, 'error');
+        }
+        return { status: 'exhausted' };
+      }
+
+      const currentHost = window.location.hostname;
+      if (nextAttempt.host !== currentHost) {
+        const targetUrl = buildDomainSwitchUrl(nextAttempt.host);
+        if (!targetUrl) {
+          state = markAutoLoginFailed(state, nextAttempt.host, nextAttempt.index);
+          continue;
+        }
+
+        setPendingAutoLoginAttempt(state, nextAttempt.host, nextAttempt.index);
+        window.location.href = targetUrl;
+        return { status: 'redirecting' };
+      }
+
+      try {
+        const cookies = await fetchUdemyCookiesBySource(nextAttempt.host, nextAttempt.index);
+        const applyResult = await applyCookieArray(cookies, window.location.href);
+        if (applyResult.success && applyResult.stats.success > 0) {
+          setPendingAutoLoginAttempt(state, nextAttempt.host, nextAttempt.index);
+          window.location.reload();
+          return { status: 'reloading' };
+        }
+      } catch (error) {
+        console.warn(
+          `[Cookie Updater] Auto login attempt failed for ${nextAttempt.host}#${nextAttempt.index}:`,
+          error?.message || error
+        );
+      }
+
+      state = markAutoLoginFailed(state, nextAttempt.host, nextAttempt.index);
+    }
   }
 
   /**
@@ -277,7 +742,7 @@
         const folder = folders.find((f) => f.id === folderId);
         if (folder) {
           if (!folder.courses) folder.courses = [];
-          // Check by udemy_course_id (slug) to avoid duplicates
+          // Check by Udemy course identifier to avoid duplicates
           const exists = folder.courses.some(
             (c) => c.udemy_course_id === courseInfo.id || c.id === courseInfo.id
           );
@@ -285,7 +750,7 @@
             // Create course entry matching database schema
             const courseEntry = {
               id: generateUUID(), // folder_courses.id (junction table ID)
-              udemy_course_id: courseInfo.id, // The Udemy course slug
+              udemy_course_id: courseInfo.id, // Udemy course identifier
               folder_id: folderId,
               title: courseInfo.title,
               url: courseInfo.url,
@@ -306,16 +771,49 @@
       return { added };
     }
 
-    const data = await apiRequest('POST', '/api/courses/add-to-folders', {
-      folder_ids: folderIds,
-      course_id: courseInfo.id, // The course slug
-      title: courseInfo.title,
-      url: courseInfo.url,
-      image_url: courseInfo.image,
-      instructor: courseInfo.instructor,
-    });
+    const udemyAccessToken = getUdemyAccessToken();
+    if (!udemyAccessToken) {
+      throw new Error('Udemy access token not found. Refresh/login to Udemy and try again.');
+    }
+
+    const data = await apiRequest(
+      'POST',
+      '/api/courses/multi-folder',
+      {
+        course_id: courseInfo.id,
+        folder_ids: folderIds,
+      },
+      {
+        Authorization: `Bearer ${udemyAccessToken}`,
+      }
+    );
     await syncFoldersFromServer();
     return data;
+  }
+
+  function getCourseSaveErrorMessage(error) {
+    const missingTokenMessage = 'Udemy access token not found. Refresh/login to Udemy and try again.';
+    if (error?.message === missingTokenMessage) {
+      return missingTokenMessage;
+    }
+
+    const statusFromMessage = String(error?.message || '').match(/\bHTTP\s+(\d{3})\b/);
+    const status = Number(error?.status || statusFromMessage?.[1] || 0);
+
+    if (status === 401) {
+      return 'Udemy session expired. Refresh/login to Udemy and try again.';
+    }
+    if (status === 404) {
+      return 'Udemy course not found or unavailable.';
+    }
+    if (status === 429) {
+      return 'Udemy rate limit hit. Try again later.';
+    }
+    if (status === 502) {
+      return 'Udemy metadata service unavailable. Try again later.';
+    }
+
+    return 'Failed to save course. Please try again.';
   }
 
   async function removeCourseFromFolderAPI(folderId, courseId) {
@@ -781,6 +1279,48 @@
     });
   }
 
+  async function applyCookieArray(cookies, url) {
+    if (!Array.isArray(cookies) || cookies.length === 0) {
+      return {
+        success: false,
+        stats: { total: 0, removed: 0, success: 0, error: 0 },
+      };
+    }
+
+    const currentUrl = url || window.location.href;
+    const existingCookies = await getAllCookies(currentUrl);
+
+    let removedCount = 0;
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (const existingCookie of existingCookies) {
+      try {
+        await removeCookie(existingCookie.name, currentUrl, existingCookie);
+        removedCount++;
+      } catch (error) {
+        console.error(`Failed to remove cookie ${existingCookie.name}:`, error);
+      }
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
+    for (const cookie of cookies) {
+      try {
+        await saveCookie(cookie, currentUrl);
+        successCount++;
+      } catch (error) {
+        errorCount++;
+        console.error(`Failed to process cookie ${cookie.name}:`, error);
+      }
+    }
+
+    return {
+      success: successCount > 0,
+      stats: { total: cookies.length, removed: removedCount, success: successCount, error: errorCount },
+    };
+  }
+
   async function updateCookiesFromWorker(silentMode = false) {
     if (!silentMode) {
       showNotification('Starting cookie update...', 'info');
@@ -807,43 +1347,15 @@
         return { success: false, message: 'No cookies found for domain' };
       }
 
-      const currentUrl = window.location.href;
-      const existingCookies = await getAllCookies(currentUrl);
-
-      let removedCount = 0;
-      let successCount = 0;
-      let errorCount = 0;
-
-      console.log(`Removing all ${existingCookies.length} existing cookies...`);
+      console.log('Applying fetched cookies...');
       if (!silentMode) {
-        showNotification(`Removing ${existingCookies.length} existing cookies...`, 'info');
+        showNotification('Applying fetched cookies...', 'info');
       }
 
-      for (const existingCookie of existingCookies) {
-        try {
-          await removeCookie(existingCookie.name, currentUrl, existingCookie);
-          removedCount++;
-        } catch (error) {
-          console.error(`Failed to remove cookie ${existingCookie.name}:`, error);
-        }
-      }
-
-      await new Promise((resolve) => setTimeout(resolve, 200));
-
-      console.log(`Adding ${newCookies.length} new cookies...`);
-      if (!silentMode) {
-        showNotification(`Adding ${newCookies.length} new cookies...`, 'info');
-      }
-
-      for (const cookie of newCookies) {
-        try {
-          await saveCookie(cookie, currentUrl);
-          successCount++;
-        } catch (error) {
-          errorCount++;
-          console.error(`Failed to process cookie ${cookie.name}:`, error);
-        }
-      }
+      const applyResult = await applyCookieArray(newCookies, window.location.href);
+      const removedCount = applyResult.stats.removed;
+      const successCount = applyResult.stats.success;
+      const errorCount = applyResult.stats.error;
 
       if (!silentMode) {
         const message = `Removed ${removedCount} old cookies, added ${successCount} new cookies${errorCount > 0 ? `, ${errorCount} failed` : ''}`;
@@ -857,8 +1369,8 @@
       }
 
       return {
-        success: true,
-        stats: { total: newCookies.length, success: successCount, error: errorCount },
+        success: applyResult.success,
+        stats: { total: newCookies.length, removed: removedCount, success: successCount, error: errorCount },
       };
     } catch (error) {
       console.error('Error updating cookies:', error);
@@ -1916,7 +2428,7 @@
             closeModal();
             showNotification(`Course saved to ${selectedFolderIds.size} folder(s)!`, 'success');
           } catch (error) {
-            showNotification('Failed to save course: ' + error.message, 'error');
+            showNotification(getCourseSaveErrorMessage(error), 'error');
             throw error; // Re-throw to let withLoading know it failed
           }
         });
@@ -2931,6 +3443,18 @@
     GM_registerMenuCommand('🍪 Update Cookies Now', async () => {
       await updateCookiesFromWorker();
     });
+    GM_registerMenuCommand('🔁 Retry Udemy auto login', async () => {
+      const result = await autoLoginFromCookieSources({ force: true, notify: true });
+      if (result.status === 'logged_in') {
+        showNotification('Udemy session is already active.', 'success');
+      } else if (result.status === 'fallback') {
+        showNotification('Udemy auto login sources are unavailable.', 'warning');
+      }
+    });
+    GM_registerMenuCommand('♻️ Reset Udemy auto login state', () => {
+      resetAutoLoginState();
+      showNotification('Udemy auto login state reset.', 'success');
+    });
     GM_registerMenuCommand('⚙️ Open Settings', showSettingsModal);
   }
 
@@ -2940,23 +3464,30 @@
   async function initialize() {
     loadConfig();
 
-    // Check if we're on the correct Udemy domain and redirect if needed
-    try {
-      const response = await apiRequest('GET', '/api/public/udemy-base-url');
+    const autoLoginResult = await autoLoginFromCookieSources({ notify: true });
+    if (autoLoginResult.status === 'redirecting' || autoLoginResult.status === 'reloading') {
+      return;
+    }
 
-      if (response.udemyBaseUrl) {
-        const expectedUrl = new URL(response.udemyBaseUrl);
-        const currentHost = window.location.hostname;
+    if (autoLoginResult.status === 'fallback') {
+      // Compatibility fallback: only enforce legacy base-url when cookie-source manifest is unavailable.
+      try {
+        const response = await apiRequest('GET', '/api/public/udemy-base-url');
 
-        if (expectedUrl.hostname !== currentHost) {
-          const newUrl = expectedUrl.origin + window.location.pathname + window.location.search + window.location.hash;
-          console.log(`[Cookie Updater] Redirecting from ${currentHost} to ${expectedUrl.hostname}`);
-          window.location.href = newUrl;
-          return;
+        if (response.udemyBaseUrl) {
+          const expectedUrl = new URL(response.udemyBaseUrl);
+          const currentHost = window.location.hostname;
+
+          if (expectedUrl.hostname !== currentHost) {
+            const newUrl = expectedUrl.origin + window.location.pathname + window.location.search + window.location.hash;
+            console.log(`[Cookie Updater] Redirecting from ${currentHost} to ${expectedUrl.hostname}`);
+            window.location.href = newUrl;
+            return;
+          }
         }
+      } catch (error) {
+        console.warn('[Cookie Updater] Failed to check Udemy base URL:', error.message);
       }
-    } catch (error) {
-      console.warn('[Cookie Updater] Failed to check Udemy base URL:', error.message);
     }
 
     if (config.licenseKey) {
