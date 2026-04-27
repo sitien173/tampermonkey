@@ -2,7 +2,7 @@
 // @name         Cookie Updater
 // @description  udemy cookies + organize courses
 // @namespace    https://greasyfork.org/users/1508709
-// @version      3.1.5
+// @version      3.1.6
 // @author       https://github.com/sitien173
 // @match        *://*.udemy.com/*
 // @grant        GM_setValue
@@ -647,7 +647,7 @@
     try {
       const data = await apiRequest('GET', '/api/sync');
       folders = data.folders || [];
-    } catch (error) {
+    } catch {
       loadFoldersFromLocal();
     } finally {
       isSyncing = false;
@@ -837,24 +837,6 @@
       console.error('API DELETE error:', error);
       throw error;
     }
-  }
-
-  // Update course notes/progress in folder
-  async function updateFolderCourseAPI(folderId, courseId, updates) {
-    if (!config.licenseKey) {
-      // Local mode
-      const folder = folders.find((f) => f.id === folderId);
-      if (folder && folder.courses) {
-        const course = folder.courses.find((c) => c.id === courseId || c.udemy_course_id === courseId);
-        if (course) {
-          Object.assign(course, updates);
-        }
-      }
-      return;
-    }
-
-    await apiRequest('PUT', `/api/folders/${folderId}/courses/${courseId}`, updates);
-    await syncFoldersFromServer();
   }
 
   // =====================================================
@@ -1467,91 +1449,71 @@
     const styles = document.createElement('style');
     styles.id = 'udemy-combined-styles';
     styles.textContent = `
-            @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
-
             #udemy-cookie-notification {
                 position: fixed;
-                top: 20px;
-                right: 20px;
-                padding: 15px 20px;
-                border-radius: 10px;
-                color: white;
-                font-family: 'Plus Jakarta Sans', Arial, sans-serif;
-                font-size: 14px;
+                top: 16px;
+                right: 16px;
+                padding: 10px 14px;
+                border-radius: 8px;
+                color: #ffffff;
+                font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+                font-size: 13px;
                 z-index: 100002;
-                max-width: 300px;
-                word-wrap: break-word;
-                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-                transition: opacity 0.3s ease;
+                max-width: 320px;
+                word-break: break-word;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+                transition: opacity 0.2s ease;
             }
 
             #udemy-combined-controls {
                 position: fixed;
-                bottom: 20px;
-                right: 20px;
+                bottom: 16px;
+                right: 16px;
                 display: flex;
                 flex-direction: column;
                 align-items: flex-end;
-                gap: 10px;
+                gap: 8px;
                 z-index: 99990;
-                font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+                font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
             }
 
             .ucc-btn {
-                padding: 12px;
-                border: none;
-                border-radius: 12px;
+                min-width: 92px;
+                padding: 8px 10px;
+                border: 1px solid #374151;
+                border-radius: 8px;
                 cursor: pointer;
-                font-size: 13px;
+                font-size: 12px;
                 font-weight: 600;
-                display: flex;
+                color: #f9fafb;
+                background: #1f2937;
+                display: inline-flex;
                 align-items: center;
-                gap: 0;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+                justify-content: center;
+                gap: 6px;
+                line-height: 1.2;
                 font-family: inherit;
-                overflow: hidden;
-                white-space: nowrap;
+                transition: background-color 0.15s ease, border-color 0.15s ease;
             }
 
             .ucc-btn svg {
-                width: 18px;
-                height: 18px;
-                flex-shrink: 0;
+                width: 14px;
+                height: 14px;
             }
 
             .ucc-btn .ucc-btn-text {
-                max-width: 0;
-                opacity: 0;
-                overflow: hidden;
-                transition: max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
-                            opacity 0.2s ease 0.1s,
-                            margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                margin-left: 0;
+                display: inline-block;
             }
 
             .ucc-btn:hover {
-                padding: 12px 16px;
-                transform: translateY(-2px);
-                box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+                background: #111827;
+                border-color: #4b5563;
             }
 
-            .ucc-btn:hover .ucc-btn-text {
-                max-width: 120px;
-                opacity: 1;
-                margin-left: 8px;
-            }
-
-            .ucc-btn:disabled {
-                opacity: 0.6;
-                cursor: not-allowed;
-                transform: none !important;
-                box-shadow: none !important;
-            }
-
+            .ucc-btn:disabled,
             .ufo-btn-loading {
-                position: relative;
-                color: rgba(255, 255, 255, 0.7) !important;
+                opacity: 0.65;
+                cursor: not-allowed;
                 pointer-events: none;
             }
 
@@ -1559,33 +1521,29 @@
                 display: inline-block;
                 width: 12px;
                 height: 12px;
-                border: 2px solid rgba(255,255,255,0.3);
+                border: 2px solid rgba(255, 255, 255, 0.35);
+                border-top-color: #ffffff;
                 border-radius: 50%;
-                border-top-color: #fff;
                 animation: ufo-spin 0.8s linear infinite;
-                margin-right: 6px;
                 vertical-align: middle;
+                margin-right: 6px;
             }
 
             @keyframes ufo-spin {
                 to { transform: rotate(360deg); }
             }
 
-            .ucc-btn.primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-            .ucc-btn.secondary { background: #1f2937; color: white; }
-            .ucc-btn.success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; }
+            .ucc-btn.primary { background: #1d4ed8; border-color: #2563eb; color: #ffffff; }
+            .ucc-btn.secondary { background: #1f2937; border-color: #374151; color: #f9fafb; }
+            .ucc-btn.success { background: #047857; border-color: #059669; color: #ffffff; }
 
             .ufo-overlay {
                 position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0, 0, 0, 0.7);
-                backdrop-filter: blur(8px);
+                inset: 0;
+                background: rgba(2, 6, 23, 0.65);
                 z-index: 99998;
                 opacity: 0;
-                transition: opacity 0.3s ease;
+                transition: opacity 0.2s ease;
             }
 
             .ufo-overlay.visible { opacity: 1; }
@@ -1594,28 +1552,29 @@
                 position: fixed;
                 top: 50%;
                 left: 50%;
-                transform: translate(-50%, -50%) scale(0.9);
+                transform: translate(-50%, -50%);
                 width: 900px;
                 max-width: 95vw;
                 height: 650px;
                 max-height: 90vh;
-                background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
-                border-radius: 20px;
-                box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1);
+                background: #0f172a;
+                border: 1px solid #334155;
+                border-radius: 12px;
                 z-index: 99999;
-                font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+                font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
                 display: flex;
                 flex-direction: column;
                 overflow: hidden;
                 opacity: 0;
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                transition: opacity 0.2s ease;
             }
 
-            .ufo-popup.visible { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            .ufo-popup.visible { opacity: 1; }
 
             .ufo-header {
-                padding: 20px 24px;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                padding: 14px 16px;
+                background: #111827;
+                border-bottom: 1px solid #334155;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
@@ -1623,497 +1582,547 @@
 
             .ufo-header h2 {
                 margin: 0;
-                font-size: 20px;
+                font-size: 16px;
                 font-weight: 700;
-                color: white;
+                color: #f8fafc;
                 display: flex;
                 align-items: center;
-                gap: 10px;
+                gap: 8px;
             }
 
             .ufo-header-icon {
-                width: 28px;
-                height: 28px;
-                background: rgba(255, 255, 255, 0.2);
-                border-radius: 8px;
-                display: flex;
+                width: 20px;
+                height: 20px;
+                color: #e2e8f0;
+                display: inline-flex;
                 align-items: center;
                 justify-content: center;
             }
 
-            .ufo-header-right { display: flex; align-items: center; gap: 12px; }
-            .ufo-user-info { font-size: 12px; color: rgba(255, 255, 255, 0.8); text-align: right; }
+            .ufo-header-right { display: flex; align-items: center; gap: 8px; }
+            .ufo-user-info { font-size: 11px; color: #cbd5e1; text-align: right; }
             .ufo-user-info span { display: block; }
 
-            .ufo-sync-btn {
-                padding: 8px 12px;
-                background: rgba(255, 255, 255, 0.15);
-                border: none;
+            .ufo-sync-btn,
+            .ufo-close-btn,
+            .ufo-new-folder-btn,
+            .ufo-course-btn,
+            .ufo-modal-btn,
+            .ufo-pagination-btn {
+                border: 1px solid #475569;
+                background: #1e293b;
+                color: #e2e8f0;
                 border-radius: 8px;
-                color: white;
                 cursor: pointer;
-                display: flex;
+                font-family: inherit;
+                transition: background-color 0.15s ease, border-color 0.15s ease;
+            }
+
+            .ufo-sync-btn {
+                padding: 6px 10px;
+                display: inline-flex;
                 align-items: center;
                 gap: 6px;
                 font-size: 12px;
-                transition: all 0.2s ease;
             }
 
-            .ufo-sync-btn:hover { background: rgba(255, 255, 255, 0.25); }
-            .ufo-sync-btn.syncing svg { animation: spin 1s linear infinite; }
-            @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+            .ufo-sync-btn.syncing svg { animation: ufo-spin 1s linear infinite; }
 
             .ufo-close-btn {
-                width: 36px;
-                height: 36px;
-                border: none;
-                background: rgba(255, 255, 255, 0.15);
-                color: white;
-                border-radius: 10px;
-                cursor: pointer;
-                display: flex;
+                width: 30px;
+                height: 30px;
+                display: inline-flex;
                 align-items: center;
                 justify-content: center;
-                transition: all 0.2s ease;
             }
 
-            .ufo-close-btn:hover { background: rgba(255, 255, 255, 0.25); transform: rotate(90deg); }
+            .ufo-sync-btn:hover,
+            .ufo-close-btn:hover,
+            .ufo-new-folder-btn:hover,
+            .ufo-course-btn:hover,
+            .ufo-modal-btn:hover,
+            .ufo-pagination-btn:hover:not(:disabled),
+            .ufo-folder-select-option:hover,
+            .ufo-dropdown-item:hover,
+            .ufo-folder-menu-btn:hover {
+                background: #334155;
+                border-color: #64748b;
+            }
 
             .ufo-body { display: flex; flex: 1; overflow: hidden; min-height: 0; }
 
             .ufo-sidebar {
-                width: 280px;
-                background: rgba(0, 0, 0, 0.2);
-                border-right: 1px solid rgba(255, 255, 255, 0.08);
+                width: 270px;
+                background: #0b1220;
+                border-right: 1px solid #334155;
                 display: flex;
                 flex-direction: column;
             }
 
-            .ufo-sidebar-header { padding: 16px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); }
+            .ufo-sidebar-header { padding: 12px; border-bottom: 1px solid #334155; }
 
             .ufo-new-folder-btn {
                 width: 100%;
-                padding: 12px 16px;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                border: none;
-                border-radius: 10px;
-                font-size: 14px;
+                padding: 9px 12px;
+                font-size: 13px;
                 font-weight: 600;
-                cursor: pointer;
-                display: flex;
+                display: inline-flex;
                 align-items: center;
                 justify-content: center;
-                gap: 8px;
-                transition: all 0.2s ease;
-                font-family: inherit;
+                gap: 6px;
             }
 
-            .ufo-new-folder-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4); }
-
-            .ufo-folder-list { flex: 1; overflow-y: auto; padding: 12px; }
+            .ufo-folder-list { flex: 1; overflow-y: auto; padding: 8px; }
 
             .ufo-folder-item {
-                padding: 12px 14px;
-                border-radius: 10px;
+                padding: 10px 10px;
+                border-radius: 8px;
                 cursor: pointer;
                 display: flex;
                 align-items: center;
-                gap: 12px;
+                gap: 10px;
                 margin-bottom: 6px;
-                transition: all 0.2s ease;
-                position: relative;
+                border: 1px solid transparent;
             }
 
-            .ufo-folder-item:hover { background: rgba(255, 255, 255, 0.08); }
-            .ufo-folder-item.active { background: rgba(102, 126, 234, 0.2); }
+            .ufo-folder-item:hover {
+                background: #172033;
+                border-color: #334155;
+            }
+
+            .ufo-folder-item.active {
+                background: #1e293b;
+                border-color: #3b82f6;
+            }
 
             .ufo-folder-icon {
-                width: 36px;
-                height: 36px;
-                border-radius: 8px;
-                display: flex;
+                width: 30px;
+                height: 30px;
+                border-radius: 6px;
+                display: inline-flex;
                 align-items: center;
                 justify-content: center;
-                font-size: 18px;
+                font-size: 15px;
                 flex-shrink: 0;
             }
 
             .ufo-folder-info { flex: 1; min-width: 0; }
-            .ufo-folder-name { color: #fff; font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-            .ufo-folder-count { color: rgba(255, 255, 255, 0.5); font-size: 12px; margin-top: 2px; }
+            .ufo-folder-name { color: #f8fafc; font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            .ufo-folder-count { color: #94a3b8; font-size: 11px; margin-top: 2px; }
 
             .ufo-folder-menu-btn {
-                width: 28px;
-                height: 28px;
-                border: none;
+                width: 26px;
+                height: 26px;
+                border: 1px solid transparent;
                 background: transparent;
-                color: rgba(255, 255, 255, 0.4);
+                color: #cbd5e1;
                 border-radius: 6px;
                 cursor: pointer;
-                opacity: 0;
-                transition: all 0.2s ease;
-                display: flex;
+                opacity: 1;
+                display: inline-flex;
                 align-items: center;
                 justify-content: center;
             }
-
-            .ufo-folder-item:hover .ufo-folder-menu-btn { opacity: 1; }
-            .ufo-folder-menu-btn:hover { background: rgba(255, 255, 255, 0.1); color: white; }
 
             .ufo-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
 
             .ufo-content-header {
-                padding: 20px 24px;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+                padding: 14px 16px;
+                border-bottom: 1px solid #334155;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
+                gap: 12px;
             }
 
-            .ufo-content-title { color: white; font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+            .ufo-content-title {
+                color: #f8fafc;
+                font-size: 16px;
+                font-weight: 700;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
             .ufo-search-box { position: relative; }
 
             .ufo-search-input {
                 width: 220px;
-                padding: 10px 14px 10px 38px;
-                background: rgba(255, 255, 255, 0.08);
-                border: 1px solid rgba(255, 255, 255, 0.12);
-                border-radius: 10px;
-                color: white;
+                padding: 8px 10px 8px 30px;
+                background: #111827;
+                border: 1px solid #334155;
+                border-radius: 8px;
+                color: #e2e8f0;
                 font-size: 13px;
                 font-family: inherit;
-                transition: all 0.2s ease;
             }
 
-            .ufo-search-input::placeholder { color: rgba(255, 255, 255, 0.4); }
-            .ufo-search-input:focus { outline: none; background: rgba(255, 255, 255, 0.12); border-color: rgba(102, 126, 234, 0.5); }
-            .ufo-search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: rgba(255, 255, 255, 0.4); }
+            .ufo-search-input::placeholder { color: #94a3b8; }
+            .ufo-search-input:focus { outline: none; border-color: #3b82f6; }
+            .ufo-search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #94a3b8; }
 
             .ufo-course-grid {
                 flex: 1;
                 overflow-y: auto;
-                padding: 20px 24px;
-                display: grid;
-                grid-template-columns: repeat(2, 1fr);
-                grid-auto-rows: min-content;
-                gap: 16px;
+                padding: 14px 16px;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
                 min-height: 0;
-                align-content: start;
             }
-            
+
+            .ufo-course-card {
+                background: #111827;
+                border: 1px solid #334155;
+                border-radius: 8px;
+                display: flex;
+                align-items: flex-start;
+                justify-content: space-between;
+                gap: 10px;
+                padding: 10px 12px;
+                min-height: 0;
+            }
+
+            .ufo-course-info {
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+                min-width: 0;
+                flex: 1;
+            }
+
+            .ufo-course-title {
+                color: #f8fafc;
+                font-size: 13px;
+                font-weight: 600;
+                line-height: 1.3;
+                text-decoration: none;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .ufo-course-instructor {
+                color: #94a3b8;
+                font-size: 11px;
+                line-height: 1.3;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .ufo-course-meta {
+                color: #86efac;
+                font-size: 11px;
+            }
+
+            .ufo-course-actions {
+                display: flex;
+                gap: 6px;
+                margin-top: 0;
+                flex-shrink: 0;
+                align-items: center;
+            }
+
+            .ufo-course-btn {
+                padding: 6px 9px;
+                font-size: 11px;
+                font-weight: 600;
+            }
+
+            .ufo-course-btn.primary { background: #1d4ed8; border-color: #2563eb; color: #ffffff; }
+            .ufo-course-btn.danger { background: #7f1d1d; border-color: #b91c1c; color: #fecaca; }
+            .ufo-course-btn:disabled,
+            .ufo-modal-btn:disabled,
+            .ufo-pagination-btn:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+            }
+
             .ufo-pagination {
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                gap: 16px;
-                padding: 16px 24px;
-                border-top: 1px solid rgba(255, 255, 255, 0.08);
-                background: rgba(0, 0, 0, 0.2);
+                gap: 12px;
+                padding: 12px 16px;
+                border-top: 1px solid #334155;
+                background: #0b1220;
             }
-            
+
             .ufo-pagination-btn {
-                padding: 10px 20px;
-                background: rgba(255, 255, 255, 0.1);
-                border: 1px solid rgba(255, 255, 255, 0.15);
-                border-radius: 8px;
-                color: white;
-                font-size: 13px;
+                padding: 6px 10px;
+                font-size: 12px;
                 font-weight: 600;
-                cursor: pointer;
-                transition: all 0.2s ease;
-                font-family: inherit;
-                display: flex;
+                display: inline-flex;
                 align-items: center;
                 gap: 6px;
             }
-            
-            .ufo-pagination-btn:hover:not(:disabled) {
-                background: rgba(255, 255, 255, 0.2);
-                transform: translateY(-1px);
-            }
-            
-            .ufo-pagination-btn:disabled {
-                opacity: 0.4;
-                cursor: not-allowed;
-            }
-            
+
             .ufo-pagination-info {
-                color: rgba(255, 255, 255, 0.7);
-                font-size: 13px;
-                min-width: 100px;
+                color: #cbd5e1;
+                font-size: 12px;
+                min-width: 96px;
                 text-align: center;
             }
-
-            .ufo-course-card {
-                background: rgba(255, 255, 255, 0.05);
-                border-radius: 12px;
-                overflow: hidden;
-                transition: all 0.2s ease;
-                border: 1px solid rgba(255, 255, 255, 0.08);
-                display: flex;
-                flex-direction: column;
-                height: auto;
-            }
-
-            .ufo-course-card:hover { transform: translateY(-2px); background: rgba(255, 255, 255, 0.08); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3); }
-            
-            .ufo-course-image-link {
-                display: block;
-                cursor: pointer;
-                flex-shrink: 0;
-            }
-            
-            .ufo-course-image { 
-                width: 100%; 
-                height: 120px; 
-                object-fit: cover; 
-                background: rgba(255, 255, 255, 0.1);
-                display: block;
-            }
-            
-            .ufo-course-info { 
-                padding: 12px; 
-                display: flex; 
-                flex-direction: column; 
-                gap: 8px;
-            }
-
-            .ufo-course-title {
-                color: white;
-                font-size: 13px;
-                font-weight: 600;
-                line-height: 1.3;
-                display: -webkit-box;
-                -webkit-line-clamp: 2;
-                -webkit-box-orient: vertical;
-                overflow: hidden;
-            }
-
-            .ufo-course-instructor { 
-                color: rgba(255, 255, 255, 0.5); 
-                font-size: 11px; 
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-            
-            .ufo-course-actions { 
-                display: flex; 
-                gap: 6px; 
-                margin-top: auto;
-            }
-
-            .ufo-course-btn {
-                padding: 4px 10px;
-                border: none;
-                border-radius: 4px;
-                font-size: 10px;
-                font-weight: 500;
-                cursor: pointer;
-                transition: all 0.2s ease;
-                font-family: inherit;
-            }
-
-            .ufo-course-btn.primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-            .ufo-course-btn.primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4); }
-            .ufo-course-btn.danger { background: rgba(239, 68, 68, 0.2); color: #f87171; }
-            .ufo-course-btn.danger:hover { background: rgba(239, 68, 68, 0.3); }
-            .ufo-course-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
 
             .ufo-empty-state {
                 display: flex;
                 flex-direction: column;
                 align-items: center;
                 justify-content: center;
-                height: 100%;
-                color: rgba(255, 255, 255, 0.5);
+                color: #94a3b8;
                 text-align: center;
-                padding: 40px;
+                padding: 28px;
             }
 
-            .ufo-empty-icon { font-size: 64px; margin-bottom: 16px; opacity: 0.5; }
-            .ufo-empty-text { font-size: 16px; margin-bottom: 8px; }
-            .ufo-empty-hint { font-size: 13px; opacity: 0.7; }
+            .ufo-empty-icon { font-size: 40px; margin-bottom: 10px; }
+            .ufo-empty-text { font-size: 15px; color: #e2e8f0; margin-bottom: 6px; }
+            .ufo-empty-hint { font-size: 12px; color: #94a3b8; }
 
             .ufo-loading {
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                height: 100%;
-                color: rgba(255, 255, 255, 0.5);
+                color: #94a3b8;
+                min-height: 120px;
             }
 
             .ufo-loading-spinner {
-                width: 40px;
-                height: 40px;
-                border: 3px solid rgba(255, 255, 255, 0.1);
-                border-top-color: #667eea;
+                width: 22px;
+                height: 22px;
+                border: 2px solid #334155;
+                border-top-color: #93c5fd;
                 border-radius: 50%;
-                animation: spin 1s linear infinite;
+                animation: ufo-spin 0.8s linear infinite;
             }
 
             .ufo-modal {
                 position: fixed;
                 top: 50%;
                 left: 50%;
-                transform: translate(-50%, -50%) scale(0.9);
-                background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
-                padding: 24px;
-                border-radius: 16px;
-                box-shadow: 0 25px 80px rgba(0, 0, 0, 0.5);
+                transform: translate(-50%, -50%);
+                background: #0f172a;
+                border: 1px solid #334155;
+                padding: 16px;
+                border-radius: 10px;
                 z-index: 100000;
-                min-width: 360px;
+                min-width: 340px;
                 max-width: 90vw;
                 opacity: 0;
-                transition: all 0.3s ease;
-                font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+                transition: opacity 0.2s ease;
+                font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
             }
 
-            .ufo-modal.visible { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-            .ufo-modal-title { color: white; font-size: 18px; font-weight: 700; margin: 0 0 20px 0; }
+            .ufo-modal.visible { opacity: 1; }
+            .ufo-modal-title { color: #f8fafc; font-size: 17px; font-weight: 700; margin: 0 0 14px 0; }
 
             .ufo-modal-input {
                 width: 100%;
-                padding: 12px 16px;
-                background: rgba(255, 255, 255, 0.08);
-                border: 1px solid rgba(255, 255, 255, 0.12);
-                border-radius: 10px;
-                color: white;
-                font-size: 14px;
+                padding: 9px 10px;
+                background: #111827;
+                border: 1px solid #334155;
+                border-radius: 8px;
+                color: #e2e8f0;
+                font-size: 13px;
                 font-family: inherit;
-                margin-bottom: 16px;
+                margin-bottom: 12px;
                 box-sizing: border-box;
             }
 
-            .ufo-modal-input:focus { outline: none; border-color: rgba(102, 126, 234, 0.5); }
-            .ufo-color-picker { display: flex; gap: 8px; margin-bottom: 20px; }
+            .ufo-modal-input:focus { outline: none; border-color: #3b82f6; }
+            .ufo-color-picker { display: flex; gap: 8px; margin-bottom: 14px; }
 
             .ufo-color-option {
-                width: 32px;
-                height: 32px;
-                border-radius: 8px;
+                width: 28px;
+                height: 28px;
+                border-radius: 6px;
                 cursor: pointer;
                 border: 2px solid transparent;
-                transition: all 0.2s ease;
             }
 
-            .ufo-color-option:hover { transform: scale(1.1); }
-            .ufo-color-option.selected { border-color: white; box-shadow: 0 0 12px rgba(255, 255, 255, 0.3); }
+            .ufo-color-option.selected { border-color: #e2e8f0; }
 
-            .ufo-modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+            .ufo-modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
 
             .ufo-modal-btn {
-                padding: 10px 20px;
-                border: none;
-                border-radius: 8px;
-                font-size: 14px;
+                padding: 7px 12px;
+                font-size: 12px;
                 font-weight: 600;
-                cursor: pointer;
-                transition: all 0.2s ease;
-                font-family: inherit;
             }
 
-            .ufo-modal-btn.primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-            .ufo-modal-btn.cancel { background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.7); }
-            .ufo-modal-btn:hover { transform: translateY(-2px); }
-            .ufo-modal-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+            .ufo-modal-btn.primary { background: #1d4ed8; border-color: #2563eb; color: #ffffff; }
+            .ufo-modal-btn.cancel { background: #1e293b; border-color: #475569; color: #e2e8f0; }
 
             .ufo-dropdown {
                 position: fixed;
-                background: #1e1e2e;
-                border-radius: 10px;
-                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+                background: #111827;
+                border-radius: 8px;
                 z-index: 100001;
                 min-width: 160px;
                 overflow: hidden;
-                border: 1px solid rgba(255, 255, 255, 0.1);
+                border: 1px solid #334155;
             }
 
             .ufo-dropdown-item {
-                padding: 12px 16px;
-                color: rgba(255, 255, 255, 0.8);
-                font-size: 13px;
+                padding: 10px 12px;
+                color: #cbd5e1;
+                font-size: 12px;
                 cursor: pointer;
                 display: flex;
                 align-items: center;
-                gap: 10px;
-                transition: all 0.2s ease;
+                gap: 8px;
             }
 
-            .ufo-dropdown-item:hover { background: rgba(255, 255, 255, 0.1); color: white; }
-            .ufo-dropdown-item.danger { color: #f87171; }
-            .ufo-dropdown-item.danger:hover { background: rgba(239, 68, 68, 0.2); }
+            .ufo-dropdown-item.danger { color: #fecaca; }
 
-            .ufo-folder-select { margin-bottom: 20px; }
-            .ufo-folder-select-label { color: rgba(255, 255, 255, 0.7); font-size: 13px; margin-bottom: 8px; display: block; }
-            .ufo-folder-select-options { display: flex; flex-wrap: wrap; gap: 8px; }
+            .ufo-folder-select { margin-bottom: 14px; }
+            .ufo-folder-select-label { color: #cbd5e1; font-size: 12px; margin-bottom: 6px; display: block; }
+            .ufo-folder-select-options { display: flex; flex-wrap: wrap; gap: 6px; }
 
             .ufo-folder-select-option {
-                padding: 8px 14px;
-                background: rgba(255, 255, 255, 0.08);
-                border: 1px solid rgba(255, 255, 255, 0.12);
-                border-radius: 8px;
-                color: rgba(255, 255, 255, 0.8);
-                font-size: 13px;
+                padding: 6px 10px;
+                background: #111827;
+                border: 1px solid #334155;
+                border-radius: 7px;
+                color: #cbd5e1;
+                font-size: 12px;
                 cursor: pointer;
-                transition: all 0.2s ease;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
             }
 
-            .ufo-folder-select-option:hover { background: rgba(255, 255, 255, 0.12); }
-            .ufo-folder-select-option.selected { background: rgba(102, 126, 234, 0.3); border-color: rgba(102, 126, 234, 0.5); color: white; }
+            .ufo-folder-select-option.selected {
+                background: #1e3a8a;
+                border-color: #3b82f6;
+                color: #ffffff;
+            }
 
-            .ufo-settings-section { margin-bottom: 20px; }
-            .ufo-settings-section-title { color: rgba(255, 255, 255, 0.5); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+            .ufo-folder-color-dot {
+                width: 10px;
+                height: 10px;
+                border-radius: 3px;
+                flex-shrink: 0;
+            }
+
+            .ufo-settings-section { margin-bottom: 14px; }
+            .ufo-settings-section-title { color: #94a3b8; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 8px; }
 
             .ufo-settings-row {
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                padding: 12px 0;
-                border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+                padding: 10px 0;
+                border-bottom: 1px solid #334155;
+                gap: 8px;
             }
 
             .ufo-settings-row:last-child { border-bottom: none; }
-            .ufo-settings-label { color: white; font-size: 14px; }
-            .ufo-settings-hint { color: rgba(255, 255, 255, 0.5); font-size: 12px; margin-top: 4px; }
+            .ufo-settings-label { color: #f8fafc; font-size: 13px; }
+            .ufo-settings-hint { color: #94a3b8; font-size: 12px; margin-top: 4px; }
+            .ufo-settings-value { color: #cbd5e1; font-size: 12px; }
+            .ufo-settings-field { margin-bottom: 12px; }
+            .ufo-settings-field-label { color: #cbd5e1; font-size: 12px; display: block; margin-bottom: 6px; }
+
+            .ufo-course-summary {
+                background: #111827;
+                border: 1px solid #334155;
+                border-radius: 8px;
+                padding: 10px;
+                margin-bottom: 12px;
+            }
+
+            .ufo-course-summary-title {
+                color: #f8fafc;
+                font-size: 14px;
+                font-weight: 600;
+                line-height: 1.35;
+            }
+
+            .ufo-course-summary-subtitle {
+                color: #94a3b8;
+                font-size: 12px;
+                margin-top: 4px;
+            }
 
             .ufo-toggle {
                 position: relative;
-                width: 44px;
-                height: 24px;
-                background: rgba(255, 255, 255, 0.2);
-                border-radius: 12px;
+                width: 42px;
+                height: 22px;
+                background: #334155;
+                border: 1px solid #475569;
+                border-radius: 999px;
                 cursor: pointer;
-                transition: all 0.2s ease;
+                flex-shrink: 0;
             }
 
-            .ufo-toggle.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+            .ufo-toggle.active { background: #1d4ed8; border-color: #2563eb; }
 
             .ufo-toggle::after {
-                content: '';
+                content: "";
                 position: absolute;
-                top: 2px;
-                left: 2px;
-                width: 20px;
-                height: 20px;
-                background: white;
+                top: 1px;
+                left: 1px;
+                width: 18px;
+                height: 18px;
+                background: #ffffff;
                 border-radius: 50%;
-                transition: all 0.2s ease;
+                transition: left 0.15s ease;
             }
 
-            .ufo-toggle.active::after { left: 22px; }
+            .ufo-toggle.active::after { left: 21px; }
+
+            .ufo-modal-wide {
+                min-width: 450px;
+            }
 
             .ufo-scrollbar::-webkit-scrollbar { width: 8px; }
             .ufo-scrollbar::-webkit-scrollbar-track { background: transparent; }
-            .ufo-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
-            .ufo-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.3); }
+            .ufo-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 8px; }
+            .ufo-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+            @media (max-width: 900px) {
+                .ufo-popup {
+                    width: 96vw;
+                    height: 88vh;
+                }
+
+                .ufo-body {
+                    flex-direction: column;
+                }
+
+                .ufo-sidebar {
+                    width: 100%;
+                    max-height: 34%;
+                    border-right: none;
+                    border-bottom: 1px solid #334155;
+                }
+
+                .ufo-content-header {
+                    flex-direction: column;
+                    align-items: flex-start;
+                }
+
+                .ufo-search-input {
+                    width: min(420px, 78vw);
+                }
+
+                .ufo-course-grid {
+                    gap: 10px;
+                }
+
+                .ufo-course-card {
+                    flex-direction: column;
+                    align-items: stretch;
+                }
+
+                .ufo-course-actions {
+                    justify-content: flex-end;
+                }
+            }
         `;
 
     document.head.appendChild(styles);
   }
 
-  // =====================================================
   // ICONS
   // =====================================================
   const ICONS = {
@@ -2122,14 +2131,10 @@
     close: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`,
     search: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>`,
     more: `<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="6" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="18" r="2"/></svg>`,
-    edit: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`,
-    trash: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`,
     external: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>`,
     bookmark: `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg>`,
-    settings: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>`,
     emptyFolder: `📂`,
     refresh: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>`,
-    cloud: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></svg>`,
   };
 
   // =====================================================
@@ -2145,16 +2150,16 @@
     let bgColor;
     switch (type) {
       case 'success':
-        bgColor = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+        bgColor = '#047857';
         break;
       case 'error':
-        bgColor = 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)';
+        bgColor = '#b91c1c';
         break;
       case 'warning':
-        bgColor = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)';
+        bgColor = '#b45309';
         break;
       default:
-        bgColor = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+        bgColor = '#1d4ed8';
     }
 
     notification.style.background = bgColor;
@@ -2204,6 +2209,53 @@
   // =====================================================
   // MODALS
   // =====================================================
+  function createModalShell(content, options = {}) {
+    const overlay = document.createElement('div');
+    overlay.className = 'ufo-overlay';
+
+    const modal = document.createElement('div');
+    modal.className = `ufo-modal ${options.modalClassName || ''}`.trim();
+    modal.innerHTML = content;
+
+    document.body.appendChild(overlay);
+    document.body.appendChild(modal);
+
+    let isClosed = false;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        closeModal();
+      }
+    };
+
+    const cleanup = () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      overlay.remove();
+      modal.remove();
+    };
+
+    const closeModal = () => {
+      if (isClosed) return;
+      isClosed = true;
+      overlay.classList.remove('visible');
+      modal.classList.remove('visible');
+      setTimeout(cleanup, 220);
+    };
+
+    overlay.addEventListener('click', closeModal);
+    document.addEventListener('keydown', handleKeyDown);
+
+    setTimeout(() => {
+      if (isClosed) return;
+      overlay.classList.add('visible');
+      modal.classList.add('visible');
+      if (typeof options.onOpen === 'function') {
+        options.onOpen(modal);
+      }
+    }, 10);
+
+    return { overlay, modal, closeModal };
+  }
+
   function showCreateFolderModal(callback) {
     const colors = [
       '#6366f1',
@@ -2217,13 +2269,8 @@
     ];
     let selectedColor = colors[0];
 
-    const overlay = document.createElement('div');
-    overlay.className = 'ufo-overlay';
-    overlay.addEventListener('click', () => closeModal());
-
-    const modal = document.createElement('div');
-    modal.className = 'ufo-modal';
-    modal.innerHTML = `
+    const { modal, closeModal } = createModalShell(
+      `
             <h3 class="ufo-modal-title">Create New Folder</h3>
             <input type="text" class="ufo-modal-input" placeholder="Folder name" autofocus>
             <div class="ufo-color-picker">
@@ -2233,16 +2280,11 @@
                 <button class="ufo-modal-btn cancel">Cancel</button>
                 <button class="ufo-modal-btn primary">Create</button>
             </div>
-        `;
-
-    document.body.appendChild(overlay);
-    document.body.appendChild(modal);
-
-    setTimeout(() => {
-      overlay.classList.add('visible');
-      modal.classList.add('visible');
-      modal.querySelector('input').focus();
-    }, 10);
+        `,
+      {
+        onOpen: (openedModal) => openedModal.querySelector('input')?.focus(),
+      }
+    );
 
     modal.querySelectorAll('.ufo-color-option').forEach((opt) => {
       opt.addEventListener('click', () => {
@@ -2251,15 +2293,6 @@
         selectedColor = opt.dataset.color;
       });
     });
-
-    const closeModal = () => {
-      overlay.classList.remove('visible');
-      modal.classList.remove('visible');
-      setTimeout(() => {
-        overlay.remove();
-        modal.remove();
-      }, 300);
-    };
 
     modal.querySelector('.cancel').addEventListener('click', closeModal);
     modal.querySelector('.primary').addEventListener('click', async (e) => {
@@ -2282,45 +2315,24 @@
             closeModal();
           });
         }
-      } else if (e.key === 'Escape') {
-        closeModal();
       }
     });
   }
 
   function showRenameFolderModal(currentName, folderId, callback) {
-    const overlay = document.createElement('div');
-    overlay.className = 'ufo-overlay';
-    overlay.addEventListener('click', () => closeModal());
-
-    const modal = document.createElement('div');
-    modal.className = 'ufo-modal';
-    modal.innerHTML = `
+    const { modal, closeModal } = createModalShell(
+      `
             <h3 class="ufo-modal-title">Rename Folder</h3>
             <input type="text" class="ufo-modal-input" value="${currentName}" autofocus>
             <div class="ufo-modal-actions">
                 <button class="ufo-modal-btn cancel">Cancel</button>
                 <button class="ufo-modal-btn primary">Rename</button>
             </div>
-        `;
-
-    document.body.appendChild(overlay);
-    document.body.appendChild(modal);
-
-    setTimeout(() => {
-      overlay.classList.add('visible');
-      modal.classList.add('visible');
-      modal.querySelector('input').select();
-    }, 10);
-
-    const closeModal = () => {
-      overlay.classList.remove('visible');
-      modal.classList.remove('visible');
-      setTimeout(() => {
-        overlay.remove();
-        modal.remove();
-      }, 300);
-    };
+        `,
+      {
+        onOpen: (openedModal) => openedModal.querySelector('input')?.select(),
+      }
+    );
 
     modal.querySelector('.cancel').addEventListener('click', closeModal);
     modal.querySelector('.primary').addEventListener('click', async (e) => {
@@ -2343,29 +2355,18 @@
             closeModal();
           });
         }
-      } else if (e.key === 'Escape') {
-        closeModal();
       }
     });
   }
 
   function showAddCourseModal(courseInfo) {
-    const overlay = document.createElement('div');
-    overlay.className = 'ufo-overlay';
-    overlay.addEventListener('click', () => closeModal());
-
     const selectedFolderIds = new Set();
 
-    const modal = document.createElement('div');
-    modal.className = 'ufo-modal';
-    modal.innerHTML = `
+    const { modal, closeModal } = createModalShell(`
             <h3 class="ufo-modal-title">Save Course to Folder</h3>
-            <div style="background: rgba(255,255,255,0.05); border-radius: 10px; padding: 12px; margin-bottom: 16px; display: flex; gap: 12px; align-items: center;">
-                ${courseInfo.image ? `<img src="${courseInfo.image}" style="width: 80px; height: 45px; border-radius: 6px; object-fit: cover;">` : ''}
-                <div style="flex: 1; min-width: 0;">
-                    <div style="color: white; font-size: 14px; font-weight: 600; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${courseInfo.title}</div>
-                    ${courseInfo.instructor ? `<div style="color: rgba(255,255,255,0.5); font-size: 12px; margin-top: 4px;">${courseInfo.instructor}</div>` : ''}
-                </div>
+            <div class="ufo-course-summary">
+                <div class="ufo-course-summary-title">${courseInfo.title}</div>
+                ${courseInfo.instructor ? `<div class="ufo-course-summary-subtitle">${courseInfo.instructor}</div>` : ''}
             </div>
             <div class="ufo-folder-select">
                 <label class="ufo-folder-select-label">Select folders:</label>
@@ -2374,8 +2375,8 @@
         .map(
           (f) => `
                         <div class="ufo-folder-select-option" data-folder-id="${f.id}">
-                            <span style="display: inline-block; width: 10px; height: 10px; border-radius: 3px; background: ${f.color}; margin-right: 6px;"></span>
-                            ${f.name}
+                            <span class="ufo-folder-color-dot" style="background: ${f.color};"></span>
+                            <span>${f.name}</span>
                         </div>
                     `
         )
@@ -2386,15 +2387,7 @@
                 <button class="ufo-modal-btn cancel">Cancel</button>
                 <button class="ufo-modal-btn primary">Save</button>
             </div>
-        `;
-
-    document.body.appendChild(overlay);
-    document.body.appendChild(modal);
-
-    setTimeout(() => {
-      overlay.classList.add('visible');
-      modal.classList.add('visible');
-    }, 10);
+        `);
 
     modal.querySelectorAll('.ufo-folder-select-option').forEach((opt) => {
       opt.addEventListener('click', () => {
@@ -2409,15 +2402,6 @@
         }
       });
     });
-
-    const closeModal = () => {
-      overlay.classList.remove('visible');
-      modal.classList.remove('visible');
-      setTimeout(() => {
-        overlay.remove();
-        modal.remove();
-      }, 300);
-    };
 
     modal.querySelector('.cancel').addEventListener('click', closeModal);
     modal.querySelector('.primary').addEventListener('click', async (e) => {
@@ -2437,16 +2421,9 @@
   }
 
   function showSettingsModal() {
-    const overlay = document.createElement('div');
-    overlay.className = 'ufo-overlay';
-    overlay.addEventListener('click', () => closeModal());
-
     const userInfo = getUserInfo();
-
-    const modal = document.createElement('div');
-    modal.className = 'ufo-modal';
-    modal.style.minWidth = '450px';
-    modal.innerHTML = `            
+    const { modal, closeModal } = createModalShell(
+      `            
             <div class="ufo-settings-section">
                 <div class="ufo-settings-section-title">Account</div>
                 <div class="ufo-settings-row">
@@ -2471,9 +2448,9 @@
 
             <div class="ufo-settings-section">
                 <div class="ufo-settings-section-title">Configuration</div>
-                <div style="margin-bottom: 12px;">
-                    <label style="color: rgba(255,255,255,0.7); font-size: 12px; display: block; margin-bottom: 6px;">License Key</label>
-                    <input type="text" class="ufo-modal-input" id="settings-license-key" value="${config.licenseKey}" style="margin-bottom: 0;">
+                <div class="ufo-settings-field">
+                    <label class="ufo-settings-field-label">License Key</label>
+                    <input type="text" class="ufo-modal-input" id="settings-license-key" value="${config.licenseKey}">
                 </div>
             </div>
 
@@ -2493,11 +2470,11 @@
                 <div class="ufo-settings-section-title">Statistics</div>
                 <div class="ufo-settings-row">
                     <div class="ufo-settings-label">Total Folders</div>
-                    <div style="color: rgba(255,255,255,0.7);">${userInfo.totalFolders}</div>
+                    <div class="ufo-settings-value">${userInfo.totalFolders}</div>
                 </div>
                 <div class="ufo-settings-row">
                     <div class="ufo-settings-label">Total Saved Courses</div>
-                    <div style="color: rgba(255,255,255,0.7);">${userInfo.totalCourses}</div>
+                    <div class="ufo-settings-value">${userInfo.totalCourses}</div>
                 </div>
             </div>
 
@@ -2505,28 +2482,13 @@
                 <button class="ufo-modal-btn cancel">Cancel</button>
                 <button class="ufo-modal-btn primary">Save Settings</button>
             </div>
-        `;
-
-    document.body.appendChild(overlay);
-    document.body.appendChild(modal);
-
-    setTimeout(() => {
-      overlay.classList.add('visible');
-      modal.classList.add('visible');
-    }, 10);
+        `,
+      { modalClassName: 'ufo-modal-wide' }
+    );
 
     modal.querySelectorAll('.ufo-toggle').forEach((toggle) => {
       toggle.addEventListener('click', () => toggle.classList.toggle('active'));
     });
-
-    const closeModal = () => {
-      overlay.classList.remove('visible');
-      modal.classList.remove('visible');
-      setTimeout(() => {
-        overlay.remove();
-        modal.remove();
-      }, 300);
-    };
 
     modal.querySelector('.cancel').addEventListener('click', closeModal);
     modal.querySelector('.primary').addEventListener('click', async (e) => {
@@ -2789,7 +2751,7 @@
         titleEl.innerHTML = `<span style="display: inline-block; width: 16px; height: 16px; border-radius: 4px; background: ${folder.color}; margin-right: 8px;"></span> ${title}`;
 
         // Always load fresh courses for the folder
-        container.innerHTML = `<div class="ufo-loading" style="grid-column: 1 / -1;"><div class="ufo-loading-spinner"></div></div>`;
+        container.innerHTML = `<div class="ufo-loading"><div class="ufo-loading-spinner"></div></div>`;
         courses = await loadCoursesForFolder(currentFolderId);
         folder.courses = courses;
       }
@@ -2846,7 +2808,7 @@
 
     if (courses.length === 0) {
       container.innerHTML = `
-                <div class="ufo-empty-state" style="grid-column: 1 / -1;">
+                <div class="ufo-empty-state">
                     <div class="ufo-empty-icon">${ICONS.emptyFolder}</div>
                     <div class="ufo-empty-text">${searchQuery ? 'No courses found' : 'No courses yet'}</div>
                     <div class="ufo-empty-hint">${searchQuery ? 'Try a different search term' : 'Add courses from any Udemy course page'}</div>
@@ -2860,37 +2822,32 @@
     const endIndex = startIndex + ITEMS_PER_PAGE;
     const pageCourses = courses.slice(startIndex, endIndex);
 
-    // Pre-encoded placeholder image (dark background with folder icon)
-    const PLACEHOLDER_IMAGE =
-      'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0ODAgMjcwIj48cmVjdCBmaWxsPSIjMWExYTJlIiB3aWR0aD0iNDgwIiBoZWlnaHQ9IjI3MCIvPjxwYXRoIGZpbGw9IiM2NjdlZWEiIGQ9Ik0yODAgMTAwSDIwMGMtNS41IDAtMTAgNC41LTEwIDEwdjgwYzAgNS41IDQuNSAxMCAxMCAxMGgxMjBjNS41IDAgMTAtNC41IDEwLTEwdi02MGMwLTUuNS00LjUtMTAtMTAtMTBoLTYwbC0xMC0yMGMtMi01LTctMTAtMTItMTBoLTM4eiIvPjwvc3ZnPg==';
-
     container.innerHTML = pageCourses
       .map((course) => {
         // In new schema: id is folder_courses.id (junction), course_id is the slug
-        const courseSlug = course.course_id;
+        const courseKey = course.course_id || course.udemy_course_id || course.id;
         const junctionId = course.id;
-        const imageUrl = course.image_url || course.image || PLACEHOLDER_IMAGE;
         const courseUrl = getCourseOpenUrl(course);
-        const hasProgress = course.last_lesson_url || (!config.licenseKey && GM_getValue('lessonProgress', {})[courseSlug]);
-        const progressIndicator = hasProgress ? `<span style="color: #10b981; margin-left: 4px;" title="Resume from last lesson">▶</span>` : '';
-
-        // Show progress and completion status if available
-        const progressBar = course.progress > 0 ? `<div style="height:3px;background:rgba(255,255,255,0.1);border-radius:2px;margin-top:4px;"><div style="height:100%;width:${course.progress}%;background:#10b981;border-radius:2px;"></div></div>` : '';
-        const completedBadge = course.is_completed ? `<span style="color: #10b981; font-size: 10px; margin-left: 4px;">✓ Completed</span>` : '';
+        const hasProgress = course.last_lesson_url || (!config.licenseKey && GM_getValue('lessonProgress', {})[courseKey]);
+        const subtitle = course.headline || course.instructor || '';
+        const statusParts = [];
+        if (typeof course.progress === 'number' && course.progress > 0) {
+          statusParts.push(`${Math.round(course.progress)}% complete`);
+        }
+        if (course.is_completed) statusParts.push('Completed');
+        if (hasProgress) statusParts.push('Resume available');
+        const statusText = statusParts.length ? `<div class="ufo-course-meta">${statusParts.join(' • ')}</div>` : '';
 
         return `
-                <div class="ufo-course-card" data-course-id="${courseSlug}" data-junction-id="${junctionId}">
-                    <a href="${courseUrl}" target="_blank" class="ufo-course-image-link" title="${hasProgress ? 'Resume last lesson' : 'Open course'}">
-                        <img class="ufo-course-image" src="${imageUrl}" alt="${course.title}" onerror="this.src='${PLACEHOLDER_IMAGE}'">
-                    </a>
+                <div class="ufo-course-card" data-course-id="${courseKey}" data-junction-id="${junctionId}">
                     <div class="ufo-course-info">
-                        <a href="${courseUrl}" target="_blank" class="ufo-course-title" style="text-decoration: none; cursor: pointer;">${course.title}${progressIndicator}${completedBadge}</a>
-                        ${course.instructor ? `<div class="ufo-course-instructor">${course.instructor}</div>` : ''}
-                        ${progressBar}
-                        <div class="ufo-course-actions">
-                            <button class="ufo-course-btn primary" data-action="open" data-url="${courseUrl}">${hasProgress ? 'Resume' : 'Open'} ${ICONS.external}</button>
-                            <button class="ufo-course-btn danger" data-action="remove" data-course-id="${courseSlug}" data-folder-id="${currentFolderId || ''}">Remove</button>
-                        </div>
+                        <a href="${courseUrl}" target="_blank" class="ufo-course-title" title="${hasProgress ? 'Resume last lesson' : 'Open course'}">${course.title}</a>
+                        ${subtitle ? `<div class="ufo-course-instructor">${subtitle}</div>` : ''}
+                        ${statusText}
+                    </div>
+                    <div class="ufo-course-actions">
+                        <button class="ufo-course-btn primary" data-action="open" data-url="${courseUrl}">${hasProgress ? 'Resume' : 'Open'} ${ICONS.external}</button>
+                        <button class="ufo-course-btn danger" data-action="remove" data-course-id="${courseKey}" data-folder-id="${currentFolderId || ''}">Remove</button>
                     </div>
                 </div>
             `;
@@ -3263,7 +3220,7 @@
     saveBtn.className = 'ufo-popup-save-btn ud-btn ud-btn-medium ud-btn-secondary ud-heading-sm';
     saveBtn.style.cssText = `
       margin-left: 8px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: #1d4ed8;
       color: white;
       border: none;
       padding: 8px 16px;
@@ -3274,20 +3231,17 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      transition: all 0.2s ease;
       white-space: nowrap;
     `;
     saveBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="currentColor" style="width:16px;height:16px"><path d="M17 3H7c-1.1 0-2 .9-2 2v16l7-3 7 3V5c0-1.1-.9-2-2-2z"/></svg> Save`;
     saveBtn.title = 'Save course to folder';
 
     saveBtn.addEventListener('mouseenter', () => {
-      saveBtn.style.transform = 'translateY(-2px)';
-      saveBtn.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.4)';
+      saveBtn.style.background = '#1e40af';
     });
 
     saveBtn.addEventListener('mouseleave', () => {
-      saveBtn.style.transform = '';
-      saveBtn.style.boxShadow = '';
+      saveBtn.style.background = '#1d4ed8';
     });
 
     saveBtn.addEventListener('click', (e) => {
@@ -3390,12 +3344,12 @@
 
     const settingsBtn = document.createElement('button');
     settingsBtn.className = 'ucc-btn secondary';
-    settingsBtn.innerHTML = `${ICONS.settings}<span class="ucc-btn-text">Settings</span>`;
+    settingsBtn.innerHTML = `<span class="ucc-btn-text">Settings</span>`;
     settingsBtn.addEventListener('click', showSettingsModal);
 
     const fetchBtn = document.createElement('button');
     fetchBtn.className = 'ucc-btn secondary';
-    fetchBtn.innerHTML = `${ICONS.refresh}<span class="ucc-btn-text">Fetch Cookies</span>`;
+    fetchBtn.innerHTML = `<span class="ucc-btn-text">Cookies</span>`;
     fetchBtn.addEventListener('click', async (e) => {
       await withLoading(e.currentTarget, async () => {
         await updateCookiesFromWorker();
@@ -3410,7 +3364,7 @@
     if (config.showFolderOrganizer) {
       const folderBtn = document.createElement('button');
       folderBtn.className = 'ucc-btn primary';
-      folderBtn.innerHTML = `${ICONS.bookmark}<span class="ucc-btn-text">My Folders</span>`;
+      folderBtn.innerHTML = `<span class="ucc-btn-text">Folders</span>`;
       folderBtn.addEventListener('click', () => {
         if (isOrganizerPopupOpen) {
           closeMainPopup();
@@ -3425,7 +3379,7 @@
     if (isCourse && config.showFolderOrganizer) {
       const saveBtn = document.createElement('button');
       saveBtn.className = 'ucc-btn success';
-      saveBtn.innerHTML = `${ICONS.plus}<span class="ucc-btn-text">Save Course</span>`;
+      saveBtn.innerHTML = `<span class="ucc-btn-text">Save</span>`;
       saveBtn.addEventListener('click', () => {
         const courseInfo = getCurrentCourseInfo();
         showAddCourseModal(courseInfo);
@@ -3436,7 +3390,6 @@
     document.body.appendChild(container);
   }
 
-  // =====================================================
   // MENU COMMANDS
   // =====================================================
   function registerMenuCommands() {
@@ -3522,3 +3475,4 @@
 
   initialize();
 })();
+
