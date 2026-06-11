@@ -1,0 +1,106 @@
+.cu-fab-container {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 99990;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-family: var(--font-sans);
+}
+
+.cu-fab-trigger {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-full);
+  background: var(--color-action-primary);
+  color: var(--color-text-inverse);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--elev-depth16);
+  transition: background var(--motion-fast) var(--ease-standard),
+              transform var(--motion-fast) var(--ease-standard);
+}
+
+.cu-fab-trigger:hover {
+  background: var(--color-action-primary-hover);
+  transform: scale(1.05);
+}
+
+.cu-fab-trigger:active {
+  transform: scale(0.95);
+}
+
+.cu-fab-trigger-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cu-fab-menu {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  margin-bottom: 8px;
+  animation: cu-fab-fade-in var(--motion-fast) var(--ease-standard);
+}
+
+@keyframes cu-fab-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.cu-fab-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-sm);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-subdued);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-default);
+  cursor: pointer;
+  box-shadow: var(--elev-depth4);
+  transition: background var(--motion-fast) var(--ease-standard),
+              transform var(--motion-fast) var(--ease-standard);
+  font-size: var(--type-text-sm-size);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.cu-fab-item:hover {
+  background: var(--color-surface-muted);
+  transform: translateX(-4px);
+}
+
+.cu-fab-item:active {
+  transform: scale(0.98);
+}
+
+.cu-fab-item-icon {
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cu-fab-item-text {
+  line-height: 1.2;
+}
+
+.cu-fab-item:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  background: var(--color-surface);
+}

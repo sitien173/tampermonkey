@@ -1,0 +1,11 @@
+@import './colors_and_type.css';
+
+:host {
+  /* Set root variables locally for the shadow DOM host if needed */
+  font-family: var(--font-sans);
+  color: var(--fg1);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}

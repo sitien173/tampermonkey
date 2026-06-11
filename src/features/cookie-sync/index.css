@@ -1,0 +1,102 @@
+.sync-indicator-container {
+  position: fixed;
+  bottom: var(--space-lg);
+  right: var(--space-lg);
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.sync-indicator-badge {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  background: var(--bg-surface);
+  border: 1px solid var(--color-border-subdued);
+  box-shadow: var(--elev-depth16);
+  border-radius: var(--radius-xs);
+  padding: var(--space-sm) var(--space-md);
+  color: var(--fg1);
+  transition: all var(--motion-slow) var(--ease-standard);
+  transform: translateY(0);
+  opacity: 1;
+  animation: slideInUp var(--motion-slow) var(--ease-decelerate);
+}
+
+.sync-indicator-badge.status-ok {
+  border-left: 3px solid var(--color-border-green);
+}
+
+.sync-indicator-badge.status-error {
+  border-left: 3px solid var(--color-border-red);
+}
+
+.sync-indicator-badge.status-syncing {
+  border-left: 3px solid var(--color-border-blue);
+}
+
+.sync-indicator-badge.hide {
+  transform: translateY(20px) scale(0.95);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sync-indicator-icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+}
+
+/* Spinner for syncing state */
+.sync-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--color-decorative-blue);
+  border-top-color: var(--color-action-interactive);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+/* Checkmark for ok state */
+.sync-checkmark {
+  color: var(--color-icon-green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Red X for error state */
+.sync-error-icon {
+  color: var(--color-icon-red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Text status styling */
+.sync-indicator-text {
+  /* Using ff-label-sm */
+}
+
+.sync-indicator-detail {
+  color: var(--color-text-subdued);
+  margin-left: var(--space-xxs);
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(20px) scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}

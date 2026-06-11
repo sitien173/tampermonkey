@@ -1,0 +1,190 @@
+.settings-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(18, 18, 18, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 99999;
+  animation: fadeIn var(--motion-normal) var(--ease-decelerate);
+}
+
+.settings-modal {
+  background: var(--bg-surface);
+  border: 1px solid var(--color-border-subdued);
+  border-radius: var(--radius-xs);
+  width: 90%;
+  min-width: var(--layout-modal-min-width);
+  max-width: 720px;
+  max-height: 90vh;
+  box-shadow: var(--elev-depth64);
+  animation: scaleUp var(--motion-slow) var(--ease-decelerate);
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: var(--space-4xl);
+  padding: 0 var(--space-xl);
+  border-bottom: 1px solid var(--color-border-subdued);
+}
+
+.settings-title {
+  /* Using ff-display-sm from index.css instead of local styles, but can apply layout if needed */
+  margin: 0;
+}
+
+.settings-close-btn {
+  background: transparent;
+  border: none;
+  color: var(--color-text-subdued);
+  cursor: pointer;
+  padding: var(--space-xxs);
+  border-radius: var(--radius-xxs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--motion-fast) var(--ease-standard);
+}
+
+.settings-close-btn:hover {
+  background: var(--bg-surface-hover);
+  color: var(--fg1);
+}
+
+.settings-close-btn:focus-visible {
+  outline: 2px solid var(--color-action-interactive);
+  outline-offset: 2px;
+}
+
+.settings-content {
+  padding: var(--space-lg) var(--space-xl);
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Form Styles */
+.config-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  margin-bottom: var(--space-lg);
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.form-label {
+  /* text-sm will be applied via ff-label-sm */
+  margin-bottom: 0;
+}
+
+.form-input {
+  background: var(--bg-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-xs);
+  padding: 0 var(--space-sm);
+  height: var(--layout-field-height);
+  font-family: var(--font-sans);
+  font-size: var(--type-text-md-size);
+  color: var(--fg1);
+  outline: none;
+  transition: all var(--motion-fast) var(--ease-standard);
+}
+
+.form-input:hover {
+  background: var(--bg-surface-hover);
+}
+
+.form-input:focus {
+  border-color: var(--color-action-interactive);
+  box-shadow: inset 0 0 0 1px var(--color-action-interactive);
+  background: var(--bg-surface);
+}
+
+.form-input:disabled,
+.form-input-disabled {
+  background: var(--bg-canvas);
+  color: var(--color-text-disabled);
+  border-color: var(--color-border-subdued);
+  cursor: not-allowed;
+}
+
+.form-help {
+  color: var(--color-text-subdued);
+  margin-top: 0;
+}
+
+.form-group-checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  cursor: pointer;
+  user-select: none;
+  height: var(--layout-field-height);
+}
+
+.form-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  height: 20px;
+  width: 20px;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-xxs);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  outline: none;
+  transition: all var(--motion-fast) var(--ease-standard);
+  margin: 0;
+}
+
+.form-checkbox:hover {
+  background: var(--bg-surface-hover);
+}
+
+.form-checkbox:checked {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+.form-checkbox:checked::after {
+  content: "";
+  display: block;
+  width: 5px;
+  height: 10px;
+  border: solid var(--color-surface);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+  margin-bottom: 2px;
+}
+
+.form-checkbox:focus-visible {
+  outline: 2px solid var(--color-action-interactive);
+  outline-offset: 2px;
+}
+
+.form-checkbox-label {
+  cursor: pointer;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleUp {
+  from { transform: scale(0.98); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
