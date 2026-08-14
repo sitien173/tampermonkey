@@ -6,7 +6,6 @@ describe('state reducer', () => {
   const initialState: AppState = {
     config: {
       licenseKey: '',
-      retryAttempts: 3,
       apiKey: '',
     },
     license: {

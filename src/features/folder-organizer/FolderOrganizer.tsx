@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAppState } from '../../state/store';
 import { useFolders } from './useFolders';
+import { resolveCourseUrl } from './course-url';
 import './index.css';
 
 export const FolderOrganizer: React.FC = () => {
@@ -300,38 +301,54 @@ export const FolderOrganizer: React.FC = () => {
                   <div className="main-content">
                     {activeFolder.courses && activeFolder.courses.length > 0 ? (
                       <div className="course-grid">
-                        {activeFolder.courses.map(course => (
-                          <a
-                            key={course.id}
-                            href={course.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="course-card"
-                          >
-                            <div className="course-thumbnail-wrapper">
-                              {course.image_url ? (
-                                <img
-                                  src={course.image_url}
-                                  alt={course.title}
-                                  className="course-thumbnail"
-                                />
-                              ) : (
-                                <div className="course-thumbnail" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-subdued)' }}>
-                                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" strokeLinejoin="miter">
-                                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                                  </svg>
-                                </div>
-                              )}
+                        {activeFolder.courses.map(course => {
+                          const safeUrl = resolveCourseUrl(course.url);
+                          const cardContent = (
+                            <>
+                              <div className="course-thumbnail-wrapper">
+                                {course.image_url ? (
+                                  <img
+                                    src={course.image_url}
+                                    alt={course.title}
+                                    className="course-thumbnail"
+                                  />
+                                ) : (
+                                  <div className="course-thumbnail" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--color-text-subdued)' }}>
+                                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="square" strokeLinejoin="miter">
+                                      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                                    </svg>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="course-info">
+                                <h4 className="course-title ff-label-sm" title={course.title}>{course.title}</h4>
+                                {course.instructor && (
+                                  <span className="course-instructor ff-text-xs ff-fg-subdued">{course.instructor}</span>
+                                )}
+                              </div>
+                            </>
+                          );
+
+                          return safeUrl ? (
+                            <a
+                              key={course.id}
+                              href={safeUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="course-card"
+                            >
+                              {cardContent}
+                            </a>
+                          ) : (
+                            <div
+                              key={course.id}
+                              className="course-card"
+                            >
+                              {cardContent}
                             </div>
-                            <div className="course-info">
-                              <h4 className="course-title ff-label-sm" title={course.title}>{course.title}</h4>
-                              {course.instructor && (
-                                <span className="course-instructor ff-text-xs ff-fg-subdued">{course.instructor}</span>
-                              )}
-                            </div>
-                          </a>
-                        ))}
+                          );
+                        })}
                       </div>
                     ) : (
                       <div className="organizer-center-state">

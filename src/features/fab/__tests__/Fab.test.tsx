@@ -1,13 +1,12 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import { Fab } from '../Fab';
 import { AppStateProvider, useAppState } from '../../../state/store';
 import { useCourseContext } from '../useCourseContext';
 
 // Hoist mocks for hooks
-const { mockTriggerSync, mockSwitchNow, mockHealthyDomainState } = vi.hoisted(() => ({
-  mockTriggerSync: vi.fn(),
+const { mockSwitchNow, mockHealthyDomainState } = vi.hoisted(() => ({
   mockSwitchNow: vi.fn(),
   mockHealthyDomainState: { status: 'idle' },
 }));
@@ -15,14 +14,6 @@ const { mockTriggerSync, mockSwitchNow, mockHealthyDomainState } = vi.hoisted(()
 // Mock the useCourseContext hook
 vi.mock('../useCourseContext', () => ({
   useCourseContext: vi.fn(),
-}));
-
-// Mock SyncTriggerContext
-vi.mock('../../cookie-sync/SyncTriggerContext', () => ({
-  useSyncTrigger: () => ({
-    triggerSync: mockTriggerSync,
-  }),
-  SyncTriggerProvider: ({ children }: any) => children,
 }));
 
 // Mock useHealthyDomainSwitch
@@ -76,8 +67,8 @@ describe('Fab component', () => {
 
     expect(screen.getByRole('button', { name: /settings/i })).toBeTruthy();
     expect(screen.getByRole('button', { name: /organize folders/i })).toBeTruthy();
-    expect(screen.getByRole('button', { name: /re-sync cookies/i })).toBeTruthy();
     expect(screen.getByRole('button', { name: /switch domain/i })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /re-sync cookies/i })).toBeNull();
     expect(screen.queryByRole('button', { name: /add to folder/i })).toBeNull();
   });
 
@@ -169,7 +160,7 @@ describe('Fab component', () => {
     expect(screen.queryByRole('button', { name: /settings/i })).toBeNull();
   });
 
-  it('Re-sync click invokes triggerSync and closes menu', () => {
+  it('does NOT close the menu on mousedown inside the FAB', () => {
     vi.mocked(useCourseContext).mockReturnValue(null);
     render(
       <AppStateProvider>
@@ -177,42 +168,35 @@ describe('Fab component', () => {
       </AppStateProvider>
     );
 
-    // Open menu
     fireEvent.click(screen.getByRole('button', { name: /open menu/i }));
+    expect(screen.getByRole('button', { name: /settings/i })).toBeTruthy();
 
-    // Click Re-sync button
-    const btn = screen.getByRole('button', { name: /re-sync cookies/i });
-    fireEvent.click(btn);
-
-    expect(mockTriggerSync).toHaveBeenCalledTimes(1);
-    // Should also close FAB
-    expect(screen.queryByRole('button', { name: /settings/i })).toBeNull();
+    fireEvent.mouseDown(screen.getByRole('button', { name: /settings/i }));
+    expect(screen.getByRole('button', { name: /settings/i })).toBeTruthy();
   });
 
-  it('Re-sync is disabled when state.sync.phase is syncing', () => {
+  it('does NOT close the menu when mousedown target is retargeted by a closed shadow root', () => {
     vi.mocked(useCourseContext).mockReturnValue(null);
-    
-    const SyncStateMutator: React.FC<{ phase: any }> = ({ phase }) => {
-      const { dispatch } = useAppState();
-      React.useEffect(() => {
-        dispatch({ type: 'SYNC_STATUS', payload: { phase, error: null } });
-      }, [phase, dispatch]);
-      return null;
-    };
+    const host = document.createElement('div');
+    document.body.appendChild(host);
+    const shadow = host.attachShadow({ mode: 'closed' });
 
     render(
       <AppStateProvider>
-        <SyncStateMutator phase="syncing" />
         <Fab />
-      </AppStateProvider>
+      </AppStateProvider>,
+      { container: shadow as unknown as HTMLElement }
     );
 
-    // Open menu
-    fireEvent.click(screen.getByRole('button', { name: /open menu/i }));
+    const trigger = within(shadow as unknown as HTMLElement).getByRole('button', { name: /open menu/i });
+    fireEvent.click(trigger);
 
-    // Click Re-sync button
-    const btn = screen.getByRole('button', { name: /re-sync cookies/i });
-    expect(btn.hasAttribute('disabled')).toBe(true);
+    const settingsBtn = within(shadow as unknown as HTMLElement).getByRole('button', { name: /settings/i });
+    // Composed event: browsers retarget event.target to the shadow host.
+    fireEvent(settingsBtn, new MouseEvent('mousedown', { bubbles: true, composed: true }));
+
+    expect(within(shadow as unknown as HTMLElement).queryByRole('button', { name: /settings/i })).toBeTruthy();
+    document.body.removeChild(host);
   });
 
   it('Switch-domain click invokes switchNow and closes menu', () => {

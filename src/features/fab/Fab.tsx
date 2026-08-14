@@ -1,7 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { useAppState } from '../../state/store';
 import { useCourseContext } from './useCourseContext';
-import { useSyncTrigger } from '../cookie-sync/SyncTriggerContext';
 import { useHealthyDomainSwitch } from '../healthy-domain/useHealthyDomainSwitch';
 import './index.css';
 
@@ -10,7 +9,6 @@ export const Fab: React.FC = () => {
   const { fabOpen } = state.ui;
   const course = useCourseContext();
   const fabRef = useRef<HTMLDivElement>(null);
-  const { triggerSync } = useSyncTrigger();
   const { status: healthyDomainStatus, switchNow } = useHealthyDomainSwitch();
 
   const toggleFab = () => {
@@ -18,13 +16,31 @@ export const Fab: React.FC = () => {
   };
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (fabOpen && fabRef.current && !fabRef.current.contains(event.target as Node)) {
-        dispatch({ type: 'UI_TOGGLE', payload: { key: 'fabOpen', value: false } });
-      }
+    const fab = fabRef.current;
+    if (!fab) {
+      return;
+    }
+    // Inside a closed shadow root, the document listener sees event.target
+    // retargeted to the host, so containment can't be tested there. Record
+    // mousedowns that pass through the FAB container before they reach the
+    // document listener.
+    let mousedownInside = false;
+    const markInside = () => {
+      mousedownInside = true;
     };
+    const handleClickOutside = () => {
+      if (mousedownInside) {
+        mousedownInside = false;
+        return;
+      }
+      dispatch({ type: 'UI_TOGGLE', payload: { key: 'fabOpen', value: false } });
+    };
+    fab.addEventListener('mousedown', markInside);
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    return () => {
+      fab.removeEventListener('mousedown', markInside);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, [fabOpen, dispatch]);
 
   useEffect(() => {
@@ -38,11 +54,7 @@ export const Fab: React.FC = () => {
   }, [fabOpen, dispatch]);
 
   return (
-    <div
-      className={`cu-fab-container ${fabOpen ? 'open' : ''}`}
-      ref={fabRef}
-      onMouseDown={(e) => e.stopPropagation()}
-    >
+    <div className={`cu-fab-container ${fabOpen ? 'open' : ''}`} ref={fabRef}>
       {fabOpen && (
         <div className="cu-fab-menu">
           {course && (
@@ -69,18 +81,6 @@ export const Fab: React.FC = () => {
           >
             <span className="cu-fab-item-icon">🌐</span>
             <span className="cu-fab-item-text">Switch domain</span>
-          </button>
-          <button
-            className="cu-fab-item re-sync-btn"
-            onClick={() => {
-              triggerSync();
-              dispatch({ type: 'UI_TOGGLE', payload: { key: 'fabOpen', value: false } });
-            }}
-            disabled={state.sync.phase === 'syncing'}
-            aria-label="Re-sync cookies"
-          >
-            <span className="cu-fab-item-icon">🔄</span>
-            <span className="cu-fab-item-text">Re-sync cookies</span>
           </button>
           <button
             className="cu-fab-item organize-btn"

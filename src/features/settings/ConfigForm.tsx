@@ -3,27 +3,13 @@ import { useAppState } from '../../state/store';
 
 export const ConfigForm: React.FC = () => {
   const { state, dispatch } = useAppState();
-  const { licenseKey, retryAttempts, apiKey } = state.config;
+  const { licenseKey, apiKey } = state.config;
 
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     dispatch({
       type: 'CONFIG_UPDATE',
       payload: { [name]: value },
-    });
-  };
-
-  const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    let numVal = parseInt(value, 10);
-    if (isNaN(numVal)) {
-      numVal = 3; // Default or leave it to input handling
-    }
-    // Constrain to 1-10
-    numVal = Math.max(1, Math.min(10, numVal));
-    dispatch({
-      type: 'CONFIG_UPDATE',
-      payload: { [name]: numVal },
     });
   };
 
@@ -39,20 +25,6 @@ export const ConfigForm: React.FC = () => {
           value={licenseKey}
           onChange={handleTextChange}
           placeholder="Enter your license key"
-        />
-      </div>
-
-      <div className="form-group">
-        <label className="form-label ff-label-sm ff-fg-subdued" htmlFor="retryAttempts">Retry attempts (1-10)</label>
-        <input
-          type="number"
-          id="retryAttempts"
-          name="retryAttempts"
-          className="form-input"
-          value={retryAttempts}
-          onChange={handleNumberChange}
-          min="1"
-          max="10"
         />
       </div>
 

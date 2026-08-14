@@ -1,201 +1,245 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect } from 'react';
 import { useAppState } from '../../state/store';
 import { getCurrentUdemyHost } from '../../lib/host';
 import { fetchCookieSources, fetchCookiesBySource } from '../../lib/api';
 import { gmCookie } from '../../lib/gm';
-import { diffCookies } from '../../lib/cookies';
+import { diffCookies, CookieOp } from '../../lib/cookies';
 import { useHealthyDomainSwitch } from '../healthy-domain/useHealthyDomainSwitch';
+import { clearDomainSwitchState } from '../healthy-domain/switch';
 import { reloadAfterCookieImport } from './reload';
+import { probeAuth } from './auth-probe';
 
-const DEBUG_COOKIE_SYNC = false;
+let inFlightSyncPromise: Promise<void> | null = null;
 
-export function useCookieSync(): { triggerSync: () => Promise<void> } {
-  const { state, dispatch } = useAppState();
-  const { autoCheckOnSyncFailure } = useHealthyDomainSwitch();
-  const retryAttempts = state.config.retryAttempts;
-  const licenseKey = state.config.licenseKey;
+export function resetSyncPipelineForTest(): void {
+  inFlightSyncPromise = null;
+}
 
-  const triggerSync = useCallback(async () => {
-    const host = getCurrentUdemyHost();
-    if (!host) {
-      return;
+async function applyCookieOp(op: CookieOp, host: string): Promise<void> {
+  if (op.type === 'set') {
+    const cookieUrl = `https://${host.replace(/^\./, '')}${op.cookie.path || '/'}`;
+    const cookieDetails: Tampermonkey.SetCookiesDetails = {
+      url: cookieUrl,
+      name: op.cookie.name,
+      value: op.cookie.value,
+      domain: op.cookie.domain,
+      path: op.cookie.path,
+      secure: op.cookie.secure,
+      httpOnly: op.cookie.httpOnly,
+      expirationDate: op.cookie.expirationDate,
+    };
+
+    if (op.cookie.hostOnly) {
+      delete cookieDetails.domain;
     }
 
-    if (!licenseKey) {
-      console.log('[Cookie Updater] No license key configured, skipping cookie sync.');
-      return;
+    await gmCookie.set(cookieDetails);
+  } else if (op.type === 'delete') {
+    const cookieUrl = `https://${host.replace(/^\./, '')}${op.path || '/'}`;
+    await gmCookie.delete({
+      url: cookieUrl,
+      name: op.name,
+      domain: op.domain,
+      path: op.path,
+    });
+  }
+}
+
+interface SyncParams {
+  licenseKey: string;
+  dispatch: ReturnType<typeof useAppState>['dispatch'];
+  autoCheckOnSyncFailure: (host: string) => Promise<void>;
+}
+
+async function runSyncPipeline({ licenseKey, dispatch, autoCheckOnSyncFailure }: SyncParams): Promise<void> {
+  const host = getCurrentUdemyHost();
+  if (!host) {
+    return;
+  }
+
+  if (!licenseKey) {
+    console.log('[Cookie Updater] No license key configured, skipping cookie sync.');
+    return;
+  }
+
+  dispatch({ type: 'SYNC_STATUS', payload: { phase: 'syncing', error: null } });
+
+  // 1. Initial auth probe
+  const initialProbe = await probeAuth(host);
+
+  if (initialProbe.kind === 'authenticated') {
+    await clearDomainSwitchState();
+    dispatch({
+      type: 'SYNC_STATUS',
+      payload: {
+        phase: 'ok',
+        lastResult: 'Session is authenticated',
+        error: null,
+      },
+    });
+    return;
+  }
+
+  if (initialProbe.kind === 'network_error') {
+    // Network uncertainty must not mutate cookies or trigger domain switches
+    dispatch({
+      type: 'SYNC_STATUS',
+      payload: {
+        phase: 'error',
+        error: initialProbe.error,
+      },
+    });
+    return;
+  }
+
+  // 2. Initial probe was expired (redirect or non-2xx HTTP response) -> perform cookie import
+  try {
+    const sourcesResult = await fetchCookieSources(host);
+    if (!sourcesResult.ok) {
+      throw new Error(sourcesResult.error);
     }
 
-    dispatch({ type: 'SYNC_STATUS', payload: { phase: 'syncing', error: null } });
+    const currentHostLower = host.toLowerCase();
+    const matchedDomain = sourcesResult.data.domains.find(
+      (d) => d.host.toLowerCase() === currentHostLower
+    );
 
-    let attempts = 0;
-    const maxAttempts = Math.max(1, retryAttempts);
+    if (!matchedDomain) {
+      throw new Error(`No matching cookie source domain found for host: ${host}`);
+    }
 
-    while (attempts < maxAttempts) {
+    if (!matchedDomain.cookieFileIds || matchedDomain.cookieFileIds.length === 0) {
+      throw new Error(`No cookie files configured for host: ${host}`);
+    }
+
+    const fileId = matchedDomain.cookieFileIds[0];
+    const cookiesResult = await fetchCookiesBySource(host, fileId);
+    if (!cookiesResult.ok) {
+      throw new Error(cookiesResult.error);
+    }
+
+    const desiredCookies = cookiesResult.data;
+    const existingCookies = await gmCookie.list({ domain: host });
+
+    const ops = diffCookies(
+      existingCookies.map((c) => ({
+        name: c.name,
+        value: c.value,
+        domain: c.domain,
+        path: c.path,
+      })),
+      desiredCookies
+    );
+
+    let setOpsCount = 0;
+    let deleteOpsCount = 0;
+    const failedOps: CookieOp[] = [];
+
+    // Apply every operation once
+    for (const op of ops) {
       try {
-        attempts++;
-        console.log(`[Cookie Updater] Cookie sync attempt ${attempts}/${maxAttempts}...`);
-
-        // Fetch cookie sources
-        const sourcesResult = await fetchCookieSources(host);
-        if (!sourcesResult.ok) {
-          throw new Error(sourcesResult.error);
+        await applyCookieOp(op, host);
+        if (op.type === 'set') setOpsCount++;
+        else if (op.type === 'delete') deleteOpsCount++;
+      } catch (error: any) {
+        if (error?.message && error.message.includes('not available')) {
+          throw error;
         }
+        console.warn(`[Cookie Updater] cookie op failed on first attempt: ${op.type === 'set' ? op.cookie.name : op.name} — ${error?.message || error}`);
+        failedOps.push(op);
+      }
+    }
 
-        // Find matching domain for current host (exact OrdinalIgnoreCase / case-insensitive)
-        const currentHostLower = host.toLowerCase();
-        const matchedDomain = sourcesResult.data.domains.find(
-          (d) => d.host.toLowerCase() === currentHostLower
-        );
-
-        if (!matchedDomain) {
-          throw new Error(`No matching cookie source domain found for host: ${host}`);
-        }
-
-        if (!matchedDomain.cookieFileIds || matchedDomain.cookieFileIds.length === 0) {
-          throw new Error(`No cookie files configured for host: ${host}`);
-        }
-
-        // Pick first fileId from the matched domain's cookieFileIds
-        const fileId = matchedDomain.cookieFileIds[0];
-
-        // Fetch cookies by source
-        const cookiesResult = await fetchCookiesBySource(host, fileId);
-        if (!cookiesResult.ok) {
-          throw new Error(cookiesResult.error);
-        }
-
-        const desiredCookies = cookiesResult.data;
-
-        // List existing cookies via gmCookie.list
-        const existingCookies = await gmCookie.list({ domain: host });
-
-        // Diff cookies
-        const ops = diffCookies(
-          existingCookies.map((c) => ({
-            name: c.name,
-            value: c.value,
-            domain: c.domain,
-          })),
-          desiredCookies
-        );
-
-        // Apply ops
-        let setOpsCount = 0;
-        let deleteOpsCount = 0;
-        let skippedOpsCount = 0;
-
-        for (const op of ops) {
-          if (op.type === 'set') {
-            const cookieUrl = `https://${host.replace(/^\./, '')}${op.cookie.path || '/'}`;
-            const cookieDetails: Tampermonkey.SetCookiesDetails = {
-              url: cookieUrl,
-              name: op.cookie.name,
-              value: op.cookie.value,
-              domain: op.cookie.domain,
-              path: op.cookie.path,
-              secure: op.cookie.secure,
-              httpOnly: op.cookie.httpOnly,
-              expirationDate: op.cookie.expirationDate,
-            };
-
-            if (op.cookie.hostOnly) {
-              delete cookieDetails.domain;
-            }
-
-            if (DEBUG_COOKIE_SYNC) {
-              console.log('[Cookie Updater] DEBUG cookie set attempt', {
-                name: op.cookie.name,
-                value: op.cookie.value,
-                domain: op.cookie.domain,
-                path: op.cookie.path,
-                sameSite: (op.cookie as typeof op.cookie & { sameSite?: unknown }).sameSite,
-                secure: op.cookie.secure,
-                httpOnly: op.cookie.httpOnly,
-                expirationDate: op.cookie.expirationDate,
-              });
-            }
-
-            try {
-              await gmCookie.set(cookieDetails);
-              setOpsCount++;
-            } catch (error) {
-              const errorMsg = error instanceof Error ? error.message : String(error);
-              if (DEBUG_COOKIE_SYNC) {
-                console.log('[Cookie Updater] DEBUG cookie set rejection', errorMsg);
-              }
-              console.warn(`[Cookie Updater] cookie skipped: ${op.cookie.name} — ${errorMsg}`);
-              skippedOpsCount++;
-            }
-          } else if (op.type === 'delete') {
-            const cookieUrl = `https://${host.replace(/^\./, '')}/`;
-            try {
-              await gmCookie.delete({
-                url: cookieUrl,
-                name: op.name,
-              });
-              deleteOpsCount++;
-            } catch (error) {
-              const errorMsg = error instanceof Error ? error.message : String(error);
-              console.warn(`[Cookie Updater] cookie skipped: ${op.name} — ${errorMsg}`);
-              skippedOpsCount++;
-            }
+    // Retry only failed operations once
+    let skippedOpsCount = 0;
+    if (failedOps.length > 0) {
+      for (const op of failedOps) {
+        try {
+          await applyCookieOp(op, host);
+          if (op.type === 'set') setOpsCount++;
+          else if (op.type === 'delete') deleteOpsCount++;
+        } catch (error: any) {
+          if (error?.message && error.message.includes('not available')) {
+            throw error;
           }
-        }
-
-        const resultMsg =
-          skippedOpsCount > 0
-            ? `${ops.length} cookies synchronized (${setOpsCount} set, ${deleteOpsCount} deleted, ${skippedOpsCount} skipped)`
-            : `${ops.length} cookies synchronized (${setOpsCount} set, ${deleteOpsCount} deleted)`;
-        dispatch({
-          type: 'SYNC_STATUS',
-          payload: {
-            phase: 'ok',
-            lastResult: resultMsg,
-            error: null,
-          },
-        });
-        console.log(`[Cookie Updater] Cookie sync completed: ${resultMsg}`);
-        reloadAfterCookieImport(ops.length);
-        return; // Success, exit the retry loop
-      } catch (err: any) {
-        const errorMsg = err?.message || String(err);
-        console.error(`[Cookie Updater] Cookie sync attempt ${attempts} failed: ${errorMsg}`);
-        if (attempts >= maxAttempts) {
-          dispatch({
-            type: 'SYNC_STATUS',
-            payload: {
-              phase: 'error',
-              error: errorMsg,
-            },
-          });
-          await autoCheckOnSyncFailure(host);
-        } else {
-          // Bounded linear delay before next attempt
-          await new Promise((resolve) => setTimeout(resolve, 1000));
+          console.warn(`[Cookie Updater] cookie op failed on retry: ${op.type === 'set' ? op.cookie.name : op.name} — ${error?.message || error}`);
+          skippedOpsCount++;
         }
       }
     }
-  }, [licenseKey, retryAttempts, dispatch, autoCheckOnSyncFailure]);
+
+    // 3. Relist cookies and probe authentication again
+    await gmCookie.list({ domain: host });
+
+    const postProbe = await probeAuth(host);
+    if (postProbe.kind === 'authenticated') {
+      await clearDomainSwitchState();
+      const resultMsg =
+        skippedOpsCount > 0
+          ? `${ops.length} cookies synchronized (${setOpsCount} set, ${deleteOpsCount} deleted, ${skippedOpsCount} skipped)`
+          : `${ops.length} cookies synchronized (${setOpsCount} set, ${deleteOpsCount} deleted)`;
+
+      dispatch({
+        type: 'SYNC_STATUS',
+        payload: {
+          phase: 'ok',
+          lastResult: resultMsg,
+          error: null,
+        },
+      });
+      reloadAfterCookieImport(ops.length);
+      return;
+    }
+
+    if (postProbe.kind === 'network_error') {
+      dispatch({
+        type: 'SYNC_STATUS',
+        payload: {
+          phase: 'error',
+          error: postProbe.error,
+        },
+      });
+      return;
+    }
+
+    // Post-import probe returned an HTTP non-2xx or redirect: restoration failed.
+    const errorMsg = 'Session authentication failed after cookie import';
+    dispatch({
+      type: 'SYNC_STATUS',
+      payload: {
+        phase: 'error',
+        error: errorMsg,
+      },
+    });
+    await autoCheckOnSyncFailure(host);
+  } catch (err: any) {
+    const errorMsg = err?.message || String(err);
+    console.error(`[Cookie Updater] Cookie sync failed: ${errorMsg}`);
+    dispatch({
+      type: 'SYNC_STATUS',
+      payload: {
+        phase: 'error',
+        error: errorMsg,
+      },
+    });
+  }
+}
+
+export function useCookieSync(): void {
+  const { state, dispatch } = useAppState();
+  const { autoCheckOnSyncFailure } = useHealthyDomainSwitch();
+  const licenseKey = state.config.licenseKey;
 
   useEffect(() => {
-    triggerSync();
-  }, [triggerSync]);
-
-  useEffect(() => {
-    const originalPushState = history.pushState.bind(history);
-    history.pushState = function (...args) {
-      originalPushState(...args);
-      triggerSync(); // re-run sync
-    };
-
-    window.addEventListener('popstate', triggerSync);
-
-    return () => {
-      history.pushState = originalPushState;
-      window.removeEventListener('popstate', triggerSync);
-    };
-  }, [triggerSync]);
-
-  return { triggerSync };
+    if (!licenseKey) {
+      return;
+    }
+    if (!inFlightSyncPromise) {
+      inFlightSyncPromise = runSyncPipeline({
+        licenseKey,
+        dispatch,
+        autoCheckOnSyncFailure,
+      });
+    }
+  }, [licenseKey, dispatch, autoCheckOnSyncFailure]);
 }

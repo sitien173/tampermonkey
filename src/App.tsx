@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
 import { AppStateProvider, useAppState } from './state/store';
 import { useLicense } from './features/license/useLicense';
+import { useCookieSync } from './features/cookie-sync/useCookieSync';
 import { SettingsPanel } from './features/settings/SettingsPanel';
 import { registerMenuCommands } from './menu';
-import { SyncTriggerProvider } from './features/cookie-sync/SyncTriggerContext';
 import { StatusIndicator } from './features/cookie-sync/StatusIndicator';
 import { FolderOrganizer } from './features/folder-organizer/FolderOrganizer';
 import { AddToFolderModal } from './features/course-organizer/AddToFolderModal';
@@ -16,19 +16,22 @@ const AppContent: React.FC = () => {
   // Initialize license validation and monitoring
   useLicense();
 
+  // Initialize cookie synchronization
+  useCookieSync();
+
   // Connect GM menu commands to React state dispatch
   useEffect(() => {
     registerMenuCommands(dispatch);
   }, [dispatch]);
 
   return (
-    <SyncTriggerProvider>
+    <>
       {ui.settingsOpen && <SettingsPanel />}
       {ui.organizerOpen && <FolderOrganizer />}
       {ui.addToFolderOpen && <AddToFolderModal />}
       <StatusIndicator />
       <Fab />
-    </SyncTriggerProvider>
+    </>
   );
 };
 

@@ -1,6 +1,5 @@
 export interface Config {
   licenseKey: string;
-  retryAttempts: number;
   apiKey: string;
 }
 
@@ -81,5 +80,3 @@ export interface PublicHealthSnapshot {
   runAt: string; // ISO
   domains: PublicDomainHealth[];
 }
-
-

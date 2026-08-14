@@ -7,6 +7,7 @@
 // @match        *://*.udemy.com/*
 // @grant        GM_setValue
 // @grant        GM_getValue
+// @grant        GM_deleteValue
 // @grant        GM_cookie
 // @grant        GM_xmlhttpRequest
 // @grant        GM_registerMenuCommand
@@ -18,7 +19,7 @@
 // ==/UserScript==
 
 
-window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre+Franklin:ital,wght@0,100..900;1,100..900&display=swap');.license-panel {\r\n  background: var(--bg-surface);\r\n  border: 1px solid var(--color-border-subdued);\r\n  border-radius: var(--radius-xs);\r\n  padding: var(--space-md);\r\n  margin-bottom: var(--space-lg);\r\n  color: var(--fg1);\r\n}\r\n\r\n.license-panel-title {\r\n  color: var(--color-text-subdued);\r\n  margin-bottom: var(--space-sm);\r\n}\r\n\r\n.license-row {\r\n  display: flex;\r\n  justify-content: space-between;\r\n  align-items: center;\r\n  margin-bottom: var(--space-sm);\r\n}\r\n\r\n.license-row:last-child {\r\n  margin-bottom: 0;\r\n}\r\n\r\n.license-label {\r\n  color: var(--color-text-subdued);\r\n}\r\n\r\n.license-value {\r\n  color: var(--fg1);\r\n}\r\n\r\n/* Badge (Flowforge tag/badge pattern) */\r\n.badge {\r\n  display: inline-flex;\r\n  align-items: center;\r\n  padding: var(--space-xxs) var(--space-xs);\r\n  border-radius: var(--radius-md);\r\n  text-transform: capitalize;\r\n}\r\n\r\n.badge-valid {\r\n  background: var(--color-decorative-green);\r\n  color: var(--color-text-deep-green);\r\n  border: 1px solid var(--color-border-green);\r\n}\r\n\r\n.badge-invalid {\r\n  background: var(--color-decorative-red);\r\n  color: var(--color-text-red);\r\n  border: 1px solid var(--color-border-red);\r\n}\r\n\r\n.badge-expired {\r\n  background: var(--color-decorative-yellow);\r\n  color: var(--color-icon-yellow);\r\n  border: 1px solid var(--color-border-yellow);\r\n}\r\n\r\n.badge-checking {\r\n  background: var(--color-decorative-blue);\r\n  color: var(--color-action-interactive);\r\n  border: 1px solid var(--color-border-blue);\r\n  animation: pulse var(--motion-slow) infinite;\r\n}\r\n\r\n.badge-unknown {\r\n  background: var(--color-decorative-gray);\r\n  color: var(--color-text-subdued);\r\n  border: 1px solid var(--color-border-default);\r\n}\r\n\r\n.license-warning {\r\n  margin-top: var(--space-sm);\r\n  padding: var(--space-xs) var(--space-sm);\r\n  background: var(--color-decorative-yellow);\r\n  border-left: 3px solid var(--color-border-yellow);\r\n  border-radius: var(--radius-xxs);\r\n  color: var(--color-icon-yellow);\r\n  display: flex;\r\n  align-items: center;\r\n  gap: var(--space-xs);\r\n}\r\n\r\n@keyframes pulse {\r\n  0%, 100% {\r\n    opacity: 1;\r\n  }\r\n  50% {\r\n    opacity: 0.5;\r\n  }\r\n}\r\n.settings-backdrop {\r\n  position: fixed;\r\n  top: 0;\r\n  left: 0;\r\n  right: 0;\r\n  bottom: 0;\r\n  background-color: rgba(18, 18, 18, 0.4);\r\n  display: flex;\r\n  justify-content: center;\r\n  align-items: center;\r\n  z-index: 99999;\r\n  animation: fadeIn var(--motion-normal) var(--ease-decelerate);\r\n}\r\n\r\n.settings-modal {\r\n  background: var(--bg-surface);\r\n  border: 1px solid var(--color-border-subdued);\r\n  border-radius: var(--radius-xs);\r\n  width: 90%;\r\n  min-width: var(--layout-modal-min-width);\r\n  max-width: 720px;\r\n  max-height: 90vh;\r\n  box-shadow: var(--elev-depth64);\r\n  animation: scaleUp var(--motion-slow) var(--ease-decelerate);\r\n  display: flex;\r\n  flex-direction: column;\r\n}\r\n\r\n.settings-header {\r\n  display: flex;\r\n  justify-content: space-between;\r\n  align-items: center;\r\n  height: var(--space-4xl);\r\n  padding: 0 var(--space-xl);\r\n  border-bottom: 1px solid var(--color-border-subdued);\r\n}\r\n\r\n.settings-title {\r\n  /* Using ff-display-sm from index.css instead of local styles, but can apply layout if needed */\r\n  margin: 0;\r\n}\r\n\r\n.settings-close-btn {\r\n  background: transparent;\r\n  border: none;\r\n  color: var(--color-text-subdued);\r\n  cursor: pointer;\r\n  padding: var(--space-xxs);\r\n  border-radius: var(--radius-xxs);\r\n  display: flex;\r\n  align-items: center;\r\n  justify-content: center;\r\n  transition: all var(--motion-fast) var(--ease-standard);\r\n}\r\n\r\n.settings-close-btn:hover {\r\n  background: var(--bg-surface-hover);\r\n  color: var(--fg1);\r\n}\r\n\r\n.settings-close-btn:focus-visible {\r\n  outline: 2px solid var(--color-action-interactive);\r\n  outline-offset: 2px;\r\n}\r\n\r\n.settings-content {\r\n  padding: var(--space-lg) var(--space-xl);\r\n  overflow-y: auto;\r\n  flex: 1;\r\n}\r\n\r\n/* Form Styles */\r\n.config-form {\r\n  display: flex;\r\n  flex-direction: column;\r\n  gap: var(--space-lg);\r\n  margin-bottom: var(--space-lg);\r\n}\r\n\r\n.form-group {\r\n  display: flex;\r\n  flex-direction: column;\r\n  gap: var(--space-xs);\r\n}\r\n\r\n.form-label {\r\n  /* text-sm will be applied via ff-label-sm */\r\n  margin-bottom: 0;\r\n}\r\n\r\n.form-input {\r\n  background: var(--bg-surface);\r\n  border: 1px solid var(--color-border-default);\r\n  border-radius: var(--radius-xs);\r\n  padding: 0 var(--space-sm);\r\n  height: var(--layout-field-height);\r\n  font-family: var(--font-sans);\r\n  font-size: var(--type-text-md-size);\r\n  color: var(--fg1);\r\n  outline: none;\r\n  transition: all var(--motion-fast) var(--ease-standard);\r\n}\r\n\r\n.form-input:hover {\r\n  background: var(--bg-surface-hover);\r\n}\r\n\r\n.form-input:focus {\r\n  border-color: var(--color-action-interactive);\r\n  box-shadow: inset 0 0 0 1px var(--color-action-interactive);\r\n  background: var(--bg-surface);\r\n}\r\n\r\n.form-input:disabled,\r\n.form-input-disabled {\r\n  background: var(--bg-canvas);\r\n  color: var(--color-text-disabled);\r\n  border-color: var(--color-border-subdued);\r\n  cursor: not-allowed;\r\n}\r\n\r\n.form-help {\r\n  color: var(--color-text-subdued);\r\n  margin-top: 0;\r\n}\r\n\r\n.form-group-checkbox {\r\n  display: flex;\r\n  align-items: center;\r\n  gap: var(--space-sm);\r\n  cursor: pointer;\r\n  user-select: none;\r\n  height: var(--layout-field-height);\r\n}\r\n\r\n.form-checkbox {\r\n  appearance: none;\r\n  -webkit-appearance: none;\r\n  height: 20px;\r\n  width: 20px;\r\n  background-color: var(--bg-surface);\r\n  border: 1px solid var(--color-border-default);\r\n  border-radius: var(--radius-xxs);\r\n  cursor: pointer;\r\n  display: inline-flex;\r\n  align-items: center;\r\n  justify-content: center;\r\n  outline: none;\r\n  transition: all var(--motion-fast) var(--ease-standard);\r\n  margin: 0;\r\n}\r\n\r\n.form-checkbox:hover {\r\n  background: var(--bg-surface-hover);\r\n}\r\n\r\n.form-checkbox:checked {\r\n  background-color: var(--primary);\r\n  border-color: var(--primary);\r\n}\r\n\r\n.form-checkbox:checked::after {\r\n  content: \"\";\r\n  display: block;\r\n  width: 5px;\r\n  height: 10px;\r\n  border: solid var(--color-surface);\r\n  border-width: 0 2px 2px 0;\r\n  transform: rotate(45deg);\r\n  margin-bottom: 2px;\r\n}\r\n\r\n.form-checkbox:focus-visible {\r\n  outline: 2px solid var(--color-action-interactive);\r\n  outline-offset: 2px;\r\n}\r\n\r\n.form-checkbox-label {\r\n  cursor: pointer;\r\n}\r\n\r\n@keyframes fadeIn {\r\n  from { opacity: 0; }\r\n  to { opacity: 1; }\r\n}\r\n\r\n@keyframes scaleUp {\r\n  from { transform: scale(0.98); opacity: 0; }\r\n  to { transform: scale(1); opacity: 1; }\r\n}.sync-indicator-container {\r\n  position: fixed;\r\n  bottom: var(--space-lg);\r\n  right: var(--space-lg);\r\n  z-index: 9999;\r\n  pointer-events: none;\r\n}\r\n\r\n.sync-indicator-badge {\r\n  pointer-events: auto;\r\n  display: flex;\r\n  align-items: center;\r\n  gap: var(--space-sm);\r\n  background: var(--bg-surface);\r\n  border: 1px solid var(--color-border-subdued);\r\n  box-shadow: var(--elev-depth16);\r\n  border-radius: var(--radius-xs);\r\n  padding: var(--space-sm) var(--space-md);\r\n  color: var(--fg1);\r\n  transition: all var(--motion-slow) var(--ease-standard);\r\n  transform: translateY(0);\r\n  opacity: 1;\r\n  animation: slideInUp var(--motion-slow) var(--ease-decelerate);\r\n}\r\n\r\n.sync-indicator-badge.status-ok {\r\n  border-left: 3px solid var(--color-border-green);\r\n}\r\n\r\n.sync-indicator-badge.status-error {\r\n  border-left: 3px solid var(--color-border-red);\r\n}\r\n\r\n.sync-indicator-badge.status-syncing {\r\n  border-left: 3px solid var(--color-border-blue);\r\n}\r\n\r\n.sync-indicator-badge.hide {\r\n  transform: translateY(20px) scale(0.95);\r\n  opacity: 0;\r\n  pointer-events: none;\r\n}\r\n\r\n.sync-indicator-icon-container {\r\n  display: flex;\r\n  align-items: center;\r\n  justify-content: center;\r\n  width: 18px;\r\n  height: 18px;\r\n}\r\n\r\n/* Spinner for syncing state */\r\n.sync-spinner {\r\n  width: 16px;\r\n  height: 16px;\r\n  border: 2px solid var(--color-decorative-blue);\r\n  border-top-color: var(--color-action-interactive);\r\n  border-radius: 50%;\r\n  animation: spin 0.8s linear infinite;\r\n}\r\n\r\n/* Checkmark for ok state */\r\n.sync-checkmark {\r\n  color: var(--color-icon-green);\r\n  display: flex;\r\n  align-items: center;\r\n  justify-content: center;\r\n}\r\n\r\n/* Red X for error state */\r\n.sync-error-icon {\r\n  color: var(--color-icon-red);\r\n  display: flex;\r\n  align-items: center;\r\n  justify-content: center;\r\n}\r\n\r\n/* Text status styling */\r\n.sync-indicator-text {\r\n  /* Using ff-label-sm */\r\n}\r\n\r\n.sync-indicator-detail {\r\n  color: var(--color-text-subdued);\r\n  margin-left: var(--space-xxs);\r\n}\r\n\r\n@keyframes spin {\r\n  from { transform: rotate(0deg); }\r\n  to { transform: rotate(360deg); }\r\n}\r\n\r\n@keyframes slideInUp {\r\n  from {\r\n    transform: translateY(20px) scale(0.95);\r\n    opacity: 0;\r\n  }\r\n  to {\r\n    transform: translateY(0) scale(1);\r\n    opacity: 1;\r\n  }\r\n}\r\n/* folder-organizer/index.css */\r\n.organizer-backdrop {\r\n  position: fixed;\r\n  top: 0;\r\n  left: 0;\r\n  right: 0;\r\n  bottom: 0;\r\n  background-color: rgba(18, 18, 18, 0.4);\r\n  display: flex;\r\n  justify-content: center;\r\n  align-items: center;\r\n  z-index: 99999;\r\n  animation: fadeIn var(--motion-normal) var(--ease-decelerate);\r\n}\r\n\r\n.organizer-modal {\r\n  background: var(--bg-surface);\r\n  border: 1px solid var(--color-border-subdued);\r\n  border-radius: var(--radius-xs);\r\n  width: 95%;\r\n  max-width: 900px;\r\n  height: 85vh;\r\n  box-shadow: var(--elev-depth64);\r\n  animation: scaleUp var(--motion-slow) var(--ease-decelerate);\r\n  display: flex;\r\n  flex-direction: column;\r\n  overflow: hidden;\r\n}\r\n\r\n.organizer-header {\r\n  display: flex;\r\n  justify-content: space-between;\r\n  align-items: center;\r\n  height: var(--space-4xl);\r\n  padding: 0 var(--space-xl);\r\n  border-bottom: 1px solid var(--color-border-subdued);\r\n}\r\n\r\n.organizer-title {\r\n  margin: 0;\r\n}\r\n\r\n.organizer-close-btn {\r\n  background: transparent;\r\n  border: none;\r\n  color: var(--color-text-subdued);\r\n  cursor: pointer;\r\n  padding: var(--space-xxs);\r\n  border-radius: var(--radius-xxs);\r\n  display: flex;\r\n  align-items: center;\r\n  justify-content: center;\r\n  transition: all var(--motion-fast) var(--ease-standard);\r\n}\r\n\r\n.organizer-close-btn:hover {\r\n  background: var(--bg-surface-hover);\r\n  color: var(--fg1);\r\n}\r\n\r\n.organizer-close-btn:focus-visible {\r\n  outline: 2px solid var(--color-action-interactive);\r\n  outline-offset: 2px;\r\n}\r\n\r\n.organizer-body {\r\n  display: flex;\r\n  flex: 1;\r\n  overflow: hidden;\r\n}\r\n\r\n/* Sidebar Styles */\r\n.organizer-sidebar {\r\n  width: var(--layout-sidebar-width);\r\n  border-right: 1px solid var(--color-border-subdued);\r\n  display: flex;\r\n  flex-direction: column;\r\n  background: var(--bg-surface);\r\n}\r\n\r\n.sidebar-content {\r\n  flex: 1;\r\n  overflow-y: auto;\r\n  padding: var(--space-sm);\r\n  display: flex;\r\n  flex-direction: column;\r\n  gap: var(--space-xs);\r\n}\r\n\r\n.folder-list {\r\n  display: flex;\r\n  flex-direction: column;\r\n  gap: var(--space-none);\r\n}\r\n\r\n.folder-row {\r\n  display: flex;\r\n  align-items: center;\r\n  justify-content: space-between;\r\n  padding: var(--space-xs) var(--space-sm);\r\n  border-radius: var(--radius-xxs);\r\n  background: var(--bg-surface);\r\n  border: 1px solid transparent;\r\n  cursor: pointer;\r\n  transition: all var(--motion-fast) var(--ease-standard);\r\n}\r\n\r\n.folder-row:hover {\r\n  background: var(--bg-surface-hover);\r\n}\r\n\r\n.folder-row.active {\r\n  background: var(--color-navigation-container);\r\n}\r\n\r\n.folder-row.dragging {\r\n  opacity: 0.5;\r\n  border: 1px dashed var(--color-border-default);\r\n}\r\n\r\n.folder-left {\r\n  display: flex;\r\n  align-items: center;\r\n  gap: var(--space-xs);\r\n  min-width: 0;\r\n}\r\n\r\n.folder-color-dot {\r\n  width: 12px;\r\n  height: 12px;\r\n  border-radius: 50%;\r\n  flex-shrink: 0;\r\n}\r\n\r\n.folder-name {\r\n  white-space: nowrap;\r\n  overflow: hidden;\r\n  text-overflow: ellipsis;\r\n}\r\n\r\n.folder-right {\r\n  display: flex;\r\n  align-items: center;\r\n  gap: var(--space-xs);\r\n}\r\n\r\n.course-count-badge {\r\n  background: var(--bg-canvas);\r\n  padding: 2px 6px;\r\n  border-radius: var(--radius-md);\r\n  font-size: 11px;\r\n  color: var(--color-text-subdued);\r\n  border: 1px solid var(--color-border-subdued);\r\n}\r\n\r\n.folder-actions {\r\n  display: flex;\r\n  gap: var(--space-xxs);\r\n  opacity: 0;\r\n  transition: opacity var(--motion-fast);\r\n}\r\n\r\n.folder-row:hover .folder-actions {\r\n  opacity: 1;\r\n}\r\n\r\n.folder-action-btn {\r\n  background: transparent;\r\n  border: none;\r\n  color: var(--color-text-subdued);\r\n  cursor: pointer;\r\n  padding: 2px;\r\n  border-radius: var(--radius-xxs);\r\n  display: flex;\r\n  align-items: center;\r\n  justify-content: center;\r\n}\r\n\r\n.folder-action-btn:hover {\r\n  background: var(--bg-surface-hover);\r\n  color: var(--fg1);\r\n}\r\n\r\n.sidebar-footer {\r\n  padding: var(--space-sm);\r\n  border-top: 1px solid var(--color-border-subdued);\r\n}\r\n\r\n.add-folder-btn {\r\n  width: 100%;\r\n  padding: var(--space-xs);\r\n  background: var(--bg-surface);\r\n  border: 1px dashed var(--color-border-default);\r\n  border-radius: var(--radius-xs);\r\n  color: var(--fg1);\r\n  cursor: pointer;\r\n  display: flex;\r\n  align-items: center;\r\n  justify-content: center;\r\n  gap: var(--space-xs);\r\n  transition: all var(--motion-fast) var(--ease-standard);\r\n}\r\n\r\n.add-folder-btn:hover {\r\n  background: var(--bg-surface-hover);\r\n  border-color: var(--color-border-subdued);\r\n}\r\n\r\n.add-folder-btn:focus-visible {\r\n  outline: 2px solid var(--color-action-interactive);\r\n  outline-offset: 2px;\r\n}\r\n\r\n.folder-form {\r\n  display: flex;\r\n  flex-direction: column;\r\n  gap: var(--space-xs);\r\n  background: var(--bg-surface-hover);\r\n  padding: var(--space-xs);\r\n  border-radius: var(--radius-xs);\r\n  border: 1px solid var(--color-border-subdued);\r\n}\r\n\r\n.folder-form-input {\r\n  background: var(--bg-surface);\r\n  border: 1px solid var(--color-border-default);\r\n  border-radius: var(--radius-xxs);\r\n  padding: var(--space-xxs) var(--space-xs);\r\n  color: var(--fg1);\r\n  font-family: var(--font-sans);\r\n  font-size: var(--type-text-sm-size);\r\n  outline: none;\r\n}\r\n\r\n.folder-form-input:focus {\r\n  border-color: var(--color-action-interactive);\r\n  box-shadow: inset 0 0 0 1px var(--color-action-interactive);\r\n}\r\n\r\n.folder-form-row {\r\n  display: flex;\r\n  justify-content: space-between;\r\n  align-items: center;\r\n  gap: var(--space-xs);\r\n}\r\n\r\n.color-picker-wrapper {\r\n  display: flex;\r\n  align-items: center;\r\n  gap: var(--space-xs);\r\n}\r\n\r\n.color-input {\r\n  appearance: none;\r\n  -webkit-appearance: none;\r\n  background: none;\r\n  border: none;\r\n  width: 24px;\r\n  height: 24px;\r\n  cursor: pointer;\r\n  padding: 0;\r\n}\r\n\r\n.color-input::-webkit-color-swatch-wrapper {\r\n  padding: 0;\r\n}\r\n\r\n.color-input::-webkit-color-swatch {\r\n  border: 1px solid var(--color-border-subdued);\r\n  border-radius: 50%;\r\n}\r\n\r\n.folder-form-actions {\r\n  display: flex;\r\n  gap: var(--space-xxs);\r\n}\r\n\r\n.form-btn {\r\n  padding: var(--space-xxs) var(--space-xs);\r\n  border-radius: var(--radius-xxs);\r\n  cursor: pointer;\r\n  border: 1px solid transparent;\r\n  font-family: var(--font-sans);\r\n  font-size: var(--type-text-sm-size);\r\n  transition: all var(--motion-fast) var(--ease-standard);\r\n}\r\n\r\n.form-btn-save {\r\n  background: var(--primary);\r\n  color: var(--color-surface);\r\n}\r\n\r\n.form-btn-save:hover {\r\n  background: var(--primary-hover);\r\n}\r\n\r\n.form-btn-cancel {\r\n  background: var(--bg-surface);\r\n  border-color: var(--color-border-subdued);\r\n  color: var(--fg1);\r\n}\r\n\r\n.form-btn-cancel:hover {\r\n  background: var(--bg-surface-hover);\r\n}\r\n\r\n/* Main Panel Styles */\r\n.organizer-main {\r\n  flex: 1;\r\n  display: flex;\r\n  flex-direction: column;\r\n  overflow: hidden;\r\n  background: var(--bg-canvas);\r\n}\r\n\r\n.main-header {\r\n  padding: var(--space-md) var(--space-xl);\r\n  border-bottom: 1px solid var(--color-border-subdued);\r\n  display: flex;\r\n  justify-content: space-between;\r\n  align-items: center;\r\n  background: var(--bg-surface);\r\n}\r\n\r\n.selected-folder-title {\r\n  margin: 0;\r\n  display: flex;\r\n  align-items: center;\r\n  gap: var(--space-sm);\r\n}\r\n\r\n.selected-folder-dot {\r\n  width: 14px;\r\n  height: 14px;\r\n  border-radius: 50%;\r\n}\r\n\r\n.main-content {\r\n  flex: 1;\r\n  overflow-y: auto;\r\n  padding: var(--space-lg);\r\n}\r\n\r\n.course-grid {\r\n  display: grid;\r\n  grid-template-columns: repeat(auto-fill, minmax(192px, 1fr));\r\n  gap: var(--space-md);\r\n}\r\n\r\n.course-card {\r\n  background: var(--bg-surface);\r\n  border: 1px solid var(--color-border-subdued);\r\n  border-radius: var(--radius-xs);\r\n  overflow: hidden;\r\n  display: flex;\r\n  flex-direction: column;\r\n  transition: all var(--motion-fast) var(--ease-standard);\r\n  text-decoration: none;\r\n  color: inherit;\r\n  box-shadow: var(--elev-depth4);\r\n}\r\n\r\n.course-card:hover {\r\n  transform: translateY(-2px);\r\n  box-shadow: var(--elev-depth16);\r\n  border-color: var(--color-border-default);\r\n}\r\n\r\n.course-thumbnail-wrapper {\r\n  position: relative;\r\n  width: 100%;\r\n  padding-top: 56.25%; /* 16:9 aspect ratio */\r\n  background: var(--bg-canvas);\r\n  border-bottom: 1px solid var(--color-border-subdued);\r\n}\r\n\r\n.course-thumbnail {\r\n  position: absolute;\r\n  top: 0;\r\n  left: 0;\r\n  width: 100%;\r\n  height: 100%;\r\n  object-fit: cover;\r\n}\r\n\r\n.course-info {\r\n  padding: var(--space-sm);\r\n  display: flex;\r\n  flex-direction: column;\r\n  gap: var(--space-xxs);\r\n  flex: 1;\r\n}\r\n\r\n.course-title {\r\n  margin: 0;\r\n  display: -webkit-box;\r\n  -webkit-line-clamp: 2;\r\n  -webkit-box-orient: vertical;\r\n  overflow: hidden;\r\n  line-height: var(--type-text-sm-lh);\r\n}\r\n\r\n.course-instructor {\r\n  white-space: nowrap;\r\n  overflow: hidden;\r\n  text-overflow: ellipsis;\r\n  margin-top: auto;\r\n}\r\n\r\n/* Spinner and Status States */\r\n.organizer-center-state {\r\n  display: flex;\r\n  flex-direction: column;\r\n  align-items: center;\r\n  justify-content: center;\r\n  height: 100%;\r\n  width: 100%;\r\n  gap: var(--space-md);\r\n}\r\n\r\n.ufo-spinner {\r\n  border: 3px solid var(--color-border-subdued);\r\n  border-top: 3px solid var(--primary);\r\n  border-radius: 50%;\r\n  width: 36px;\r\n  height: 36px;\r\n  animation: ufo-spin 1s linear infinite;\r\n}\r\n\r\n.error-text {\r\n  color: var(--color-text-red);\r\n}\r\n\r\n.retry-btn {\r\n  background: var(--primary);\r\n  color: var(--color-surface);\r\n  border: none;\r\n  padding: var(--space-xs) var(--space-md);\r\n  border-radius: var(--radius-xs);\r\n  cursor: pointer;\r\n  transition: background var(--motion-fast);\r\n}\r\n\r\n.retry-btn:hover {\r\n  background: var(--primary-hover);\r\n}\r\n\r\n.empty-text {\r\n  color: var(--color-text-subdued);\r\n}\r\n\r\n@keyframes organizer-fadeIn {\r\n  from { opacity: 0; }\r\n  to { opacity: 1; }\r\n}\r\n\r\n@keyframes organizer-scaleUp {\r\n  from { transform: scale(0.98); opacity: 0; }\r\n  to { transform: scale(1); opacity: 1; }\r\n}\r\n\r\n@keyframes ufo-spin {\r\n  0% { transform: rotate(0deg); }\r\n  100% { transform: rotate(360deg); }\r\n}.atf-backdrop {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background-color: rgba(18, 18, 18, 0.45);\n  backdrop-filter: blur(4px);\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  z-index: 99999;\n  animation: atf-fadeIn 0.2s cubic-bezier(0, 0, 0.2, 1);\n}\n\n.atf-modal {\n  background: var(--bg-surface, #1e293b);\n  border: 1px solid var(--color-border-subdued, #334155);\n  border-radius: var(--radius-xs, 6px);\n  width: 90%;\n  max-width: 480px;\n  max-height: 80vh;\n  box-shadow: var(--elev-depth64, 0 20px 25px -5px rgba(0, 0, 0, 0.3));\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n  animation: atf-scaleUp 0.3s cubic-bezier(0, 0, 0.2, 1);\n}\n\n.atf-header {\n  padding: 16px 24px;\n  border-bottom: 1px solid var(--color-border-subdued, #334155);\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n}\n\n.atf-title-section {\n  display: flex;\n  gap: 16px;\n  align-items: center;\n  flex: 1;\n  min-width: 0;\n}\n\n.atf-thumbnail {\n  width: 64px;\n  height: 36px;\n  object-fit: cover;\n  border-radius: 4px;\n  border: 1px solid var(--color-border-subdued, #334155);\n  flex-shrink: 0;\n}\n\n.atf-course-info {\n  flex: 1;\n  min-width: 0;\n}\n\n.atf-course-title {\n  margin: 0 0 2px 0;\n  font-size: 14px;\n  font-weight: 600;\n  color: var(--fg1, #f8fafc);\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n\n.atf-course-instructor {\n  font-size: 12px;\n  color: var(--color-text-subdued, #94a3b8);\n  margin: 0;\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n\n.atf-close-btn {\n  background: transparent;\n  border: none;\n  color: var(--color-text-subdued, #94a3b8);\n  cursor: pointer;\n  padding: 4px;\n  border-radius: 4px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition: all 0.2s;\n  margin-left: 8px;\n}\n\n.atf-close-btn:hover {\n  background: var(--bg-surface-hover, #334155);\n  color: var(--fg1, #f8fafc);\n}\n\n.atf-error-banner {\n  background-color: var(--color-text-red, #ef4444);\n  color: #ffffff;\n  padding: 12px 16px;\n  font-size: 13px;\n  display: flex;\n  align-items: center;\n  gap: 8px;\n}\n\n.atf-body {\n  flex: 1;\n  overflow-y: auto;\n  padding: 16px 24px;\n  display: flex;\n  flex-direction: column;\n  gap: 12px;\n}\n\n.atf-folder-item {\n  display: flex;\n  align-items: center;\n  gap: 12px;\n  padding: 8px 12px;\n  border-radius: 4px;\n  cursor: pointer;\n  transition: background 0.2s;\n  user-select: none;\n}\n\n.atf-folder-item:hover {\n  background: var(--bg-surface-hover, #334155);\n}\n\n.atf-checkbox {\n  width: 16px;\n  height: 16px;\n  cursor: pointer;\n  accent-color: var(--primary, #6366f1);\n}\n\n.atf-folder-dot {\n  width: 10px;\n  height: 10px;\n  border-radius: 50%;\n  flex-shrink: 0;\n}\n\n.atf-folder-name {\n  font-size: 14px;\n  color: var(--fg1, #f8fafc);\n  flex: 1;\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n\n.atf-footer {\n  padding: 16px 24px;\n  border-top: 1px solid var(--color-border-subdued, #334155);\n  display: flex;\n  justify-content: flex-end;\n  gap: 12px;\n}\n\n.atf-btn {\n  padding: 8px 16px;\n  border-radius: 4px;\n  font-size: 13px;\n  font-weight: 500;\n  cursor: pointer;\n  border: 1px solid transparent;\n  transition: all 0.2s;\n  display: flex;\n  align-items: center;\n  gap: 8px;\n}\n\n.atf-btn-cancel {\n  background: transparent;\n  border-color: var(--color-border-subdued, #334155);\n  color: var(--fg1, #f8fafc);\n}\n\n.atf-btn-cancel:hover {\n  background: var(--bg-surface-hover, #334155);\n}\n\n.atf-btn-save {\n  background: var(--primary, #6366f1);\n  color: #ffffff;\n}\n\n.atf-btn-save:hover:not(:disabled) {\n  background: var(--primary-hover, #4f46e5);\n}\n\n.atf-btn-save:disabled {\n  opacity: 0.5;\n  cursor: not-allowed;\n}\n\n.atf-spinner-small {\n  border: 2px solid rgba(255, 255, 255, 0.3);\n  border-top: 2px solid #ffffff;\n  border-radius: 50%;\n  width: 14px;\n  height: 14px;\n  animation: atf-spin 1s linear infinite;\n}\n\n@keyframes atf-fadeIn {\n  from { opacity: 0; }\n  to { opacity: 1; }\n}\n\n@keyframes atf-scaleUp {\n  from { transform: scale(0.95); opacity: 0; }\n  to { transform: scale(1); opacity: 1; }\n}\n\n@keyframes atf-spin {\n  0% { transform: rotate(0deg); }\n  100% { transform: rotate(360deg); }\n}\n.cu-fab-container {\n  position: fixed;\n  bottom: 16px;\n  right: 16px;\n  z-index: 99990;\n  display: flex;\n  flex-direction: column;\n  align-items: flex-end;\n  font-family: var(--font-sans);\n}\n\n.cu-fab-trigger {\n  width: 48px;\n  height: 48px;\n  border-radius: var(--radius-full);\n  background: var(--color-action-primary);\n  color: var(--color-text-inverse);\n  border: none;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  box-shadow: var(--elev-depth16);\n  transition: background var(--motion-fast) var(--ease-standard),\n              transform var(--motion-fast) var(--ease-standard);\n}\n\n.cu-fab-trigger:hover {\n  background: var(--color-action-primary-hover);\n  transform: scale(1.05);\n}\n\n.cu-fab-trigger:active {\n  transform: scale(0.95);\n}\n\n.cu-fab-trigger-icon {\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n\n.cu-fab-menu {\n  display: flex;\n  flex-direction: column;\n  align-items: flex-end;\n  gap: 8px;\n  margin-bottom: 8px;\n  animation: cu-fab-fade-in var(--motion-fast) var(--ease-standard);\n}\n\n@keyframes cu-fab-fade-in {\n  from {\n    opacity: 0;\n    transform: translateY(10px);\n  }\n  to {\n    opacity: 1;\n    transform: translateY(0);\n  }\n}\n\n.cu-fab-item {\n  display: flex;\n  align-items: center;\n  gap: var(--space-xs);\n  padding: var(--space-xs) var(--space-sm);\n  background: var(--color-surface);\n  border: 1px solid var(--color-border-subdued);\n  border-radius: var(--radius-sm);\n  color: var(--color-text-default);\n  cursor: pointer;\n  box-shadow: var(--elev-depth4);\n  transition: background var(--motion-fast) var(--ease-standard),\n              transform var(--motion-fast) var(--ease-standard);\n  font-size: var(--type-text-sm-size);\n  font-weight: 500;\n  white-space: nowrap;\n}\n\n.cu-fab-item:hover {\n  background: var(--color-surface-muted);\n  transform: translateX(-4px);\n}\n\n.cu-fab-item:active {\n  transform: scale(0.98);\n}\n\n.cu-fab-item-icon {\n  font-size: 16px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n\n.cu-fab-item-text {\n  line-height: 1.2;\n}\n\n.cu-fab-item:disabled {\n  opacity: 0.5;\n  cursor: not-allowed;\n  transform: none;\n  background: var(--color-surface);\n}\n\r\n\n/* ============================================================\r\n   Flowforge — Colors & Type\r\n   Source of truth: DESIGN.md (alpha)\r\n   Loaded by every UI kit, slide, and preview card.\r\n   ============================================================ */\n/* ----- Fonts ------------------------------------------------ */\n:root, :host {\r\n  /* ===== Color tokens =================================== */\r\n\r\n  /* Core surfaces */\r\n  --color-transparent: transparent;\r\n  --color-canvas: #F2F2F2;\r\n  --color-surface: #FFFFFF;\r\n  --color-surface-muted: #F2F2F2;\r\n  --color-surface-subtle: #E5E5E5;\r\n  --color-surface-strong: #BFBFBF;\r\n  --color-surface-inverse: #121212;\r\n\r\n  /* Agent / research / launch surfaces */\r\n  --color-surface-agent: #EBF1F0;\r\n  --color-surface-agent-subtle: #F5F8F7;\r\n  --color-surface-agent-raised: #DBE2E1;\r\n  --color-surface-preview: #CFEEEA;\r\n  --color-surface-selection: #E3F7EF;\r\n\r\n  /* Navigation */\r\n  --color-navigation-container: #E5F0E8;\r\n  --color-navigation-inverse: #004C45;\r\n\r\n  /* Action hierarchy */\r\n  --color-action-primary: #172D2D;\r\n  --color-action-primary-hover: #004C45;\r\n  --color-action-primary-disabled: #808080;\r\n  --color-action-outline-hover: #E5F0E8;\r\n  --color-action-interactive: #0F748B;\r\n  --color-action-interactive-hover: #0E687D;\r\n  --color-action-interactive-disabled: #D9F2F7;\r\n  --color-action-card: #A4DCB4;\r\n  --color-action-card-hover: #004C45;\r\n\r\n  /* Borders & focus */\r\n  --color-border-default: #808080;\r\n  --color-border-subdued: #D2D2D2;\r\n  --color-border-focus: #D9F2F7;\r\n  --color-border-blue: #17AED0;\r\n  --color-border-red: #BB363C;\r\n  --color-border-yellow: #F7C11B;\r\n  --color-border-green: #316E68;\r\n  --color-border-agent: #CDD9D7;\r\n  --color-border-agent-strong: #626D6B;\r\n  --color-border-green-gray: #C8D1D0;\r\n\r\n  /* Text */\r\n  --color-text-default: #121212;\r\n  --color-text-subdued: #404040;\r\n  --color-text-placeholder: #666666;\r\n  --color-text-disabled: #BFBFBF;\r\n  --color-text-inverse: #FFFFFF;\r\n  --color-text-inverse-subdued: #E5E5E5;\r\n  --color-text-red: #9C1D24;\r\n  --color-text-display: #004C45;\r\n  --color-text-agent: #172D2D;\r\n  --color-text-agent-subdued: #626D6B;\r\n  --color-text-deep-green: #24302F;\r\n  --color-text-code-green: #256D28;\r\n  --color-text-code-key: #844B1F;\r\n\r\n  /* Decorative / semantic fills */\r\n  --color-decorative-blue: #D9F2F7;\r\n  --color-decorative-red: #EDD5D5;\r\n  --color-decorative-yellow: #F6DFA3;\r\n  --color-decorative-green: #D5EBDB;\r\n  --color-decorative-purple: #CFD4E4;\r\n  --color-decorative-gray: #E5E5E5;\r\n\r\n  /* Icon roles */\r\n  --color-icon-default: #121212;\r\n  --color-icon-yellow: #A4680E;\r\n  --color-icon-red: #BB363C;\r\n  --color-icon-purple: #6B7EA6;\r\n  --color-icon-green: #004C45;\r\n  --color-icon-blue: #0E687D;\r\n\r\n  /* Convenience semantic aliases */\r\n  --fg1: var(--color-text-default);\r\n  --fg2: var(--color-text-subdued);\r\n  --fg3: var(--color-text-placeholder);\r\n  --fg-inverse: var(--color-text-inverse);\r\n  --bg-canvas: var(--color-canvas);\r\n  --bg-surface: var(--color-surface);\r\n  --bg-surface-hover: var(--color-surface-muted);\r\n  --primary: var(--color-action-primary);\r\n  --primary-hover: var(--color-action-primary-hover);\r\n  --accent-green: var(--color-text-display);\r\n  --accent-blue: var(--color-action-interactive);\r\n\r\n  /* ===== Spacing scale (4px-derived) ==================== */\r\n  --space-none: 0px;\r\n  --space-xxs: 4px;\r\n  --space-xs: 8px;\r\n  --space-sm: 12px;\r\n  --space-md: 16px;\r\n  --space-lg: 24px;\r\n  --space-xl: 32px;\r\n  --space-2xl: 40px;\r\n  --space-3xl: 48px;\r\n  --space-4xl: 64px;\r\n  --space-5xl: 80px;\r\n  --space-6xl: 96px;\r\n  --space-7xl: 160px;\r\n\r\n  /* ===== Radius ========================================= */\r\n  --radius-none: 0px;\r\n  --radius-xxs: 4px;\r\n  --radius-xs: 8px;\r\n  --radius-sm: 12px;\r\n  --radius-md: 16px;\r\n  --radius-guided: 18px;\r\n  --radius-lg: 24px;\r\n  --radius-full: 9999px;\r\n\r\n  /* ===== Elevation ====================================== */\r\n  --elev-none: none;\r\n  --elev-button: 0px 1px 0px rgba(18, 18, 18, 0.05),\r\n                 inset 0px -1px 0px rgba(18, 18, 18, 0.2);\r\n  --elev-depth4: 0px 4px 10px rgba(18, 18, 18, 0.12),\r\n                 0px 1px 3px rgba(18, 18, 18, 0.08);\r\n  --elev-input-raised: 0px 1px 3px rgba(18, 18, 18, 0.08),\r\n                       0px 4px 10px rgba(18, 18, 18, 0.12);\r\n  --elev-depth16: 0px 10px 25px rgba(18, 18, 18, 0.15),\r\n                  0px 1px 3px rgba(18, 18, 18, 0.08);\r\n  --elev-guided: 0px 28px 60px rgba(36, 48, 47, 0.12);\r\n  --elev-depth64: 0px 24px 60px rgba(18, 18, 18, 0.2),\r\n                  0px 4px 8px rgba(18, 18, 18, 0.18);\r\n\r\n  /* ===== Motion ========================================= */\r\n  --motion-fast: 150ms;\r\n  --motion-normal: 250ms;\r\n  --motion-slow: 350ms;\r\n  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);\r\n  --ease-decelerate: cubic-bezier(0, 0, 0.2, 1);\r\n  --ease-accelerate: cubic-bezier(0.4, 0, 1, 1);\r\n\r\n  /* ===== Layout ========================================= */\r\n  --layout-sidebar-width: 200px;\r\n  --layout-modal-min-width: 660px;\r\n  --layout-field-height: 48px;\r\n  --layout-tab-active-border-width: 2px;\r\n  --layout-table-header-height: 44px;\r\n  --layout-table-row-height: 56px;\r\n  --layout-graph-node-width: 136px;\r\n  --layout-graph-node-height: 144px;\r\n  --layout-card-item-width: 192px;\r\n  --layout-card-item-height: 136px;\r\n  --layout-assistant-panel-min-width: 36%;\r\n  --layout-assistant-rail-collapsed-width: 72px;\r\n  --layout-assistant-input-height: 60px;\r\n  --layout-assistant-input-min-height: 52px;\r\n  --layout-assistant-input-max-width: 1009px;\r\n  --layout-source-chip-width: 195px;\r\n  --layout-source-chip-height: 34px;\r\n  --layout-guided-card-max-width: 720px;\r\n  --layout-guided-card-max-height: 640px;\r\n  --layout-guided-card-min-height: 560px;\r\n\r\n  /* ===== Typography tokens ============================== */\r\n  --font-sans: \"Libre Franklin\", -apple-system, BlinkMacSystemFont,\r\n               \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif;\r\n  --font-mono: ui-monospace, \"SF Mono\", Menlo, Consolas, \"Liberation Mono\",\r\n               monospace;\r\n\r\n  /* Display */\r\n  --type-display-xxl-size: 72px;  --type-display-xxl-lh: 90px;\r\n  --type-display-xl-size:  60px;  --type-display-xl-lh:  72px;\r\n  --type-display-lg-size:  48px;  --type-display-lg-lh:  60px;\r\n  --type-display-md-size:  36px;  --type-display-md-lh:  44px;\r\n  --type-display-sm-size:  30px;  --type-display-sm-lh:  38px;\r\n  --type-display-xs-size:  24px;  --type-display-xs-lh:  32px;\r\n  --type-display-weight:   600;\r\n\r\n  /* Text */\r\n  --type-text-xxl-size: 24px;  --type-text-xxl-lh: 32px;\r\n  --type-text-xl-size:  20px;  --type-text-xl-lh:  30px;\r\n  --type-text-lg-size:  18px;  --type-text-lg-lh:  28px;\r\n  --type-text-md-size:  16px;  --type-text-md-lh:  24px;\r\n  --type-text-sm-size:  14px;  --type-text-sm-lh:  20px;\r\n  --type-text-xs-size:  12px;  --type-text-xs-lh:  18px;\r\n\r\n  /* Utility */\r\n  --type-button-md-size: 16px; --type-button-md-lh: 24px; --type-button-md-weight: 500;\r\n  --type-label-sm-size:  14px; --type-label-sm-lh:  20px; --type-label-sm-weight:  500;\r\n}\n/* ----- Base reset ------------------------------------------ */\n.cu-host {\r\n  background: var(--bg-canvas);\r\n  color: var(--fg1);\r\n  font-family: var(--font-sans);\r\n  font-size: var(--type-text-md-size);\r\n  line-height: var(--type-text-md-lh);\r\n  -webkit-font-smoothing: antialiased;\r\n  -moz-osx-font-smoothing: grayscale;\r\n}\n/* ===== Semantic role classes ================================\r\n   Use class names like `.ff-display-md` or `.ff-text-sm` on any\r\n   element. Headings get sensible defaults but stay overridable.\r\n   ============================================================ */\n.ff-display-xxl, .ff-display-xl, .ff-display-lg,\r\n.ff-display-md,  .ff-display-sm, .ff-display-xs {\r\n  font-family: var(--font-sans);\r\n  font-weight: var(--type-display-weight);\r\n  letter-spacing: normal;\r\n  color: var(--color-text-default);\r\n  margin: 0;\r\n}\n.ff-display-xxl { font-size: var(--type-display-xxl-size); line-height: var(--type-display-xxl-lh); }\n.ff-display-xl  { font-size: var(--type-display-xl-size);  line-height: var(--type-display-xl-lh);  }\n.ff-display-lg  { font-size: var(--type-display-lg-size);  line-height: var(--type-display-lg-lh);  }\n.ff-display-md  { font-size: var(--type-display-md-size);  line-height: var(--type-display-md-lh);  }\n.ff-display-sm  { font-size: var(--type-display-sm-size);  line-height: var(--type-display-sm-lh);  }\n.ff-display-xs  { font-size: var(--type-display-xs-size);  line-height: var(--type-display-xs-lh);  }\n.ff-text-xxl, .ff-text-xl, .ff-text-lg,\r\n.ff-text-md,  .ff-text-sm, .ff-text-xs {\r\n  font-family: var(--font-sans);\r\n  font-weight: 400;\r\n  letter-spacing: normal;\r\n  color: var(--color-text-default);\r\n  margin: 0;\r\n}\n.ff-text-xxl { font-size: var(--type-text-xxl-size); line-height: var(--type-text-xxl-lh); }\n.ff-text-xl  { font-size: var(--type-text-xl-size);  line-height: var(--type-text-xl-lh);  }\n.ff-text-lg  { font-size: var(--type-text-lg-size);  line-height: var(--type-text-lg-lh);  }\n.ff-text-md  { font-size: var(--type-text-md-size);  line-height: var(--type-text-md-lh);  }\n.ff-text-sm  { font-size: var(--type-text-sm-size);  line-height: var(--type-text-sm-lh);  }\n.ff-text-xs  { font-size: var(--type-text-xs-size);  line-height: var(--type-text-xs-lh);  }\n.ff-button-md {\r\n  font-family: var(--font-sans);\r\n  font-size: var(--type-button-md-size);\r\n  line-height: var(--type-button-md-lh);\r\n  font-weight: var(--type-button-md-weight);\r\n  letter-spacing: normal;\r\n}\n.ff-label-sm {\r\n  font-family: var(--font-sans);\r\n  font-size: var(--type-label-sm-size);\r\n  line-height: var(--type-label-sm-lh);\r\n  font-weight: var(--type-label-sm-weight);\r\n  letter-spacing: normal;\r\n}\n/* Convenience tone modifiers */\n.ff-fg-default  { color: var(--color-text-default); }\n.ff-fg-subdued  { color: var(--color-text-subdued); }\n.ff-fg-placeholder { color: var(--color-text-placeholder); }\n.ff-fg-disabled { color: var(--color-text-disabled); }\n.ff-fg-inverse  { color: var(--color-text-inverse); }\n.ff-fg-display  { color: var(--color-text-display); }\n.ff-fg-red      { color: var(--color-text-red); }\n.ff-fg-blue     { color: var(--color-action-interactive); }\n/* Map to common HTML defaults (still product-app sized) */\nh1 { font-size: var(--type-display-md-size); line-height: var(--type-display-md-lh); font-weight: var(--type-display-weight); margin: 0; }\nh2 { font-size: var(--type-display-sm-size); line-height: var(--type-display-sm-lh); font-weight: var(--type-display-weight); margin: 0; }\nh3 { font-size: var(--type-display-xs-size); line-height: var(--type-display-xs-lh); font-weight: var(--type-display-weight); margin: 0; }\nh4 { font-size: var(--type-text-lg-size);    line-height: var(--type-text-lg-lh);    font-weight: 600; margin: 0; }\np, li { font-size: var(--type-text-md-size); line-height: var(--type-text-md-lh); margin: 0; }\nsmall, .ff-caption { font-size: var(--type-text-xs-size); line-height: var(--type-text-xs-lh); color: var(--color-text-subdued); }\ncode, kbd, pre { font-family: var(--font-mono); font-size: 13px; }\n/* Generic focus ring used app-wide */\n.ff-focusable:focus-visible,\r\nbutton:focus-visible,\r\na:focus-visible,\r\ninput:focus-visible,\r\nselect:focus-visible,\r\ntextarea:focus-visible {\r\n  outline: 2px solid var(--color-action-interactive);\r\n  outline-offset: 2px;\r\n  border-radius: var(--radius-xxs);\r\n}\n:host {\r\n  /* Set root variables locally for the shadow DOM host if needed */\r\n  font-family: var(--font-sans);\r\n  color: var(--fg1);\r\n}\n*, *::before, *::after {\r\n  box-sizing: border-box;\r\n}\r\n";
+window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre+Franklin:ital,wght@0,100..900;1,100..900&display=swap');.license-panel {\n  background: var(--bg-surface);\n  border: 1px solid var(--color-border-subdued);\n  border-radius: var(--radius-xs);\n  padding: var(--space-md);\n  margin-bottom: var(--space-lg);\n  color: var(--fg1);\n}\n\n.license-panel-title {\n  color: var(--color-text-subdued);\n  margin-bottom: var(--space-sm);\n}\n\n.license-row {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: var(--space-sm);\n}\n\n.license-row:last-child {\n  margin-bottom: 0;\n}\n\n.license-label {\n  color: var(--color-text-subdued);\n}\n\n.license-value {\n  color: var(--fg1);\n}\n\n/* Badge (Flowforge tag/badge pattern) */\n.badge {\n  display: inline-flex;\n  align-items: center;\n  padding: var(--space-xxs) var(--space-xs);\n  border-radius: var(--radius-md);\n  text-transform: capitalize;\n}\n\n.badge-valid {\n  background: var(--color-decorative-green);\n  color: var(--color-text-deep-green);\n  border: 1px solid var(--color-border-green);\n}\n\n.badge-invalid {\n  background: var(--color-decorative-red);\n  color: var(--color-text-red);\n  border: 1px solid var(--color-border-red);\n}\n\n.badge-expired {\n  background: var(--color-decorative-yellow);\n  color: var(--color-icon-yellow);\n  border: 1px solid var(--color-border-yellow);\n}\n\n.badge-checking {\n  background: var(--color-decorative-blue);\n  color: var(--color-action-interactive);\n  border: 1px solid var(--color-border-blue);\n  animation: pulse var(--motion-slow) infinite;\n}\n\n.badge-unknown {\n  background: var(--color-decorative-gray);\n  color: var(--color-text-subdued);\n  border: 1px solid var(--color-border-default);\n}\n\n.license-warning {\n  margin-top: var(--space-sm);\n  padding: var(--space-xs) var(--space-sm);\n  background: var(--color-decorative-yellow);\n  border-left: 3px solid var(--color-border-yellow);\n  border-radius: var(--radius-xxs);\n  color: var(--color-icon-yellow);\n  display: flex;\n  align-items: center;\n  gap: var(--space-xs);\n}\n\n@keyframes pulse {\n  0%, 100% {\n    opacity: 1;\n  }\n  50% {\n    opacity: 0.5;\n  }\n}\n.settings-backdrop {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background-color: rgba(18, 18, 18, 0.4);\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  z-index: 99999;\n  animation: fadeIn var(--motion-normal) var(--ease-decelerate);\n}\n\n.settings-modal {\n  background: var(--bg-surface);\n  border: 1px solid var(--color-border-subdued);\n  border-radius: var(--radius-xs);\n  width: 90%;\n  min-width: var(--layout-modal-min-width);\n  max-width: 720px;\n  max-height: 90vh;\n  box-shadow: var(--elev-depth64);\n  animation: scaleUp var(--motion-slow) var(--ease-decelerate);\n  display: flex;\n  flex-direction: column;\n}\n\n.settings-header {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  height: var(--space-4xl);\n  padding: 0 var(--space-xl);\n  border-bottom: 1px solid var(--color-border-subdued);\n}\n\n.settings-title {\n  /* Using ff-display-sm from index.css instead of local styles, but can apply layout if needed */\n  margin: 0;\n}\n\n.settings-close-btn {\n  background: transparent;\n  border: none;\n  color: var(--color-text-subdued);\n  cursor: pointer;\n  padding: var(--space-xxs);\n  border-radius: var(--radius-xxs);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition: all var(--motion-fast) var(--ease-standard);\n}\n\n.settings-close-btn:hover {\n  background: var(--bg-surface-hover);\n  color: var(--fg1);\n}\n\n.settings-close-btn:focus-visible {\n  outline: 2px solid var(--color-action-interactive);\n  outline-offset: 2px;\n}\n\n.settings-content {\n  padding: var(--space-lg) var(--space-xl);\n  overflow-y: auto;\n  flex: 1;\n}\n\n/* Form Styles */\n.config-form {\n  display: flex;\n  flex-direction: column;\n  gap: var(--space-lg);\n  margin-bottom: var(--space-lg);\n}\n\n.form-group {\n  display: flex;\n  flex-direction: column;\n  gap: var(--space-xs);\n}\n\n.form-label {\n  /* text-sm will be applied via ff-label-sm */\n  margin-bottom: 0;\n}\n\n.form-input {\n  background: var(--bg-surface);\n  border: 1px solid var(--color-border-default);\n  border-radius: var(--radius-xs);\n  padding: 0 var(--space-sm);\n  height: var(--layout-field-height);\n  font-family: var(--font-sans);\n  font-size: var(--type-text-md-size);\n  color: var(--fg1);\n  outline: none;\n  transition: all var(--motion-fast) var(--ease-standard);\n}\n\n.form-input:hover {\n  background: var(--bg-surface-hover);\n}\n\n.form-input:focus {\n  border-color: var(--color-action-interactive);\n  box-shadow: inset 0 0 0 1px var(--color-action-interactive);\n  background: var(--bg-surface);\n}\n\n.form-input:disabled,\n.form-input-disabled {\n  background: var(--bg-canvas);\n  color: var(--color-text-disabled);\n  border-color: var(--color-border-subdued);\n  cursor: not-allowed;\n}\n\n.form-help {\n  color: var(--color-text-subdued);\n  margin-top: 0;\n}\n\n.form-group-checkbox {\n  display: flex;\n  align-items: center;\n  gap: var(--space-sm);\n  cursor: pointer;\n  user-select: none;\n  height: var(--layout-field-height);\n}\n\n.form-checkbox {\n  appearance: none;\n  -webkit-appearance: none;\n  height: 20px;\n  width: 20px;\n  background-color: var(--bg-surface);\n  border: 1px solid var(--color-border-default);\n  border-radius: var(--radius-xxs);\n  cursor: pointer;\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  outline: none;\n  transition: all var(--motion-fast) var(--ease-standard);\n  margin: 0;\n}\n\n.form-checkbox:hover {\n  background: var(--bg-surface-hover);\n}\n\n.form-checkbox:checked {\n  background-color: var(--primary);\n  border-color: var(--primary);\n}\n\n.form-checkbox:checked::after {\n  content: \"\";\n  display: block;\n  width: 5px;\n  height: 10px;\n  border: solid var(--color-surface);\n  border-width: 0 2px 2px 0;\n  transform: rotate(45deg);\n  margin-bottom: 2px;\n}\n\n.form-checkbox:focus-visible {\n  outline: 2px solid var(--color-action-interactive);\n  outline-offset: 2px;\n}\n\n.form-checkbox-label {\n  cursor: pointer;\n}\n\n@keyframes fadeIn {\n  from { opacity: 0; }\n  to { opacity: 1; }\n}\n\n@keyframes scaleUp {\n  from { transform: scale(0.98); opacity: 0; }\n  to { transform: scale(1); opacity: 1; }\n}.sync-indicator-container {\n  position: fixed;\n  bottom: var(--space-lg);\n  right: var(--space-lg);\n  z-index: 9999;\n  pointer-events: none;\n}\n\n.sync-indicator-badge {\n  pointer-events: auto;\n  display: flex;\n  align-items: center;\n  gap: var(--space-sm);\n  background: var(--bg-surface);\n  border: 1px solid var(--color-border-subdued);\n  box-shadow: var(--elev-depth16);\n  border-radius: var(--radius-xs);\n  padding: var(--space-sm) var(--space-md);\n  color: var(--fg1);\n  transition: all var(--motion-slow) var(--ease-standard);\n  transform: translateY(0);\n  opacity: 1;\n  animation: slideInUp var(--motion-slow) var(--ease-decelerate);\n}\n\n.sync-indicator-badge.status-ok {\n  border-left: 3px solid var(--color-border-green);\n}\n\n.sync-indicator-badge.status-error {\n  border-left: 3px solid var(--color-border-red);\n}\n\n.sync-indicator-badge.status-syncing {\n  border-left: 3px solid var(--color-border-blue);\n}\n\n.sync-indicator-badge.hide {\n  transform: translateY(20px) scale(0.95);\n  opacity: 0;\n  pointer-events: none;\n}\n\n.sync-indicator-icon-container {\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  width: 18px;\n  height: 18px;\n}\n\n/* Spinner for syncing state */\n.sync-spinner {\n  width: 16px;\n  height: 16px;\n  border: 2px solid var(--color-decorative-blue);\n  border-top-color: var(--color-action-interactive);\n  border-radius: 50%;\n  animation: spin 0.8s linear infinite;\n}\n\n/* Checkmark for ok state */\n.sync-checkmark {\n  color: var(--color-icon-green);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n\n/* Red X for error state */\n.sync-error-icon {\n  color: var(--color-icon-red);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n\n/* Text status styling */\n.sync-indicator-text {\n  /* Using ff-label-sm */\n}\n\n.sync-indicator-detail {\n  color: var(--color-text-subdued);\n  margin-left: var(--space-xxs);\n}\n\n@keyframes spin {\n  from { transform: rotate(0deg); }\n  to { transform: rotate(360deg); }\n}\n\n@keyframes slideInUp {\n  from {\n    transform: translateY(20px) scale(0.95);\n    opacity: 0;\n  }\n  to {\n    transform: translateY(0) scale(1);\n    opacity: 1;\n  }\n}\n/* folder-organizer/index.css */\n.organizer-backdrop {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background-color: rgba(18, 18, 18, 0.4);\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  z-index: 99999;\n  animation: fadeIn var(--motion-normal) var(--ease-decelerate);\n}\n\n.organizer-modal {\n  background: var(--bg-surface);\n  border: 1px solid var(--color-border-subdued);\n  border-radius: var(--radius-xs);\n  width: 95%;\n  max-width: 900px;\n  height: 85vh;\n  box-shadow: var(--elev-depth64);\n  animation: scaleUp var(--motion-slow) var(--ease-decelerate);\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n}\n\n.organizer-header {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  height: var(--space-4xl);\n  padding: 0 var(--space-xl);\n  border-bottom: 1px solid var(--color-border-subdued);\n}\n\n.organizer-title {\n  margin: 0;\n}\n\n.organizer-close-btn {\n  background: transparent;\n  border: none;\n  color: var(--color-text-subdued);\n  cursor: pointer;\n  padding: var(--space-xxs);\n  border-radius: var(--radius-xxs);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition: all var(--motion-fast) var(--ease-standard);\n}\n\n.organizer-close-btn:hover {\n  background: var(--bg-surface-hover);\n  color: var(--fg1);\n}\n\n.organizer-close-btn:focus-visible {\n  outline: 2px solid var(--color-action-interactive);\n  outline-offset: 2px;\n}\n\n.organizer-body {\n  display: flex;\n  flex: 1;\n  overflow: hidden;\n}\n\n/* Sidebar Styles */\n.organizer-sidebar {\n  width: var(--layout-sidebar-width);\n  border-right: 1px solid var(--color-border-subdued);\n  display: flex;\n  flex-direction: column;\n  background: var(--bg-surface);\n}\n\n.sidebar-content {\n  flex: 1;\n  overflow-y: auto;\n  padding: var(--space-sm);\n  display: flex;\n  flex-direction: column;\n  gap: var(--space-xs);\n}\n\n.folder-list {\n  display: flex;\n  flex-direction: column;\n  gap: var(--space-none);\n}\n\n.folder-row {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding: var(--space-xs) var(--space-sm);\n  border-radius: var(--radius-xxs);\n  background: var(--bg-surface);\n  border: 1px solid transparent;\n  cursor: pointer;\n  transition: all var(--motion-fast) var(--ease-standard);\n}\n\n.folder-row:hover {\n  background: var(--bg-surface-hover);\n}\n\n.folder-row.active {\n  background: var(--color-navigation-container);\n}\n\n.folder-row.dragging {\n  opacity: 0.5;\n  border: 1px dashed var(--color-border-default);\n}\n\n.folder-left {\n  display: flex;\n  align-items: center;\n  gap: var(--space-xs);\n  min-width: 0;\n}\n\n.folder-color-dot {\n  width: 12px;\n  height: 12px;\n  border-radius: 50%;\n  flex-shrink: 0;\n}\n\n.folder-name {\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n\n.folder-right {\n  display: flex;\n  align-items: center;\n  gap: var(--space-xs);\n}\n\n.course-count-badge {\n  background: var(--bg-canvas);\n  padding: 2px 6px;\n  border-radius: var(--radius-md);\n  font-size: 11px;\n  color: var(--color-text-subdued);\n  border: 1px solid var(--color-border-subdued);\n}\n\n.folder-actions {\n  display: flex;\n  gap: var(--space-xxs);\n  opacity: 0;\n  transition: opacity var(--motion-fast);\n}\n\n.folder-row:hover .folder-actions {\n  opacity: 1;\n}\n\n.folder-action-btn {\n  background: transparent;\n  border: none;\n  color: var(--color-text-subdued);\n  cursor: pointer;\n  padding: 2px;\n  border-radius: var(--radius-xxs);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n\n.folder-action-btn:hover {\n  background: var(--bg-surface-hover);\n  color: var(--fg1);\n}\n\n.sidebar-footer {\n  padding: var(--space-sm);\n  border-top: 1px solid var(--color-border-subdued);\n}\n\n.add-folder-btn {\n  width: 100%;\n  padding: var(--space-xs);\n  background: var(--bg-surface);\n  border: 1px dashed var(--color-border-default);\n  border-radius: var(--radius-xs);\n  color: var(--fg1);\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  gap: var(--space-xs);\n  transition: all var(--motion-fast) var(--ease-standard);\n}\n\n.add-folder-btn:hover {\n  background: var(--bg-surface-hover);\n  border-color: var(--color-border-subdued);\n}\n\n.add-folder-btn:focus-visible {\n  outline: 2px solid var(--color-action-interactive);\n  outline-offset: 2px;\n}\n\n.folder-form {\n  display: flex;\n  flex-direction: column;\n  gap: var(--space-xs);\n  background: var(--bg-surface-hover);\n  padding: var(--space-xs);\n  border-radius: var(--radius-xs);\n  border: 1px solid var(--color-border-subdued);\n}\n\n.folder-form-input {\n  background: var(--bg-surface);\n  border: 1px solid var(--color-border-default);\n  border-radius: var(--radius-xxs);\n  padding: var(--space-xxs) var(--space-xs);\n  color: var(--fg1);\n  font-family: var(--font-sans);\n  font-size: var(--type-text-sm-size);\n  outline: none;\n}\n\n.folder-form-input:focus {\n  border-color: var(--color-action-interactive);\n  box-shadow: inset 0 0 0 1px var(--color-action-interactive);\n}\n\n.folder-form-row {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  gap: var(--space-xs);\n}\n\n.color-picker-wrapper {\n  display: flex;\n  align-items: center;\n  gap: var(--space-xs);\n}\n\n.color-input {\n  appearance: none;\n  -webkit-appearance: none;\n  background: none;\n  border: none;\n  width: 24px;\n  height: 24px;\n  cursor: pointer;\n  padding: 0;\n}\n\n.color-input::-webkit-color-swatch-wrapper {\n  padding: 0;\n}\n\n.color-input::-webkit-color-swatch {\n  border: 1px solid var(--color-border-subdued);\n  border-radius: 50%;\n}\n\n.folder-form-actions {\n  display: flex;\n  gap: var(--space-xxs);\n}\n\n.form-btn {\n  padding: var(--space-xxs) var(--space-xs);\n  border-radius: var(--radius-xxs);\n  cursor: pointer;\n  border: 1px solid transparent;\n  font-family: var(--font-sans);\n  font-size: var(--type-text-sm-size);\n  transition: all var(--motion-fast) var(--ease-standard);\n}\n\n.form-btn-save {\n  background: var(--primary);\n  color: var(--color-surface);\n}\n\n.form-btn-save:hover {\n  background: var(--primary-hover);\n}\n\n.form-btn-cancel {\n  background: var(--bg-surface);\n  border-color: var(--color-border-subdued);\n  color: var(--fg1);\n}\n\n.form-btn-cancel:hover {\n  background: var(--bg-surface-hover);\n}\n\n/* Main Panel Styles */\n.organizer-main {\n  flex: 1;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n  background: var(--bg-canvas);\n}\n\n.main-header {\n  padding: var(--space-md) var(--space-xl);\n  border-bottom: 1px solid var(--color-border-subdued);\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  background: var(--bg-surface);\n}\n\n.selected-folder-title {\n  margin: 0;\n  display: flex;\n  align-items: center;\n  gap: var(--space-sm);\n}\n\n.selected-folder-dot {\n  width: 14px;\n  height: 14px;\n  border-radius: 50%;\n}\n\n.main-content {\n  flex: 1;\n  overflow-y: auto;\n  padding: var(--space-lg);\n}\n\n.course-grid {\n  display: grid;\n  grid-template-columns: repeat(auto-fill, minmax(192px, 1fr));\n  gap: var(--space-md);\n}\n\n.course-card {\n  background: var(--bg-surface);\n  border: 1px solid var(--color-border-subdued);\n  border-radius: var(--radius-xs);\n  overflow: hidden;\n  display: flex;\n  flex-direction: column;\n  transition: all var(--motion-fast) var(--ease-standard);\n  text-decoration: none;\n  color: inherit;\n  box-shadow: var(--elev-depth4);\n}\n\n.course-card:hover {\n  transform: translateY(-2px);\n  box-shadow: var(--elev-depth16);\n  border-color: var(--color-border-default);\n}\n\n.course-thumbnail-wrapper {\n  position: relative;\n  width: 100%;\n  padding-top: 56.25%; /* 16:9 aspect ratio */\n  background: var(--bg-canvas);\n  border-bottom: 1px solid var(--color-border-subdued);\n}\n\n.course-thumbnail {\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n.course-info {\n  padding: var(--space-sm);\n  display: flex;\n  flex-direction: column;\n  gap: var(--space-xxs);\n  flex: 1;\n}\n\n.course-title {\n  margin: 0;\n  display: -webkit-box;\n  -webkit-line-clamp: 2;\n  -webkit-box-orient: vertical;\n  overflow: hidden;\n  line-height: var(--type-text-sm-lh);\n}\n\n.course-instructor {\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  margin-top: auto;\n}\n\n/* Spinner and Status States */\n.organizer-center-state {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  height: 100%;\n  width: 100%;\n  gap: var(--space-md);\n}\n\n.ufo-spinner {\n  border: 3px solid var(--color-border-subdued);\n  border-top: 3px solid var(--primary);\n  border-radius: 50%;\n  width: 36px;\n  height: 36px;\n  animation: ufo-spin 1s linear infinite;\n}\n\n.error-text {\n  color: var(--color-text-red);\n}\n\n.retry-btn {\n  background: var(--primary);\n  color: var(--color-surface);\n  border: none;\n  padding: var(--space-xs) var(--space-md);\n  border-radius: var(--radius-xs);\n  cursor: pointer;\n  transition: background var(--motion-fast);\n}\n\n.retry-btn:hover {\n  background: var(--primary-hover);\n}\n\n.empty-text {\n  color: var(--color-text-subdued);\n}\n\n@keyframes organizer-fadeIn {\n  from { opacity: 0; }\n  to { opacity: 1; }\n}\n\n@keyframes organizer-scaleUp {\n  from { transform: scale(0.98); opacity: 0; }\n  to { transform: scale(1); opacity: 1; }\n}\n\n@keyframes ufo-spin {\n  0% { transform: rotate(0deg); }\n  100% { transform: rotate(360deg); }\n}.atf-backdrop {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background-color: rgba(18, 18, 18, 0.45);\n  backdrop-filter: blur(4px);\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  z-index: 99999;\n  animation: atf-fadeIn 0.2s cubic-bezier(0, 0, 0.2, 1);\n}\n\n.atf-modal {\n  background: var(--bg-surface, #1e293b);\n  border: 1px solid var(--color-border-subdued, #334155);\n  border-radius: var(--radius-xs, 6px);\n  width: 90%;\n  max-width: 480px;\n  max-height: 80vh;\n  box-shadow: var(--elev-depth64, 0 20px 25px -5px rgba(0, 0, 0, 0.3));\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n  animation: atf-scaleUp 0.3s cubic-bezier(0, 0, 0.2, 1);\n}\n\n.atf-header {\n  padding: 16px 24px;\n  border-bottom: 1px solid var(--color-border-subdued, #334155);\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n}\n\n.atf-title-section {\n  display: flex;\n  gap: 16px;\n  align-items: center;\n  flex: 1;\n  min-width: 0;\n}\n\n.atf-thumbnail {\n  width: 64px;\n  height: 36px;\n  object-fit: cover;\n  border-radius: 4px;\n  border: 1px solid var(--color-border-subdued, #334155);\n  flex-shrink: 0;\n}\n\n.atf-course-info {\n  flex: 1;\n  min-width: 0;\n}\n\n.atf-course-title {\n  margin: 0 0 2px 0;\n  font-size: 14px;\n  font-weight: 600;\n  color: var(--fg1, #f8fafc);\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n\n.atf-course-instructor {\n  font-size: 12px;\n  color: var(--color-text-subdued, #94a3b8);\n  margin: 0;\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n\n.atf-close-btn {\n  background: transparent;\n  border: none;\n  color: var(--color-text-subdued, #94a3b8);\n  cursor: pointer;\n  padding: 4px;\n  border-radius: 4px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition: all 0.2s;\n  margin-left: 8px;\n}\n\n.atf-close-btn:hover {\n  background: var(--bg-surface-hover, #334155);\n  color: var(--fg1, #f8fafc);\n}\n\n.atf-error-banner {\n  background-color: var(--color-text-red, #ef4444);\n  color: #ffffff;\n  padding: 12px 16px;\n  font-size: 13px;\n  display: flex;\n  align-items: center;\n  gap: 8px;\n}\n\n.atf-body {\n  flex: 1;\n  overflow-y: auto;\n  padding: 16px 24px;\n  display: flex;\n  flex-direction: column;\n  gap: 12px;\n}\n\n.atf-folder-item {\n  display: flex;\n  align-items: center;\n  gap: 12px;\n  padding: 8px 12px;\n  border-radius: 4px;\n  cursor: pointer;\n  transition: background 0.2s;\n  user-select: none;\n}\n\n.atf-folder-item:hover {\n  background: var(--bg-surface-hover, #334155);\n}\n\n.atf-checkbox {\n  width: 16px;\n  height: 16px;\n  cursor: pointer;\n  accent-color: var(--primary, #6366f1);\n}\n\n.atf-folder-dot {\n  width: 10px;\n  height: 10px;\n  border-radius: 50%;\n  flex-shrink: 0;\n}\n\n.atf-folder-name {\n  font-size: 14px;\n  color: var(--fg1, #f8fafc);\n  flex: 1;\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n\n.atf-footer {\n  padding: 16px 24px;\n  border-top: 1px solid var(--color-border-subdued, #334155);\n  display: flex;\n  justify-content: flex-end;\n  gap: 12px;\n}\n\n.atf-btn {\n  padding: 8px 16px;\n  border-radius: 4px;\n  font-size: 13px;\n  font-weight: 500;\n  cursor: pointer;\n  border: 1px solid transparent;\n  transition: all 0.2s;\n  display: flex;\n  align-items: center;\n  gap: 8px;\n}\n\n.atf-btn-cancel {\n  background: transparent;\n  border-color: var(--color-border-subdued, #334155);\n  color: var(--fg1, #f8fafc);\n}\n\n.atf-btn-cancel:hover {\n  background: var(--bg-surface-hover, #334155);\n}\n\n.atf-btn-save {\n  background: var(--primary, #6366f1);\n  color: #ffffff;\n}\n\n.atf-btn-save:hover:not(:disabled) {\n  background: var(--primary-hover, #4f46e5);\n}\n\n.atf-btn-save:disabled {\n  opacity: 0.5;\n  cursor: not-allowed;\n}\n\n.atf-spinner-small {\n  border: 2px solid rgba(255, 255, 255, 0.3);\n  border-top: 2px solid #ffffff;\n  border-radius: 50%;\n  width: 14px;\n  height: 14px;\n  animation: atf-spin 1s linear infinite;\n}\n\n@keyframes atf-fadeIn {\n  from { opacity: 0; }\n  to { opacity: 1; }\n}\n\n@keyframes atf-scaleUp {\n  from { transform: scale(0.95); opacity: 0; }\n  to { transform: scale(1); opacity: 1; }\n}\n\n@keyframes atf-spin {\n  0% { transform: rotate(0deg); }\n  100% { transform: rotate(360deg); }\n}\n.cu-fab-container {\n  position: fixed;\n  bottom: 16px;\n  right: 16px;\n  z-index: 99990;\n  display: flex;\n  flex-direction: column;\n  align-items: flex-end;\n  font-family: var(--font-sans);\n}\n\n.cu-fab-trigger {\n  width: 48px;\n  height: 48px;\n  border-radius: var(--radius-full);\n  background: var(--color-action-primary);\n  color: var(--color-text-inverse);\n  border: none;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  box-shadow: var(--elev-depth16);\n  transition: background var(--motion-fast) var(--ease-standard),\n              transform var(--motion-fast) var(--ease-standard);\n}\n\n.cu-fab-trigger:hover {\n  background: var(--color-action-primary-hover);\n  transform: scale(1.05);\n}\n\n.cu-fab-trigger:active {\n  transform: scale(0.95);\n}\n\n.cu-fab-trigger-icon {\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n\n.cu-fab-menu {\n  display: flex;\n  flex-direction: column;\n  align-items: flex-end;\n  gap: 8px;\n  margin-bottom: 8px;\n  animation: cu-fab-fade-in var(--motion-fast) var(--ease-standard);\n}\n\n@keyframes cu-fab-fade-in {\n  from {\n    opacity: 0;\n    transform: translateY(10px);\n  }\n  to {\n    opacity: 1;\n    transform: translateY(0);\n  }\n}\n\n.cu-fab-item {\n  display: flex;\n  align-items: center;\n  gap: var(--space-xs);\n  padding: var(--space-xs) var(--space-sm);\n  background: var(--color-surface);\n  border: 1px solid var(--color-border-subdued);\n  border-radius: var(--radius-sm);\n  color: var(--color-text-default);\n  cursor: pointer;\n  box-shadow: var(--elev-depth4);\n  transition: background var(--motion-fast) var(--ease-standard),\n              transform var(--motion-fast) var(--ease-standard);\n  font-size: var(--type-text-sm-size);\n  font-weight: 500;\n  white-space: nowrap;\n}\n\n.cu-fab-item:hover {\n  background: var(--color-surface-muted);\n  transform: translateX(-4px);\n}\n\n.cu-fab-item:active {\n  transform: scale(0.98);\n}\n\n.cu-fab-item-icon {\n  font-size: 16px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n\n.cu-fab-item-text {\n  line-height: 1.2;\n}\n\n.cu-fab-item:disabled {\n  opacity: 0.5;\n  cursor: not-allowed;\n  transform: none;\n  background: var(--color-surface);\n}\n\n\n/* ============================================================\n   Flowforge — Colors & Type\n   Source of truth: DESIGN.md (alpha)\n   Loaded by every UI kit, slide, and preview card.\n   ============================================================ */\n/* ----- Fonts ------------------------------------------------ */\n:root, :host {\n  /* ===== Color tokens =================================== */\n\n  /* Core surfaces */\n  --color-transparent: transparent;\n  --color-canvas: #F2F2F2;\n  --color-surface: #FFFFFF;\n  --color-surface-muted: #F2F2F2;\n  --color-surface-subtle: #E5E5E5;\n  --color-surface-strong: #BFBFBF;\n  --color-surface-inverse: #121212;\n\n  /* Agent / research / launch surfaces */\n  --color-surface-agent: #EBF1F0;\n  --color-surface-agent-subtle: #F5F8F7;\n  --color-surface-agent-raised: #DBE2E1;\n  --color-surface-preview: #CFEEEA;\n  --color-surface-selection: #E3F7EF;\n\n  /* Navigation */\n  --color-navigation-container: #E5F0E8;\n  --color-navigation-inverse: #004C45;\n\n  /* Action hierarchy */\n  --color-action-primary: #172D2D;\n  --color-action-primary-hover: #004C45;\n  --color-action-primary-disabled: #808080;\n  --color-action-outline-hover: #E5F0E8;\n  --color-action-interactive: #0F748B;\n  --color-action-interactive-hover: #0E687D;\n  --color-action-interactive-disabled: #D9F2F7;\n  --color-action-card: #A4DCB4;\n  --color-action-card-hover: #004C45;\n\n  /* Borders & focus */\n  --color-border-default: #808080;\n  --color-border-subdued: #D2D2D2;\n  --color-border-focus: #D9F2F7;\n  --color-border-blue: #17AED0;\n  --color-border-red: #BB363C;\n  --color-border-yellow: #F7C11B;\n  --color-border-green: #316E68;\n  --color-border-agent: #CDD9D7;\n  --color-border-agent-strong: #626D6B;\n  --color-border-green-gray: #C8D1D0;\n\n  /* Text */\n  --color-text-default: #121212;\n  --color-text-subdued: #404040;\n  --color-text-placeholder: #666666;\n  --color-text-disabled: #BFBFBF;\n  --color-text-inverse: #FFFFFF;\n  --color-text-inverse-subdued: #E5E5E5;\n  --color-text-red: #9C1D24;\n  --color-text-display: #004C45;\n  --color-text-agent: #172D2D;\n  --color-text-agent-subdued: #626D6B;\n  --color-text-deep-green: #24302F;\n  --color-text-code-green: #256D28;\n  --color-text-code-key: #844B1F;\n\n  /* Decorative / semantic fills */\n  --color-decorative-blue: #D9F2F7;\n  --color-decorative-red: #EDD5D5;\n  --color-decorative-yellow: #F6DFA3;\n  --color-decorative-green: #D5EBDB;\n  --color-decorative-purple: #CFD4E4;\n  --color-decorative-gray: #E5E5E5;\n\n  /* Icon roles */\n  --color-icon-default: #121212;\n  --color-icon-yellow: #A4680E;\n  --color-icon-red: #BB363C;\n  --color-icon-purple: #6B7EA6;\n  --color-icon-green: #004C45;\n  --color-icon-blue: #0E687D;\n\n  /* Convenience semantic aliases */\n  --fg1: var(--color-text-default);\n  --fg2: var(--color-text-subdued);\n  --fg3: var(--color-text-placeholder);\n  --fg-inverse: var(--color-text-inverse);\n  --bg-canvas: var(--color-canvas);\n  --bg-surface: var(--color-surface);\n  --bg-surface-hover: var(--color-surface-muted);\n  --primary: var(--color-action-primary);\n  --primary-hover: var(--color-action-primary-hover);\n  --accent-green: var(--color-text-display);\n  --accent-blue: var(--color-action-interactive);\n\n  /* ===== Spacing scale (4px-derived) ==================== */\n  --space-none: 0px;\n  --space-xxs: 4px;\n  --space-xs: 8px;\n  --space-sm: 12px;\n  --space-md: 16px;\n  --space-lg: 24px;\n  --space-xl: 32px;\n  --space-2xl: 40px;\n  --space-3xl: 48px;\n  --space-4xl: 64px;\n  --space-5xl: 80px;\n  --space-6xl: 96px;\n  --space-7xl: 160px;\n\n  /* ===== Radius ========================================= */\n  --radius-none: 0px;\n  --radius-xxs: 4px;\n  --radius-xs: 8px;\n  --radius-sm: 12px;\n  --radius-md: 16px;\n  --radius-guided: 18px;\n  --radius-lg: 24px;\n  --radius-full: 9999px;\n\n  /* ===== Elevation ====================================== */\n  --elev-none: none;\n  --elev-button: 0px 1px 0px rgba(18, 18, 18, 0.05),\n                 inset 0px -1px 0px rgba(18, 18, 18, 0.2);\n  --elev-depth4: 0px 4px 10px rgba(18, 18, 18, 0.12),\n                 0px 1px 3px rgba(18, 18, 18, 0.08);\n  --elev-input-raised: 0px 1px 3px rgba(18, 18, 18, 0.08),\n                       0px 4px 10px rgba(18, 18, 18, 0.12);\n  --elev-depth16: 0px 10px 25px rgba(18, 18, 18, 0.15),\n                  0px 1px 3px rgba(18, 18, 18, 0.08);\n  --elev-guided: 0px 28px 60px rgba(36, 48, 47, 0.12);\n  --elev-depth64: 0px 24px 60px rgba(18, 18, 18, 0.2),\n                  0px 4px 8px rgba(18, 18, 18, 0.18);\n\n  /* ===== Motion ========================================= */\n  --motion-fast: 150ms;\n  --motion-normal: 250ms;\n  --motion-slow: 350ms;\n  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);\n  --ease-decelerate: cubic-bezier(0, 0, 0.2, 1);\n  --ease-accelerate: cubic-bezier(0.4, 0, 1, 1);\n\n  /* ===== Layout ========================================= */\n  --layout-sidebar-width: 200px;\n  --layout-modal-min-width: 660px;\n  --layout-field-height: 48px;\n  --layout-tab-active-border-width: 2px;\n  --layout-table-header-height: 44px;\n  --layout-table-row-height: 56px;\n  --layout-graph-node-width: 136px;\n  --layout-graph-node-height: 144px;\n  --layout-card-item-width: 192px;\n  --layout-card-item-height: 136px;\n  --layout-assistant-panel-min-width: 36%;\n  --layout-assistant-rail-collapsed-width: 72px;\n  --layout-assistant-input-height: 60px;\n  --layout-assistant-input-min-height: 52px;\n  --layout-assistant-input-max-width: 1009px;\n  --layout-source-chip-width: 195px;\n  --layout-source-chip-height: 34px;\n  --layout-guided-card-max-width: 720px;\n  --layout-guided-card-max-height: 640px;\n  --layout-guided-card-min-height: 560px;\n\n  /* ===== Typography tokens ============================== */\n  --font-sans: \"Libre Franklin\", -apple-system, BlinkMacSystemFont,\n               \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif;\n  --font-mono: ui-monospace, \"SF Mono\", Menlo, Consolas, \"Liberation Mono\",\n               monospace;\n\n  /* Display */\n  --type-display-xxl-size: 72px;  --type-display-xxl-lh: 90px;\n  --type-display-xl-size:  60px;  --type-display-xl-lh:  72px;\n  --type-display-lg-size:  48px;  --type-display-lg-lh:  60px;\n  --type-display-md-size:  36px;  --type-display-md-lh:  44px;\n  --type-display-sm-size:  30px;  --type-display-sm-lh:  38px;\n  --type-display-xs-size:  24px;  --type-display-xs-lh:  32px;\n  --type-display-weight:   600;\n\n  /* Text */\n  --type-text-xxl-size: 24px;  --type-text-xxl-lh: 32px;\n  --type-text-xl-size:  20px;  --type-text-xl-lh:  30px;\n  --type-text-lg-size:  18px;  --type-text-lg-lh:  28px;\n  --type-text-md-size:  16px;  --type-text-md-lh:  24px;\n  --type-text-sm-size:  14px;  --type-text-sm-lh:  20px;\n  --type-text-xs-size:  12px;  --type-text-xs-lh:  18px;\n\n  /* Utility */\n  --type-button-md-size: 16px; --type-button-md-lh: 24px; --type-button-md-weight: 500;\n  --type-label-sm-size:  14px; --type-label-sm-lh:  20px; --type-label-sm-weight:  500;\n}\n/* ----- Base reset ------------------------------------------ */\n.cu-host {\n  background: var(--bg-canvas);\n  color: var(--fg1);\n  font-family: var(--font-sans);\n  font-size: var(--type-text-md-size);\n  line-height: var(--type-text-md-lh);\n  -webkit-font-smoothing: antialiased;\n  -moz-osx-font-smoothing: grayscale;\n}\n/* ===== Semantic role classes ================================\n   Use class names like `.ff-display-md` or `.ff-text-sm` on any\n   element. Headings get sensible defaults but stay overridable.\n   ============================================================ */\n.ff-display-xxl, .ff-display-xl, .ff-display-lg,\n.ff-display-md,  .ff-display-sm, .ff-display-xs {\n  font-family: var(--font-sans);\n  font-weight: var(--type-display-weight);\n  letter-spacing: normal;\n  color: var(--color-text-default);\n  margin: 0;\n}\n.ff-display-xxl { font-size: var(--type-display-xxl-size); line-height: var(--type-display-xxl-lh); }\n.ff-display-xl  { font-size: var(--type-display-xl-size);  line-height: var(--type-display-xl-lh);  }\n.ff-display-lg  { font-size: var(--type-display-lg-size);  line-height: var(--type-display-lg-lh);  }\n.ff-display-md  { font-size: var(--type-display-md-size);  line-height: var(--type-display-md-lh);  }\n.ff-display-sm  { font-size: var(--type-display-sm-size);  line-height: var(--type-display-sm-lh);  }\n.ff-display-xs  { font-size: var(--type-display-xs-size);  line-height: var(--type-display-xs-lh);  }\n.ff-text-xxl, .ff-text-xl, .ff-text-lg,\n.ff-text-md,  .ff-text-sm, .ff-text-xs {\n  font-family: var(--font-sans);\n  font-weight: 400;\n  letter-spacing: normal;\n  color: var(--color-text-default);\n  margin: 0;\n}\n.ff-text-xxl { font-size: var(--type-text-xxl-size); line-height: var(--type-text-xxl-lh); }\n.ff-text-xl  { font-size: var(--type-text-xl-size);  line-height: var(--type-text-xl-lh);  }\n.ff-text-lg  { font-size: var(--type-text-lg-size);  line-height: var(--type-text-lg-lh);  }\n.ff-text-md  { font-size: var(--type-text-md-size);  line-height: var(--type-text-md-lh);  }\n.ff-text-sm  { font-size: var(--type-text-sm-size);  line-height: var(--type-text-sm-lh);  }\n.ff-text-xs  { font-size: var(--type-text-xs-size);  line-height: var(--type-text-xs-lh);  }\n.ff-button-md {\n  font-family: var(--font-sans);\n  font-size: var(--type-button-md-size);\n  line-height: var(--type-button-md-lh);\n  font-weight: var(--type-button-md-weight);\n  letter-spacing: normal;\n}\n.ff-label-sm {\n  font-family: var(--font-sans);\n  font-size: var(--type-label-sm-size);\n  line-height: var(--type-label-sm-lh);\n  font-weight: var(--type-label-sm-weight);\n  letter-spacing: normal;\n}\n/* Convenience tone modifiers */\n.ff-fg-default  { color: var(--color-text-default); }\n.ff-fg-subdued  { color: var(--color-text-subdued); }\n.ff-fg-placeholder { color: var(--color-text-placeholder); }\n.ff-fg-disabled { color: var(--color-text-disabled); }\n.ff-fg-inverse  { color: var(--color-text-inverse); }\n.ff-fg-display  { color: var(--color-text-display); }\n.ff-fg-red      { color: var(--color-text-red); }\n.ff-fg-blue     { color: var(--color-action-interactive); }\n/* Map to common HTML defaults (still product-app sized) */\nh1 { font-size: var(--type-display-md-size); line-height: var(--type-display-md-lh); font-weight: var(--type-display-weight); margin: 0; }\nh2 { font-size: var(--type-display-sm-size); line-height: var(--type-display-sm-lh); font-weight: var(--type-display-weight); margin: 0; }\nh3 { font-size: var(--type-display-xs-size); line-height: var(--type-display-xs-lh); font-weight: var(--type-display-weight); margin: 0; }\nh4 { font-size: var(--type-text-lg-size);    line-height: var(--type-text-lg-lh);    font-weight: 600; margin: 0; }\np, li { font-size: var(--type-text-md-size); line-height: var(--type-text-md-lh); margin: 0; }\nsmall, .ff-caption { font-size: var(--type-text-xs-size); line-height: var(--type-text-xs-lh); color: var(--color-text-subdued); }\ncode, kbd, pre { font-family: var(--font-mono); font-size: 13px; }\n/* Generic focus ring used app-wide */\n.ff-focusable:focus-visible,\nbutton:focus-visible,\na:focus-visible,\ninput:focus-visible,\nselect:focus-visible,\ntextarea:focus-visible {\n  outline: 2px solid var(--color-action-interactive);\n  outline-offset: 2px;\n  border-radius: var(--radius-xxs);\n}\n:host {\n  /* Set root variables locally for the shadow DOM host if needed */\n  font-family: var(--font-sans);\n  color: var(--fg1);\n}\n*, *::before, *::after {\n  box-sizing: border-box;\n}\n";
 
 (function() {
   "use strict";
@@ -7009,10 +7010,9 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
   var clientExports = requireClient();
   const DEFAULT_CONFIG = {
     licenseKey: "",
-    retryAttempts: 3,
     apiKey: "ZDksovkGHYUqwK8k9hoDCKHSP2geS6WB"
   };
-  const CONFIG_KEYS = ["licenseKey", "retryAttempts", "apiKey"];
+  const CONFIG_KEYS = ["licenseKey", "apiKey"];
   function loadStoredConfig(stored) {
     if (!stored || typeof stored !== "object") return { ...DEFAULT_CONFIG };
     const src = stored;
@@ -7123,12 +7123,49 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
     }, [state.config]);
     return /* @__PURE__ */ jsxRuntimeExports.jsx(AppStateContext.Provider, { value: { state, dispatch }, children });
   }
+  class GmHttpError extends Error {
+    status;
+    statusText;
+    responseHeaders;
+    responseText;
+    constructor(status, statusText, responseHeaders, responseText) {
+      super(`HTTP Error ${status}: ${statusText}`);
+      this.name = "GmHttpError";
+      this.status = status;
+      this.statusText = statusText;
+      this.responseHeaders = responseHeaders;
+      this.responseText = responseText;
+    }
+  }
+  class GmNetworkError extends Error {
+    constructor(message) {
+      super(message);
+      this.name = "GmNetworkError";
+    }
+  }
+  async function gmGet(key, defaultValue) {
+    if (typeof GM_getValue === "undefined") {
+      throw new Error("GM_getValue is not available");
+    }
+    return GM_getValue(key, defaultValue);
+  }
+  async function gmSet(key, value) {
+    if (typeof GM_setValue === "undefined") {
+      throw new Error("GM_setValue is not available");
+    }
+    GM_setValue(key, value);
+  }
+  async function gmDelete(key) {
+    if (typeof GM_deleteValue === "undefined") {
+      throw new Error("GM_deleteValue is not available");
+    }
+    GM_deleteValue(key);
+  }
   const gmCookie = {
     list(details = {}) {
       return new Promise((resolve, reject) => {
         if (typeof GM_cookie === "undefined" || !GM_cookie.list) {
-          console.error("GM_cookie.list is not available");
-          return resolve([]);
+          return reject(new Error("GM_cookie.list is not available"));
         }
         GM_cookie.list(details, (cookies, error) => {
           if (error) reject(error);
@@ -7139,8 +7176,7 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
     set(details) {
       return new Promise((resolve, reject) => {
         if (typeof GM_cookie === "undefined" || !GM_cookie.set) {
-          console.error("GM_cookie.set is not available");
-          return resolve();
+          return reject(new Error("GM_cookie.set is not available"));
         }
         GM_cookie.set(details, (error) => {
           if (error) reject(error);
@@ -7151,8 +7187,7 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
     delete(details) {
       return new Promise((resolve, reject) => {
         if (typeof GM_cookie === "undefined" || !GM_cookie.delete) {
-          console.error("GM_cookie.delete is not available");
-          return resolve();
+          return reject(new Error("GM_cookie.delete is not available"));
         }
         GM_cookie.delete(details, (error) => {
           if (error) reject(error);
@@ -7161,20 +7196,27 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
       });
     }
   };
-  function gmXhr(method, url, headers, body) {
+  function gmXhr(method, url, headers, body, timeout) {
     return new Promise((resolve, reject) => {
       if (typeof GM_xmlhttpRequest === "undefined") {
-        console.error("GM_xmlhttpRequest is not available");
-        return reject(new Error("GM_xmlhttpRequest is not available"));
+        return reject(new GmNetworkError("GM_xmlhttpRequest is not available"));
       }
       GM_xmlhttpRequest({
         method,
         url,
         headers,
         data: body,
+        timeout,
         onload: (response) => {
           if (response.status < 200 || response.status >= 300) {
-            reject(new Error(`HTTP Error ${response.status}: ${response.statusText}`));
+            reject(
+              new GmHttpError(
+                response.status,
+                response.statusText,
+                response.responseHeaders,
+                response.responseText
+              )
+            );
             return;
           }
           try {
@@ -7184,17 +7226,59 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
             reject(new Error(`Failed to parse response: ${response.responseText}`));
           }
         },
-        onerror: (error) => reject(error)
+        onerror: (error) => reject(
+          error instanceof GmNetworkError ? error : new GmNetworkError(error instanceof Error ? error.message : String(error))
+        ),
+        ontimeout: () => reject(new GmNetworkError("Request timed out"))
       });
     });
   }
   const WORKER_URL = "https://cf-api-gateway.sitienbmt.workers.dev/udemy/v3";
+  function isTransientStatus(status) {
+    if (status === 408 || status === 429) return true;
+    if (status !== void 0 && status >= 500 && status <= 599) return true;
+    return false;
+  }
+  const MAX_READ_RETRIES = 2;
+  async function fetchWithTransientRetry(fn) {
+    let attempts = 0;
+    while (true) {
+      try {
+        const response = await fn();
+        if (response && typeof response === "object" && "error" in response && response.error) {
+          return { ok: false, error: response.error };
+        }
+        return { ok: true, data: response, status: 200 };
+      } catch (error) {
+        let status;
+        let isTransient = false;
+        if (error instanceof GmHttpError) {
+          status = error.status;
+          isTransient = isTransientStatus(status);
+        } else if (error instanceof GmNetworkError) {
+          isTransient = true;
+        }
+        if (isTransient && attempts < MAX_READ_RETRIES) {
+          attempts++;
+          continue;
+        }
+        return {
+          ok: false,
+          error: error?.message || String(error),
+          status
+        };
+      }
+    }
+  }
   function makeHeaders(config, host) {
     const headers = {
       "X-License-Key": config.licenseKey,
       "X-API-Key": config.apiKey,
       "Content-Type": "application/json"
     };
+    if (host) {
+      headers["X-Udemy-Host"] = host;
+    }
     return headers;
   }
   async function validateLicense(config) {
@@ -7203,9 +7287,10 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
       if (response && response.error) {
         return { ok: false, error: response.error };
       }
-      return { ok: true, data: response };
+      return { ok: true, data: response, status: 200 };
     } catch (error) {
-      return { ok: false, error: error?.message || String(error) };
+      const status = error instanceof GmHttpError ? error.status : void 0;
+      return { ok: false, error: error?.message || String(error), status };
     }
   }
   async function fetchCookieHealth(config) {
@@ -7214,52 +7299,46 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
       if (response && response.error) {
         return { ok: false, error: response.error };
       }
-      return { ok: true, data: response };
+      return { ok: true, data: response, status: 200 };
     } catch (error) {
-      return { ok: false, error: error?.message || String(error) };
+      const status = error instanceof GmHttpError ? error.status : void 0;
+      return { ok: false, error: error?.message || String(error), status };
     }
   }
   async function fetchCookieSources(host) {
-    try {
-      const headers = { "X-Udemy-Host": host };
-      const response = await gmXhr("GET", `${WORKER_URL}/api/public/udemy-cookie-sources`, headers);
-      if (response && response.error) {
-        return { ok: false, error: response.error };
-      }
-      const domains = (response.domains || []).map((d) => ({
-        host: d.host,
-        cookieFileIds: d.cookieFileIds || Array.from({ length: d.cookieCount || 0 }, (_, i) => String(i))
-      }));
-      const fallback = response.fallback ? {
-        cookieFileIds: response.fallback.cookieFileIds || Array.from({ length: response.fallback.cookieCount || 0 }, (_, i) => String(i))
-      } : void 0;
-      return { ok: true, data: { domains, fallback } };
-    } catch (error) {
-      return { ok: false, error: error?.message || String(error) };
+    const headers = { "X-Udemy-Host": host };
+    const rawResult = await fetchWithTransientRetry(
+      () => gmXhr("GET", `${WORKER_URL}/api/public/udemy-cookie-sources`, headers)
+    );
+    if (!rawResult.ok) {
+      return rawResult;
     }
+    const response = rawResult.data;
+    const domains = (response.domains || []).map((d) => ({
+      host: d.host,
+      cookieFileIds: d.cookieFileIds || Array.from({ length: d.cookieCount || 0 }, (_, i) => String(i))
+    }));
+    const fallback = response.fallback ? {
+      cookieFileIds: response.fallback.cookieFileIds || Array.from({ length: response.fallback.cookieCount || 0 }, (_, i) => String(i))
+    } : void 0;
+    return { ok: true, data: { domains, fallback }, status: rawResult.status };
   }
   async function fetchCookiesBySource(host, fileId) {
-    try {
-      const indexVal = /^\d+$/.test(fileId) ? parseInt(fileId, 10) : 0;
-      const url = `${WORKER_URL}/api/public/udemy-cookies?host=${encodeURIComponent(host)}&index=${indexVal}`;
-      const response = await gmXhr("GET", url);
-      if (response && response.error) {
-        return { ok: false, error: response.error };
-      }
-      return { ok: true, data: response };
-    } catch (error) {
-      return { ok: false, error: error?.message || String(error) };
-    }
+    const indexVal = /^\d+$/.test(fileId) ? parseInt(fileId, 10) : 0;
+    const url = `${WORKER_URL}/api/public/udemy-cookies?host=${encodeURIComponent(host)}&index=${indexVal}`;
+    return fetchWithTransientRetry(() => gmXhr("GET", url));
   }
-  async function fetchSync(config) {
+  async function fetchSync(config, host) {
     try {
-      const response = await gmXhr("GET", `${WORKER_URL}/api/sync`, makeHeaders(config));
+      const resolvedHost = host ?? window.location.host;
+      const response = await gmXhr("GET", `${WORKER_URL}/api/sync`, makeHeaders(config, resolvedHost));
       if (response && response.error) {
         return { ok: false, error: response.error };
       }
-      return { ok: true, data: response };
+      return { ok: true, data: response, status: 200 };
     } catch (error) {
-      return { ok: false, error: error?.message || String(error) };
+      const status = error instanceof GmHttpError ? error.status : void 0;
+      return { ok: false, error: error?.message || String(error), status };
     }
   }
   async function createFolder(config, data) {
@@ -7268,9 +7347,10 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
       if (response && response.error) {
         return { ok: false, error: response.error };
       }
-      return { ok: true, data: response };
+      return { ok: true, data: response, status: 200 };
     } catch (error) {
-      return { ok: false, error: error?.message || String(error) };
+      const status = error instanceof GmHttpError ? error.status : void 0;
+      return { ok: false, error: error?.message || String(error), status };
     }
   }
   async function updateFolder(config, folderId, data) {
@@ -7279,9 +7359,10 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
       if (response && response.error) {
         return { ok: false, error: response.error };
       }
-      return { ok: true, data: response };
+      return { ok: true, data: response, status: 200 };
     } catch (error) {
-      return { ok: false, error: error?.message || String(error) };
+      const status = error instanceof GmHttpError ? error.status : void 0;
+      return { ok: false, error: error?.message || String(error), status };
     }
   }
   async function deleteFolder(config, folderId) {
@@ -7290,9 +7371,10 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
       if (response && response.error) {
         return { ok: false, error: response.error };
       }
-      return { ok: true, data: void 0 };
+      return { ok: true, data: void 0, status: 200 };
     } catch (error) {
-      return { ok: false, error: error?.message || String(error) };
+      const status = error instanceof GmHttpError ? error.status : void 0;
+      return { ok: false, error: error?.message || String(error), status };
     }
   }
   async function addCourseToFolders(config, body, accessToken) {
@@ -7310,9 +7392,10 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
       if (response && response.error) {
         return { ok: false, error: response.error };
       }
-      return { ok: true, data: response };
+      return { ok: true, data: response, status: 200 };
     } catch (error) {
-      return { ok: false, error: error?.message || String(error) };
+      const status = error instanceof GmHttpError ? error.status : void 0;
+      return { ok: false, error: error?.message || String(error), status };
     }
   }
   function useLicense() {
@@ -7386,6 +7469,654 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
       warning
     };
   }
+  function getCurrentUdemyHost() {
+    return window.location.hostname;
+  }
+  function normalizeCookieDomain(domain) {
+    return domain.trim().toLowerCase().replace(/^\./, "");
+  }
+  function cookieIdentityKey(name, domain, path = "/") {
+    const normDomain = normalizeCookieDomain(domain);
+    const normPath = path.startsWith("/") ? path : `/${path}`;
+    return `${name}\0${normDomain}\0${normPath}`;
+  }
+  function diffCookies(existing, desired, nowSeconds = Date.now() / 1e3) {
+    const ops = [];
+    const activeDesired = desired.filter(
+      (cookie) => cookie.expirationDate === void 0 || cookie.expirationDate > nowSeconds
+    );
+    const existingMap = /* @__PURE__ */ new Map();
+    for (const cookie of existing) {
+      const key = cookieIdentityKey(cookie.name, cookie.domain, cookie.path);
+      existingMap.set(key, cookie);
+    }
+    const desiredMap = /* @__PURE__ */ new Map();
+    for (const cookie of activeDesired) {
+      const key = cookieIdentityKey(cookie.name, cookie.domain, cookie.path);
+      desiredMap.set(key, cookie);
+    }
+    for (const dCookie of activeDesired) {
+      const key = cookieIdentityKey(dCookie.name, dCookie.domain, dCookie.path);
+      const eCookie = existingMap.get(key);
+      if (!eCookie || eCookie.value !== dCookie.value) {
+        ops.push({ type: "set", cookie: dCookie });
+      }
+    }
+    for (const eCookie of existing) {
+      const key = cookieIdentityKey(eCookie.name, eCookie.domain, eCookie.path);
+      if (!desiredMap.has(key)) {
+        ops.push({
+          type: "delete",
+          name: eCookie.name,
+          domain: eCookie.domain,
+          ...eCookie.path !== void 0 ? { path: eCookie.path } : {},
+          ...eCookie.hostOnly !== void 0 ? { hostOnly: eCookie.hostOnly } : {}
+        });
+      }
+    }
+    return ops;
+  }
+  function isCookieApplicable(cookie, currentHost) {
+    const normalizedHost = normalizeCookieDomain(currentHost);
+    const normalizedDomain = normalizeCookieDomain(cookie.domain || "");
+    if (!normalizedHost || !normalizedDomain) {
+      return false;
+    }
+    if (cookie.hostOnly === true) {
+      return normalizedHost === normalizedDomain;
+    }
+    return normalizedHost === normalizedDomain || normalizedHost.endsWith(`.${normalizedDomain}`);
+  }
+  function buildDeleteCookieDetails(cookie) {
+    const domainWithoutDot = normalizeCookieDomain(cookie.domain);
+    const rawPath = cookie.path || "/";
+    const path = rawPath.startsWith("/") ? rawPath : `/${rawPath}`;
+    const url = `https://${domainWithoutDot}${path}`;
+    return {
+      url,
+      name: cookie.name,
+      domain: cookie.domain,
+      path: cookie.path
+    };
+  }
+  async function cleanupCookiesForHost(currentHost) {
+    const initialCookies = await gmCookie.list({});
+    const applicable = initialCookies.filter((c) => isCookieApplicable(c, currentHost));
+    if (applicable.length === 0) {
+      return;
+    }
+    await Promise.allSettled(applicable.map((c) => gmCookie.delete(buildDeleteCookieDetails(c))));
+    const relisted1 = await gmCookie.list({});
+    const remaining1 = relisted1.filter((c) => isCookieApplicable(c, currentHost));
+    if (remaining1.length > 0) {
+      await Promise.allSettled(remaining1.map((c) => gmCookie.delete(buildDeleteCookieDetails(c))));
+      const relisted2 = await gmCookie.list({});
+      const remaining2 = relisted2.filter((c) => isCookieApplicable(c, currentHost));
+      if (remaining2.length > 0) {
+        const names = remaining2.map((c) => c.name).join(", ");
+        throw new Error(
+          `Failed to clean up ${remaining2.length} cookie(s) for ${currentHost}: ${names}`
+        );
+      }
+    }
+  }
+  const DOMAIN_SWITCH_STORAGE_KEY = "udemyHealthyDomainSwitch";
+  const DOMAIN_SWITCH_TTL_MS = 2 * 60 * 1e3;
+  const MAX_DOMAIN_HOPS = 2;
+  async function readDomainSwitchState() {
+    const raw = await gmGet(DOMAIN_SWITCH_STORAGE_KEY, null);
+    if (!raw) {
+      return null;
+    }
+    if (typeof raw !== "object" || raw.version !== 1 || typeof raw.expiresAt !== "number" || !Array.isArray(raw.visitedHosts)) {
+      await clearDomainSwitchState();
+      return null;
+    }
+    if (Date.now() >= raw.expiresAt) {
+      await clearDomainSwitchState();
+      return null;
+    }
+    return {
+      version: 1,
+      expiresAt: raw.expiresAt,
+      visitedHosts: raw.visitedHosts.map(normalizeCookieDomain)
+    };
+  }
+  async function clearDomainSwitchState() {
+    await gmDelete(DOMAIN_SWITCH_STORAGE_KEY);
+  }
+  function isValidUdemyHost(host) {
+    const normalized = normalizeCookieDomain(host);
+    if (!normalized) {
+      return false;
+    }
+    return normalized === "udemy.com" || normalized.endsWith(".udemy.com");
+  }
+  function pickHealthyHost(snapshot, currentHost, visitedHosts = []) {
+    if (!snapshot) {
+      return null;
+    }
+    const normalizedCurrent = normalizeCookieDomain(currentHost);
+    const normalizedVisited = new Set(visitedHosts.map(normalizeCookieDomain));
+    normalizedVisited.add(normalizedCurrent);
+    const target = snapshot.domains.find(
+      (domain) => domain.status === "healthy" && isValidUdemyHost(domain.host) && !normalizedVisited.has(normalizeCookieDomain(domain.host))
+    );
+    return target?.host ?? null;
+  }
+  function buildRedirectUrl(targetHost, currentUrl) {
+    if (!targetHost || !isValidUdemyHost(targetHost)) {
+      return null;
+    }
+    try {
+      const url = new URL(currentUrl);
+      url.host = targetHost;
+      if (normalizeCookieDomain(url.hostname) !== normalizeCookieDomain(targetHost)) {
+        return null;
+      }
+      return url.toString();
+    } catch {
+      return null;
+    }
+  }
+  async function canAttempt(target, opts) {
+    if (opts?.manual) {
+      return true;
+    }
+    const targetNorm = normalizeCookieDomain(target);
+    let currentNorm = "";
+    try {
+      currentNorm = normalizeCookieDomain(opts?.currentHost ?? getCurrentUdemyHost());
+    } catch {
+      currentNorm = "";
+    }
+    const state = await readDomainSwitchState();
+    if (!state) {
+      return true;
+    }
+    if (state.visitedHosts.includes(targetNorm)) {
+      return false;
+    }
+    const endpoint = state.visitedHosts[state.visitedHosts.length - 1];
+    if (!currentNorm || currentNorm !== endpoint) {
+      return false;
+    }
+    const hopsDone = state.visitedHosts.length - 1;
+    if (hopsDone >= MAX_DOMAIN_HOPS) {
+      return false;
+    }
+    return true;
+  }
+  async function recordAttempt(target, currentHostOrOpts, maybeOpts) {
+    let currentHost;
+    let isManual = false;
+    if (typeof currentHostOrOpts === "string") {
+      currentHost = currentHostOrOpts;
+      if (maybeOpts?.manual) {
+        isManual = true;
+      }
+    } else if (currentHostOrOpts && typeof currentHostOrOpts === "object") {
+      currentHost = currentHostOrOpts.currentHost;
+      isManual = !!currentHostOrOpts.manual;
+    }
+    if (!currentHost) {
+      try {
+        currentHost = getCurrentUdemyHost();
+      } catch {
+        currentHost = "";
+      }
+    }
+    const currentNorm = normalizeCookieDomain(currentHost);
+    const targetNorm = normalizeCookieDomain(target);
+    const now = Date.now();
+    if (isManual) {
+      const visitedHosts = currentNorm && currentNorm !== targetNorm ? [currentNorm, targetNorm] : [targetNorm];
+      const nextState = {
+        version: 1,
+        expiresAt: now + DOMAIN_SWITCH_TTL_MS,
+        visitedHosts
+      };
+      await gmSet(DOMAIN_SWITCH_STORAGE_KEY, nextState);
+      return;
+    }
+    const activeState = await readDomainSwitchState();
+    if (activeState) {
+      const visited = [...activeState.visitedHosts];
+      if (!visited.includes(targetNorm)) {
+        visited.push(targetNorm);
+      }
+      const nextState = {
+        version: 1,
+        expiresAt: activeState.expiresAt,
+        visitedHosts: visited
+      };
+      await gmSet(DOMAIN_SWITCH_STORAGE_KEY, nextState);
+    } else {
+      const visitedHosts = currentNorm && currentNorm !== targetNorm ? [currentNorm, targetNorm] : [targetNorm];
+      const nextState = {
+        version: 1,
+        expiresAt: now + DOMAIN_SWITCH_TTL_MS,
+        visitedHosts
+      };
+      await gmSet(DOMAIN_SWITCH_STORAGE_KEY, nextState);
+    }
+  }
+  const locationRedirect = {
+    assign(url) {
+      window.location.href = url;
+    }
+  };
+  let isSwitchingInProgress = false;
+  function useHealthyDomainSwitch() {
+    const { state, dispatch } = useAppState();
+    const [status, setStatus] = reactExports.useState("idle");
+    const [snapshot, setSnapshot] = reactExports.useState(null);
+    const [error, setError] = reactExports.useState(null);
+    const loadSnapshot = reactExports.useCallback(async () => {
+      if (snapshot) {
+        return snapshot;
+      }
+      setStatus("loading");
+      setError(null);
+      const result = await fetchCookieHealth(state.config);
+      if (result.ok) {
+        setSnapshot(result.data);
+        setStatus("ok");
+        return result.data;
+      }
+      setStatus("unreachable");
+      setError(result.error);
+      return snapshot;
+    }, [snapshot, state.config]);
+    const switchNow = reactExports.useCallback(async () => {
+      if (isSwitchingInProgress) {
+        return;
+      }
+      isSwitchingInProgress = true;
+      try {
+        const nextSnapshot = await loadSnapshot();
+        const currentHost = getCurrentUdemyHost();
+        const targetHost = pickHealthyHost(nextSnapshot, currentHost);
+        if (!targetHost) {
+          dispatch({
+            type: "NOTICE_PUSH",
+            payload: {
+              kind: "info",
+              text: "No healthy Udemy domain available right now."
+            }
+          });
+          return;
+        }
+        const redirectUrl = buildRedirectUrl(targetHost, window.location.href);
+        if (!redirectUrl) {
+          dispatch({
+            type: "NOTICE_PUSH",
+            payload: {
+              kind: "info",
+              text: "No healthy Udemy domain available right now."
+            }
+          });
+          return;
+        }
+        try {
+          await cleanupCookiesForHost(currentHost);
+        } catch (cleanupError) {
+          const msg = cleanupError instanceof Error ? cleanupError.message : String(cleanupError);
+          dispatch({
+            type: "NOTICE_PUSH",
+            payload: {
+              kind: "error",
+              text: `Failed to clean up cookies before domain switch: ${msg}`
+            }
+          });
+          return;
+        }
+        try {
+          await recordAttempt(targetHost, currentHost, { manual: true });
+        } catch (stateError) {
+          const msg = stateError instanceof Error ? stateError.message : String(stateError);
+          dispatch({
+            type: "NOTICE_PUSH",
+            payload: {
+              kind: "error",
+              text: `Failed to record domain-switch state: ${msg}`
+            }
+          });
+          return;
+        }
+        locationRedirect.assign(redirectUrl);
+      } finally {
+        isSwitchingInProgress = false;
+      }
+    }, [dispatch, loadSnapshot]);
+    const autoCheckOnSyncFailure = reactExports.useCallback(
+      async (currentHost) => {
+        if (!state.config.licenseKey) {
+          return;
+        }
+        if (isSwitchingInProgress) {
+          return;
+        }
+        isSwitchingInProgress = true;
+        try {
+          let loopState;
+          try {
+            loopState = await readDomainSwitchState();
+          } catch (stateError) {
+            const msg = stateError instanceof Error ? stateError.message : String(stateError);
+            console.error(`[Cookie Updater] Healthy-domain auto-switch skipped: ${msg}`);
+            dispatch({
+              type: "NOTICE_PUSH",
+              payload: {
+                kind: "error",
+                text: `Failed to read domain-switch state: ${msg}`
+              }
+            });
+            return;
+          }
+          const nextSnapshot = await loadSnapshot();
+          const targetHost = pickHealthyHost(
+            nextSnapshot,
+            currentHost,
+            loopState?.visitedHosts ?? []
+          );
+          if (!targetHost) {
+            console.log("[Cookie Updater] Healthy-domain auto-switch skipped: no healthy target.");
+            return;
+          }
+          let allowed;
+          try {
+            allowed = await canAttempt(targetHost, { currentHost });
+          } catch (stateError) {
+            const msg = stateError instanceof Error ? stateError.message : String(stateError);
+            console.error(`[Cookie Updater] Healthy-domain auto-switch skipped: ${msg}`);
+            dispatch({
+              type: "NOTICE_PUSH",
+              payload: {
+                kind: "error",
+                text: `Failed to read domain-switch state: ${msg}`
+              }
+            });
+            return;
+          }
+          if (!allowed) {
+            console.log("[Cookie Updater] Healthy-domain auto-switch skipped by loop guard.");
+            return;
+          }
+          const redirectUrl = buildRedirectUrl(targetHost, window.location.href);
+          if (!redirectUrl) {
+            console.log("[Cookie Updater] Healthy-domain auto-switch skipped: invalid redirect URL.");
+            return;
+          }
+          try {
+            await cleanupCookiesForHost(currentHost);
+          } catch (cleanupError) {
+            const msg = cleanupError instanceof Error ? cleanupError.message : String(cleanupError);
+            console.error(`[Cookie Updater] Cookie cleanup failed during auto-switch: ${msg}`);
+            dispatch({
+              type: "NOTICE_PUSH",
+              payload: {
+                kind: "error",
+                text: `Failed to clean up cookies before domain switch: ${msg}`
+              }
+            });
+            return;
+          }
+          try {
+            await recordAttempt(targetHost, currentHost, { manual: false });
+          } catch (stateError) {
+            const msg = stateError instanceof Error ? stateError.message : String(stateError);
+            console.error(`[Cookie Updater] Healthy-domain auto-switch skipped: ${msg}`);
+            dispatch({
+              type: "NOTICE_PUSH",
+              payload: {
+                kind: "error",
+                text: `Failed to record domain-switch state: ${msg}`
+              }
+            });
+            return;
+          }
+          locationRedirect.assign(redirectUrl);
+        } finally {
+          isSwitchingInProgress = false;
+        }
+      },
+      [dispatch, loadSnapshot, state.config.licenseKey]
+    );
+    return {
+      status,
+      snapshot,
+      error,
+      switchNow,
+      autoCheckOnSyncFailure
+    };
+  }
+  const RELOAD_MARKER = "cookie-updater:reload-after-import";
+  function reloadAfterCookieImport(operationCount, reload = () => window.location.reload(), storage = window.sessionStorage) {
+    if (storage.getItem(RELOAD_MARKER)) {
+      return;
+    }
+    if (operationCount > 0) {
+      storage.setItem(RELOAD_MARKER, "1");
+      reload();
+    }
+  }
+  const MAX_PROBE_RETRIES = 2;
+  async function probeAuth(host, fetchFn = typeof fetch !== "undefined" ? fetch.bind(window) : fetch) {
+    const url = `https://${host}/api-2.0/users/me/`;
+    let lastError = null;
+    for (let attempt = 0; attempt <= MAX_PROBE_RETRIES; attempt++) {
+      try {
+        const response = await fetchFn(url, {
+          method: "GET",
+          credentials: "include",
+          cache: "no-store",
+          redirect: "manual"
+        });
+        if (response.type === "opaqueredirect" || response.status >= 300 && response.status < 400) {
+          return { kind: "expired", status: response.status || 302 };
+        }
+        if (response.status >= 200 && response.status < 300) {
+          return { kind: "authenticated", status: response.status };
+        }
+        return { kind: "expired", status: response.status };
+      } catch (err) {
+        lastError = err instanceof Error ? err : new Error(String(err));
+      }
+    }
+    return {
+      kind: "network_error",
+      error: lastError?.message || "Network error during authentication probe"
+    };
+  }
+  let inFlightSyncPromise = null;
+  async function applyCookieOp(op, host) {
+    if (op.type === "set") {
+      const cookieUrl = `https://${host.replace(/^\./, "")}${op.cookie.path || "/"}`;
+      const cookieDetails = {
+        url: cookieUrl,
+        name: op.cookie.name,
+        value: op.cookie.value,
+        domain: op.cookie.domain,
+        path: op.cookie.path,
+        secure: op.cookie.secure,
+        httpOnly: op.cookie.httpOnly,
+        expirationDate: op.cookie.expirationDate
+      };
+      if (op.cookie.hostOnly) {
+        delete cookieDetails.domain;
+      }
+      await gmCookie.set(cookieDetails);
+    } else if (op.type === "delete") {
+      const cookieUrl = `https://${host.replace(/^\./, "")}${op.path || "/"}`;
+      await gmCookie.delete({
+        url: cookieUrl,
+        name: op.name,
+        domain: op.domain,
+        path: op.path
+      });
+    }
+  }
+  async function runSyncPipeline({ licenseKey, dispatch, autoCheckOnSyncFailure }) {
+    const host = getCurrentUdemyHost();
+    if (!host) {
+      return;
+    }
+    if (!licenseKey) {
+      console.log("[Cookie Updater] No license key configured, skipping cookie sync.");
+      return;
+    }
+    dispatch({ type: "SYNC_STATUS", payload: { phase: "syncing", error: null } });
+    const initialProbe = await probeAuth(host);
+    if (initialProbe.kind === "authenticated") {
+      await clearDomainSwitchState();
+      dispatch({
+        type: "SYNC_STATUS",
+        payload: {
+          phase: "ok",
+          lastResult: "Session is authenticated",
+          error: null
+        }
+      });
+      return;
+    }
+    if (initialProbe.kind === "network_error") {
+      dispatch({
+        type: "SYNC_STATUS",
+        payload: {
+          phase: "error",
+          error: initialProbe.error
+        }
+      });
+      return;
+    }
+    try {
+      const sourcesResult = await fetchCookieSources(host);
+      if (!sourcesResult.ok) {
+        throw new Error(sourcesResult.error);
+      }
+      const currentHostLower = host.toLowerCase();
+      const matchedDomain = sourcesResult.data.domains.find(
+        (d) => d.host.toLowerCase() === currentHostLower
+      );
+      if (!matchedDomain) {
+        throw new Error(`No matching cookie source domain found for host: ${host}`);
+      }
+      if (!matchedDomain.cookieFileIds || matchedDomain.cookieFileIds.length === 0) {
+        throw new Error(`No cookie files configured for host: ${host}`);
+      }
+      const fileId = matchedDomain.cookieFileIds[0];
+      const cookiesResult = await fetchCookiesBySource(host, fileId);
+      if (!cookiesResult.ok) {
+        throw new Error(cookiesResult.error);
+      }
+      const desiredCookies = cookiesResult.data;
+      const existingCookies = await gmCookie.list({ domain: host });
+      const ops = diffCookies(
+        existingCookies.map((c) => ({
+          name: c.name,
+          value: c.value,
+          domain: c.domain,
+          path: c.path
+        })),
+        desiredCookies
+      );
+      let setOpsCount = 0;
+      let deleteOpsCount = 0;
+      const failedOps = [];
+      for (const op of ops) {
+        try {
+          await applyCookieOp(op, host);
+          if (op.type === "set") setOpsCount++;
+          else if (op.type === "delete") deleteOpsCount++;
+        } catch (error) {
+          if (error?.message && error.message.includes("not available")) {
+            throw error;
+          }
+          console.warn(`[Cookie Updater] cookie op failed on first attempt: ${op.type === "set" ? op.cookie.name : op.name} — ${error?.message || error}`);
+          failedOps.push(op);
+        }
+      }
+      let skippedOpsCount = 0;
+      if (failedOps.length > 0) {
+        for (const op of failedOps) {
+          try {
+            await applyCookieOp(op, host);
+            if (op.type === "set") setOpsCount++;
+            else if (op.type === "delete") deleteOpsCount++;
+          } catch (error) {
+            if (error?.message && error.message.includes("not available")) {
+              throw error;
+            }
+            console.warn(`[Cookie Updater] cookie op failed on retry: ${op.type === "set" ? op.cookie.name : op.name} — ${error?.message || error}`);
+            skippedOpsCount++;
+          }
+        }
+      }
+      await gmCookie.list({ domain: host });
+      const postProbe = await probeAuth(host);
+      if (postProbe.kind === "authenticated") {
+        await clearDomainSwitchState();
+        const resultMsg = skippedOpsCount > 0 ? `${ops.length} cookies synchronized (${setOpsCount} set, ${deleteOpsCount} deleted, ${skippedOpsCount} skipped)` : `${ops.length} cookies synchronized (${setOpsCount} set, ${deleteOpsCount} deleted)`;
+        dispatch({
+          type: "SYNC_STATUS",
+          payload: {
+            phase: "ok",
+            lastResult: resultMsg,
+            error: null
+          }
+        });
+        reloadAfterCookieImport(ops.length);
+        return;
+      }
+      if (postProbe.kind === "network_error") {
+        dispatch({
+          type: "SYNC_STATUS",
+          payload: {
+            phase: "error",
+            error: postProbe.error
+          }
+        });
+        return;
+      }
+      const errorMsg = "Session authentication failed after cookie import";
+      dispatch({
+        type: "SYNC_STATUS",
+        payload: {
+          phase: "error",
+          error: errorMsg
+        }
+      });
+      await autoCheckOnSyncFailure(host);
+    } catch (err) {
+      const errorMsg = err?.message || String(err);
+      console.error(`[Cookie Updater] Cookie sync failed: ${errorMsg}`);
+      dispatch({
+        type: "SYNC_STATUS",
+        payload: {
+          phase: "error",
+          error: errorMsg
+        }
+      });
+    }
+  }
+  function useCookieSync() {
+    const { state, dispatch } = useAppState();
+    const { autoCheckOnSyncFailure } = useHealthyDomainSwitch();
+    const licenseKey = state.config.licenseKey;
+    reactExports.useEffect(() => {
+      if (!licenseKey) {
+        return;
+      }
+      if (!inFlightSyncPromise) {
+        inFlightSyncPromise = runSyncPipeline({
+          licenseKey,
+          dispatch,
+          autoCheckOnSyncFailure
+        });
+      }
+    }, [licenseKey, dispatch, autoCheckOnSyncFailure]);
+  }
   const LicensePanel = () => {
     const { state } = useAppState();
     const { status, expiresAt, warning } = useLicense();
@@ -7439,24 +8170,12 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
   };
   const ConfigForm = () => {
     const { state, dispatch } = useAppState();
-    const { licenseKey, retryAttempts, apiKey } = state.config;
+    const { licenseKey, apiKey } = state.config;
     const handleTextChange = (e) => {
       const { name, value } = e.target;
       dispatch({
         type: "CONFIG_UPDATE",
         payload: { [name]: value }
-      });
-    };
-    const handleNumberChange = (e) => {
-      const { name, value } = e.target;
-      let numVal = parseInt(value, 10);
-      if (isNaN(numVal)) {
-        numVal = 3;
-      }
-      numVal = Math.max(1, Math.min(10, numVal));
-      dispatch({
-        type: "CONFIG_UPDATE",
-        payload: { [name]: numVal }
       });
     };
     return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "config-form", children: [
@@ -7472,22 +8191,6 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
             value: licenseKey,
             onChange: handleTextChange,
             placeholder: "Enter your license key"
-          }
-        )
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "form-group", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "form-label ff-label-sm ff-fg-subdued", htmlFor: "retryAttempts", children: "Retry attempts (1-10)" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx(
-          "input",
-          {
-            type: "number",
-            id: "retryAttempts",
-            name: "retryAttempts",
-            className: "form-input",
-            value: retryAttempts,
-            onChange: handleNumberChange,
-            min: "1",
-            max: "10"
           }
         )
       ] }),
@@ -7709,356 +8412,6 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
       }
     }
   }
-  function getCurrentUdemyHost() {
-    return window.location.hostname;
-  }
-  function diffCookies(existing, desired, nowSeconds = Date.now() / 1e3) {
-    const ops = [];
-    const activeDesired = desired.filter(
-      (cookie) => cookie.expirationDate === void 0 || cookie.expirationDate > nowSeconds
-    );
-    const existingMap = /* @__PURE__ */ new Map();
-    for (const cookie of existing) {
-      const key = `${cookie.name}\0${cookie.domain}`;
-      existingMap.set(key, cookie);
-    }
-    const desiredMap = /* @__PURE__ */ new Map();
-    for (const cookie of activeDesired) {
-      const key = `${cookie.name}\0${cookie.domain}`;
-      desiredMap.set(key, cookie);
-    }
-    for (const dCookie of activeDesired) {
-      const key = `${dCookie.name}\0${dCookie.domain}`;
-      const eCookie = existingMap.get(key);
-      if (!eCookie || eCookie.value !== dCookie.value) {
-        ops.push({ type: "set", cookie: dCookie });
-      }
-    }
-    for (const eCookie of existing) {
-      const key = `${eCookie.name}\0${eCookie.domain}`;
-      if (!desiredMap.has(key)) {
-        ops.push({ type: "delete", name: eCookie.name, domain: eCookie.domain });
-      }
-    }
-    return ops;
-  }
-  const STORAGE_KEY = "udemyHealthyDomainSwitch";
-  const HOST_COOLDOWN_MS = 6e4;
-  const MAX_AUTO_ATTEMPTS = 2;
-  function readAttemptRecord() {
-    try {
-      const raw = window.sessionStorage.getItem(STORAGE_KEY);
-      if (!raw) {
-        return null;
-      }
-      const parsed = JSON.parse(raw);
-      if (typeof parsed.host !== "string" || typeof parsed.ts !== "number" || typeof parsed.attempts !== "number") {
-        return null;
-      }
-      return {
-        host: parsed.host,
-        ts: parsed.ts,
-        attempts: parsed.attempts
-      };
-    } catch {
-      return null;
-    }
-  }
-  function pickHealthyHost(snapshot, currentHost) {
-    if (!snapshot) {
-      return null;
-    }
-    const currentHostLower = currentHost.toLowerCase();
-    const target = snapshot.domains.find(
-      (domain) => domain.status === "healthy" && domain.host.toLowerCase() !== currentHostLower
-    );
-    return target?.host ?? null;
-  }
-  function buildRedirectUrl(targetHost, currentUrl) {
-    if (!targetHost) {
-      return null;
-    }
-    try {
-      const url = new URL(currentUrl);
-      url.host = targetHost;
-      return url.toString();
-    } catch {
-      return null;
-    }
-  }
-  function canAttempt(target, opts) {
-    const attemptRecord = readAttemptRecord();
-    if (!attemptRecord) {
-      return true;
-    }
-    if (attemptRecord.host.toLowerCase() === target.toLowerCase() && Date.now() - attemptRecord.ts < HOST_COOLDOWN_MS) {
-      return false;
-    }
-    return attemptRecord.attempts < MAX_AUTO_ATTEMPTS;
-  }
-  function recordAttempt(target) {
-    try {
-      const attemptRecord = readAttemptRecord();
-      const nextRecord = {
-        host: target,
-        ts: Date.now(),
-        attempts: (attemptRecord?.attempts ?? 0) + 1
-      };
-      window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(nextRecord));
-    } catch {
-    }
-  }
-  const locationRedirect = {
-    assign(url) {
-      window.location.href = url;
-    }
-  };
-  function useHealthyDomainSwitch() {
-    const { state, dispatch } = useAppState();
-    const [status, setStatus] = reactExports.useState("idle");
-    const [snapshot, setSnapshot] = reactExports.useState(null);
-    const [error, setError] = reactExports.useState(null);
-    const loadSnapshot = reactExports.useCallback(async () => {
-      if (snapshot) {
-        return snapshot;
-      }
-      setStatus("loading");
-      setError(null);
-      const result = await fetchCookieHealth(state.config);
-      if (result.ok) {
-        setSnapshot(result.data);
-        setStatus("ok");
-        return result.data;
-      }
-      setStatus("unreachable");
-      setError(result.error);
-      return snapshot;
-    }, [snapshot, state.config]);
-    const switchNow = reactExports.useCallback(async () => {
-      const nextSnapshot = await loadSnapshot();
-      const currentHost = getCurrentUdemyHost();
-      const targetHost = pickHealthyHost(nextSnapshot, currentHost);
-      if (!targetHost) {
-        dispatch({
-          type: "NOTICE_PUSH",
-          payload: {
-            kind: "info",
-            text: "No healthy Udemy domain available right now."
-          }
-        });
-        return;
-      }
-      const redirectUrl = buildRedirectUrl(targetHost, window.location.href);
-      if (!redirectUrl) {
-        dispatch({
-          type: "NOTICE_PUSH",
-          payload: {
-            kind: "info",
-            text: "No healthy Udemy domain available right now."
-          }
-        });
-        return;
-      }
-      recordAttempt(targetHost);
-      locationRedirect.assign(redirectUrl);
-    }, [dispatch, loadSnapshot]);
-    const autoCheckOnSyncFailure = reactExports.useCallback(
-      async (currentHost) => {
-        if (!state.config.licenseKey) {
-          return;
-        }
-        const nextSnapshot = await loadSnapshot();
-        const targetHost = pickHealthyHost(nextSnapshot, currentHost);
-        if (!targetHost) {
-          console.log("[Cookie Updater] Healthy-domain auto-switch skipped: no healthy target.");
-          return;
-        }
-        if (!canAttempt(targetHost)) {
-          console.log("[Cookie Updater] Healthy-domain auto-switch skipped by loop guard.");
-          return;
-        }
-        const redirectUrl = buildRedirectUrl(targetHost, window.location.href);
-        if (!redirectUrl) {
-          console.log("[Cookie Updater] Healthy-domain auto-switch skipped: invalid redirect URL.");
-          return;
-        }
-        recordAttempt(targetHost);
-        locationRedirect.assign(redirectUrl);
-      },
-      [loadSnapshot, state.config.licenseKey]
-    );
-    return {
-      status,
-      snapshot,
-      error,
-      switchNow,
-      autoCheckOnSyncFailure
-    };
-  }
-  const RELOAD_MARKER = "cookie-updater:reload-after-import";
-  function reloadAfterCookieImport(operationCount, reload = () => window.location.reload(), storage = window.sessionStorage) {
-    if (storage.getItem(RELOAD_MARKER)) {
-      return;
-    }
-    if (operationCount > 0) {
-      storage.setItem(RELOAD_MARKER, "1");
-      reload();
-    }
-  }
-  const DEBUG_COOKIE_SYNC = false;
-  function useCookieSync() {
-    const { state, dispatch } = useAppState();
-    const { autoCheckOnSyncFailure } = useHealthyDomainSwitch();
-    const retryAttempts = state.config.retryAttempts;
-    const licenseKey = state.config.licenseKey;
-    const triggerSync = reactExports.useCallback(async () => {
-      const host = getCurrentUdemyHost();
-      if (!host) {
-        return;
-      }
-      if (!licenseKey) {
-        console.log("[Cookie Updater] No license key configured, skipping cookie sync.");
-        return;
-      }
-      dispatch({ type: "SYNC_STATUS", payload: { phase: "syncing", error: null } });
-      let attempts = 0;
-      const maxAttempts = Math.max(1, retryAttempts);
-      while (attempts < maxAttempts) {
-        try {
-          attempts++;
-          console.log(`[Cookie Updater] Cookie sync attempt ${attempts}/${maxAttempts}...`);
-          const sourcesResult = await fetchCookieSources(host);
-          if (!sourcesResult.ok) {
-            throw new Error(sourcesResult.error);
-          }
-          const currentHostLower = host.toLowerCase();
-          const matchedDomain = sourcesResult.data.domains.find(
-            (d) => d.host.toLowerCase() === currentHostLower
-          );
-          if (!matchedDomain) {
-            throw new Error(`No matching cookie source domain found for host: ${host}`);
-          }
-          if (!matchedDomain.cookieFileIds || matchedDomain.cookieFileIds.length === 0) {
-            throw new Error(`No cookie files configured for host: ${host}`);
-          }
-          const fileId = matchedDomain.cookieFileIds[0];
-          const cookiesResult = await fetchCookiesBySource(host, fileId);
-          if (!cookiesResult.ok) {
-            throw new Error(cookiesResult.error);
-          }
-          const desiredCookies = cookiesResult.data;
-          const existingCookies = await gmCookie.list({ domain: host });
-          const ops = diffCookies(
-            existingCookies.map((c) => ({
-              name: c.name,
-              value: c.value,
-              domain: c.domain
-            })),
-            desiredCookies
-          );
-          let setOpsCount = 0;
-          let deleteOpsCount = 0;
-          let skippedOpsCount = 0;
-          for (const op of ops) {
-            if (op.type === "set") {
-              const cookieUrl = `https://${host.replace(/^\./, "")}${op.cookie.path || "/"}`;
-              const cookieDetails = {
-                url: cookieUrl,
-                name: op.cookie.name,
-                value: op.cookie.value,
-                domain: op.cookie.domain,
-                path: op.cookie.path,
-                secure: op.cookie.secure,
-                httpOnly: op.cookie.httpOnly,
-                expirationDate: op.cookie.expirationDate
-              };
-              if (op.cookie.hostOnly) {
-                delete cookieDetails.domain;
-              }
-              if (DEBUG_COOKIE_SYNC) ;
-              try {
-                await gmCookie.set(cookieDetails);
-                setOpsCount++;
-              } catch (error) {
-                const errorMsg = error instanceof Error ? error.message : String(error);
-                if (DEBUG_COOKIE_SYNC) ;
-                console.warn(`[Cookie Updater] cookie skipped: ${op.cookie.name} — ${errorMsg}`);
-                skippedOpsCount++;
-              }
-            } else if (op.type === "delete") {
-              const cookieUrl = `https://${host.replace(/^\./, "")}/`;
-              try {
-                await gmCookie.delete({
-                  url: cookieUrl,
-                  name: op.name
-                });
-                deleteOpsCount++;
-              } catch (error) {
-                const errorMsg = error instanceof Error ? error.message : String(error);
-                console.warn(`[Cookie Updater] cookie skipped: ${op.name} — ${errorMsg}`);
-                skippedOpsCount++;
-              }
-            }
-          }
-          const resultMsg = skippedOpsCount > 0 ? `${ops.length} cookies synchronized (${setOpsCount} set, ${deleteOpsCount} deleted, ${skippedOpsCount} skipped)` : `${ops.length} cookies synchronized (${setOpsCount} set, ${deleteOpsCount} deleted)`;
-          dispatch({
-            type: "SYNC_STATUS",
-            payload: {
-              phase: "ok",
-              lastResult: resultMsg,
-              error: null
-            }
-          });
-          console.log(`[Cookie Updater] Cookie sync completed: ${resultMsg}`);
-          reloadAfterCookieImport(ops.length);
-          return;
-        } catch (err) {
-          const errorMsg = err?.message || String(err);
-          console.error(`[Cookie Updater] Cookie sync attempt ${attempts} failed: ${errorMsg}`);
-          if (attempts >= maxAttempts) {
-            dispatch({
-              type: "SYNC_STATUS",
-              payload: {
-                phase: "error",
-                error: errorMsg
-              }
-            });
-            await autoCheckOnSyncFailure(host);
-          } else {
-            await new Promise((resolve) => setTimeout(resolve, 1e3));
-          }
-        }
-      }
-    }, [licenseKey, retryAttempts, dispatch, autoCheckOnSyncFailure]);
-    reactExports.useEffect(() => {
-      triggerSync();
-    }, [triggerSync]);
-    reactExports.useEffect(() => {
-      const originalPushState = history.pushState.bind(history);
-      history.pushState = function(...args) {
-        originalPushState(...args);
-        triggerSync();
-      };
-      window.addEventListener("popstate", triggerSync);
-      return () => {
-        history.pushState = originalPushState;
-        window.removeEventListener("popstate", triggerSync);
-      };
-    }, [triggerSync]);
-    return { triggerSync };
-  }
-  const SyncTriggerContext = reactExports.createContext(null);
-  const SyncTriggerProvider = ({ children }) => {
-    const { triggerSync } = useCookieSync();
-    return /* @__PURE__ */ jsxRuntimeExports.jsx(SyncTriggerContext.Provider, { value: { triggerSync }, children });
-  };
-  function useSyncTrigger() {
-    const context = reactExports.useContext(SyncTriggerContext);
-    if (!context) {
-      throw new Error("useSyncTrigger must be used within a SyncTriggerProvider");
-    }
-    return context;
-  }
   const StatusIndicator = () => {
     const { state, dispatch } = useAppState();
     const { phase, error, lastResult, notice } = state.sync;
@@ -8244,6 +8597,46 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
       updateFolder: updateFolder$1,
       deleteFolder: deleteFolder$1
     };
+  }
+  function resolveCourseUrl(rawUrl, baseOrigin) {
+    if (typeof rawUrl !== "string") {
+      return null;
+    }
+    const trimmed = rawUrl.trim();
+    if (!trimmed) {
+      return null;
+    }
+    if (/[\t\n\r]/.test(trimmed)) {
+      return null;
+    }
+    if (trimmed.startsWith("//") || trimmed.startsWith("/\\") || trimmed.startsWith("\\")) {
+      return null;
+    }
+    if (trimmed.startsWith("/")) {
+      const origin = (typeof window !== "undefined" && window.location?.origin ? window.location.origin : "").trim();
+      if (!origin) {
+        return null;
+      }
+      try {
+        const base = new URL(origin);
+        const resolved = new URL(trimmed, base);
+        if ((resolved.protocol === "http:" || resolved.protocol === "https:") && resolved.hostname && resolved.hostname.length > 0 && resolved.origin === base.origin) {
+          return resolved.href;
+        }
+        return null;
+      } catch {
+        return null;
+      }
+    }
+    try {
+      const parsed = new URL(trimmed);
+      if ((parsed.protocol === "http:" || parsed.protocol === "https:") && parsed.hostname && parsed.hostname.length > 0) {
+        return parsed.href;
+      }
+      return null;
+    } catch {
+      return null;
+    }
   }
   const FolderOrganizer = () => {
     const { dispatch } = useAppState();
@@ -8487,33 +8880,44 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
             ),
             activeFolder.name
           ] }) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "main-content", children: activeFolder.courses && activeFolder.courses.length > 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "course-grid", children: activeFolder.courses.map((course) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
-            "a",
-            {
-              href: course.url,
-              target: "_blank",
-              rel: "noopener noreferrer",
-              className: "course-card",
-              children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "course-thumbnail-wrapper", children: course.image_url ? /* @__PURE__ */ jsxRuntimeExports.jsx(
-                  "img",
-                  {
-                    src: course.image_url,
-                    alt: course.title,
-                    className: "course-thumbnail"
-                  }
-                ) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "course-thumbnail", style: { display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-text-subdued)" }, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("svg", { width: "32", height: "32", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.5", strokeLinecap: "square", strokeLinejoin: "miter", children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("path", { d: "M4 19.5A2.5 2.5 0 0 1 6.5 17H20" }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("path", { d: "M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" })
-                ] }) }) }),
-                /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "course-info", children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("h4", { className: "course-title ff-label-sm", title: course.title, children: course.title }),
-                  course.instructor && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "course-instructor ff-text-xs ff-fg-subdued", children: course.instructor })
-                ] })
-              ]
-            },
-            course.id
-          )) }) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "organizer-center-state", children: /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "empty-text ff-text-md", children: "No courses in this folder yet." }) }) })
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "main-content", children: activeFolder.courses && activeFolder.courses.length > 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "course-grid", children: activeFolder.courses.map((course) => {
+            const safeUrl = resolveCourseUrl(course.url);
+            const cardContent = /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "course-thumbnail-wrapper", children: course.image_url ? /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "img",
+                {
+                  src: course.image_url,
+                  alt: course.title,
+                  className: "course-thumbnail"
+                }
+              ) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "course-thumbnail", style: { display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-text-subdued)" }, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("svg", { width: "32", height: "32", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.5", strokeLinecap: "square", strokeLinejoin: "miter", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("path", { d: "M4 19.5A2.5 2.5 0 0 1 6.5 17H20" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("path", { d: "M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" })
+              ] }) }) }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "course-info", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("h4", { className: "course-title ff-label-sm", title: course.title, children: course.title }),
+                course.instructor && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "course-instructor ff-text-xs ff-fg-subdued", children: course.instructor })
+              ] })
+            ] });
+            return safeUrl ? /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "a",
+              {
+                href: safeUrl,
+                target: "_blank",
+                rel: "noopener noreferrer",
+                className: "course-card",
+                children: cardContent
+              },
+              course.id
+            ) : /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "div",
+              {
+                className: "course-card",
+                children: cardContent
+              },
+              course.id
+            );
+          }) }) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "organizer-center-state", children: /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "empty-text ff-text-md", children: "No courses in this folder yet." }) }) })
         ] }) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "organizer-center-state", children: /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "empty-text ff-text-md", children: "Select a folder to view courses." }) }) })
       ] })
     ] }) });
@@ -9038,19 +9442,32 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
     const { fabOpen } = state.ui;
     const course = useCourseContext();
     const fabRef = reactExports.useRef(null);
-    const { triggerSync } = useSyncTrigger();
     const { status: healthyDomainStatus, switchNow } = useHealthyDomainSwitch();
     const toggleFab = () => {
       dispatch({ type: "UI_TOGGLE", payload: { key: "fabOpen", value: !fabOpen } });
     };
     reactExports.useEffect(() => {
-      const handleClickOutside = (event) => {
-        if (fabOpen && fabRef.current && !fabRef.current.contains(event.target)) {
-          dispatch({ type: "UI_TOGGLE", payload: { key: "fabOpen", value: false } });
-        }
+      const fab = fabRef.current;
+      if (!fab) {
+        return;
+      }
+      let mousedownInside = false;
+      const markInside = () => {
+        mousedownInside = true;
       };
+      const handleClickOutside = () => {
+        if (mousedownInside) {
+          mousedownInside = false;
+          return;
+        }
+        dispatch({ type: "UI_TOGGLE", payload: { key: "fabOpen", value: false } });
+      };
+      fab.addEventListener("mousedown", markInside);
       document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
+      return () => {
+        fab.removeEventListener("mousedown", markInside);
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
     }, [fabOpen, dispatch]);
     reactExports.useEffect(() => {
       const handleKeyDown = (event) => {
@@ -9061,112 +9478,89 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
       document.addEventListener("keydown", handleKeyDown);
       return () => document.removeEventListener("keydown", handleKeyDown);
     }, [fabOpen, dispatch]);
-    return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-      "div",
-      {
-        className: `cu-fab-container ${fabOpen ? "open" : ""}`,
-        ref: fabRef,
-        onMouseDown: (e) => e.stopPropagation(),
-        children: [
-          fabOpen && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "cu-fab-menu", children: [
-            course && /* @__PURE__ */ jsxRuntimeExports.jsxs(
-              "button",
-              {
-                className: "cu-fab-item add-to-folder-btn",
-                onClick: () => {
-                  dispatch({ type: "UI_TOGGLE", payload: { key: "addToFolderOpen", value: true } });
-                  dispatch({ type: "UI_TOGGLE", payload: { key: "fabOpen", value: false } });
-                },
-                "aria-label": "Add to folder",
-                children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "cu-fab-item-icon", children: "📁" }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "cu-fab-item-text", children: "Add to folder" })
-                ]
-              }
-            ),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(
-              "button",
-              {
-                className: "cu-fab-item switch-healthy-btn",
-                onClick: () => {
-                  switchNow();
-                  dispatch({ type: "UI_TOGGLE", payload: { key: "fabOpen", value: false } });
-                },
-                disabled: healthyDomainStatus === "unreachable",
-                "aria-label": "Switch domain",
-                children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "cu-fab-item-icon", children: "🌐" }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "cu-fab-item-text", children: "Switch domain" })
-                ]
-              }
-            ),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(
-              "button",
-              {
-                className: "cu-fab-item re-sync-btn",
-                onClick: () => {
-                  triggerSync();
-                  dispatch({ type: "UI_TOGGLE", payload: { key: "fabOpen", value: false } });
-                },
-                disabled: state.sync.phase === "syncing",
-                "aria-label": "Re-sync cookies",
-                children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "cu-fab-item-icon", children: "🔄" }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "cu-fab-item-text", children: "Re-sync cookies" })
-                ]
-              }
-            ),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(
-              "button",
-              {
-                className: "cu-fab-item organize-btn",
-                onClick: () => {
-                  dispatch({ type: "UI_TOGGLE", payload: { key: "organizerOpen", value: true } });
-                  dispatch({ type: "UI_TOGGLE", payload: { key: "fabOpen", value: false } });
-                },
-                "aria-label": "Organize folders",
-                children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "cu-fab-item-icon", children: "🗂️" }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "cu-fab-item-text", children: "Organize folders" })
-                ]
-              }
-            ),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(
-              "button",
-              {
-                className: "cu-fab-item settings-btn",
-                onClick: () => {
-                  dispatch({ type: "UI_TOGGLE", payload: { key: "settingsOpen", value: true } });
-                  dispatch({ type: "UI_TOGGLE", payload: { key: "fabOpen", value: false } });
-                },
-                "aria-label": "Settings",
-                children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "cu-fab-item-icon", children: "⚙️" }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "cu-fab-item-text", children: "Settings" })
-                ]
-              }
-            )
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "cu-fab-trigger", onClick: toggleFab, "aria-label": fabOpen ? "Close menu" : "Open menu", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "cu-fab-trigger-icon", children: fabOpen ? /* @__PURE__ */ jsxRuntimeExports.jsxs("svg", { width: "24", height: "24", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("line", { x1: "18", y1: "6", x2: "6", y2: "18" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("line", { x1: "6", y1: "6", x2: "18", y2: "18" })
-          ] }) : /* @__PURE__ */ jsxRuntimeExports.jsxs("svg", { width: "24", height: "24", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("circle", { cx: "12", cy: "12", r: "1" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("circle", { cx: "12", cy: "5", r: "1" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("circle", { cx: "12", cy: "19", r: "1" })
-          ] }) }) })
-        ]
-      }
-    );
+    return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: `cu-fab-container ${fabOpen ? "open" : ""}`, ref: fabRef, children: [
+      fabOpen && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "cu-fab-menu", children: [
+        course && /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          "button",
+          {
+            className: "cu-fab-item add-to-folder-btn",
+            onClick: () => {
+              dispatch({ type: "UI_TOGGLE", payload: { key: "addToFolderOpen", value: true } });
+              dispatch({ type: "UI_TOGGLE", payload: { key: "fabOpen", value: false } });
+            },
+            "aria-label": "Add to folder",
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "cu-fab-item-icon", children: "📁" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "cu-fab-item-text", children: "Add to folder" })
+            ]
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          "button",
+          {
+            className: "cu-fab-item switch-healthy-btn",
+            onClick: () => {
+              switchNow();
+              dispatch({ type: "UI_TOGGLE", payload: { key: "fabOpen", value: false } });
+            },
+            disabled: healthyDomainStatus === "unreachable",
+            "aria-label": "Switch domain",
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "cu-fab-item-icon", children: "🌐" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "cu-fab-item-text", children: "Switch domain" })
+            ]
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          "button",
+          {
+            className: "cu-fab-item organize-btn",
+            onClick: () => {
+              dispatch({ type: "UI_TOGGLE", payload: { key: "organizerOpen", value: true } });
+              dispatch({ type: "UI_TOGGLE", payload: { key: "fabOpen", value: false } });
+            },
+            "aria-label": "Organize folders",
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "cu-fab-item-icon", children: "🗂️" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "cu-fab-item-text", children: "Organize folders" })
+            ]
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          "button",
+          {
+            className: "cu-fab-item settings-btn",
+            onClick: () => {
+              dispatch({ type: "UI_TOGGLE", payload: { key: "settingsOpen", value: true } });
+              dispatch({ type: "UI_TOGGLE", payload: { key: "fabOpen", value: false } });
+            },
+            "aria-label": "Settings",
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "cu-fab-item-icon", children: "⚙️" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "cu-fab-item-text", children: "Settings" })
+            ]
+          }
+        )
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "cu-fab-trigger", onClick: toggleFab, "aria-label": fabOpen ? "Close menu" : "Open menu", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "cu-fab-trigger-icon", children: fabOpen ? /* @__PURE__ */ jsxRuntimeExports.jsxs("svg", { width: "24", height: "24", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("line", { x1: "18", y1: "6", x2: "6", y2: "18" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("line", { x1: "6", y1: "6", x2: "18", y2: "18" })
+      ] }) : /* @__PURE__ */ jsxRuntimeExports.jsxs("svg", { width: "24", height: "24", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("circle", { cx: "12", cy: "12", r: "1" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("circle", { cx: "12", cy: "5", r: "1" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("circle", { cx: "12", cy: "19", r: "1" })
+      ] }) }) })
+    ] });
   };
   const AppContent = () => {
     const { state, dispatch } = useAppState();
     const { ui } = state;
     useLicense();
+    useCookieSync();
     reactExports.useEffect(() => {
       registerMenuCommands(dispatch);
     }, [dispatch]);
-    return /* @__PURE__ */ jsxRuntimeExports.jsxs(SyncTriggerProvider, { children: [
+    return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
       ui.settingsOpen && /* @__PURE__ */ jsxRuntimeExports.jsx(SettingsPanel, {}),
       ui.organizerOpen && /* @__PURE__ */ jsxRuntimeExports.jsx(FolderOrganizer, {}),
       ui.addToFolderOpen && /* @__PURE__ */ jsxRuntimeExports.jsx(AddToFolderModal, {}),

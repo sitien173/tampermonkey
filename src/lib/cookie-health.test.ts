@@ -4,15 +4,18 @@ import * as gm from './gm';
 import { Config } from '../state/types';
 
 // Mock the entire gm module
-vi.mock('./gm', () => ({
-  gmXhr: vi.fn(),
-}));
+vi.mock('./gm', async () => {
+  const actual = await vi.importActual<typeof import('./gm')>('./gm');
+  return {
+    ...actual,
+    gmXhr: vi.fn(),
+  };
+});
 
 describe('fetchCookieHealth', () => {
   const dummyConfig: Config = {
     licenseKey: 'test-license',
     apiKey: 'test-api',
-    retryAttempts: 3,
   };
 
   beforeEach(() => {
@@ -33,6 +36,7 @@ describe('fetchCookieHealth', () => {
     expect(result).toEqual({
       ok: true,
       data: mockSnapshot,
+      status: 200,
     });
     expect(gm.gmXhr).toHaveBeenCalledWith(
       'GET',
@@ -64,6 +68,7 @@ describe('fetchCookieHealth', () => {
     expect(result).toEqual({
       ok: false,
       error: 'Network down',
+      status: undefined,
     });
   });
 });

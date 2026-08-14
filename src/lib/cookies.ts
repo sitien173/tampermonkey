@@ -13,11 +13,29 @@ export interface ExistingCookie {
   name: string;
   value: string;
   domain: string;
+  path?: string;
+  hostOnly?: boolean;
 }
 
 export type CookieOp =
   | { type: 'set'; cookie: DesiredCookie }
-  | { type: 'delete'; name: string; domain: string };
+  | {
+      type: 'delete';
+      name: string;
+      domain: string;
+      path?: string;
+      hostOnly?: boolean;
+    };
+
+export function normalizeCookieDomain(domain: string): string {
+  return domain.trim().toLowerCase().replace(/^\./, '');
+}
+
+export function cookieIdentityKey(name: string, domain: string, path = '/'): string {
+  const normDomain = normalizeCookieDomain(domain);
+  const normPath = path.startsWith('/') ? path : `/${path}`;
+  return `${name}\0${normDomain}\0${normPath}`;
+}
 
 export function diffCookies(
   existing: ExistingCookie[],
@@ -29,23 +47,23 @@ export function diffCookies(
     (cookie) => cookie.expirationDate === undefined || cookie.expirationDate > nowSeconds
   );
 
-  // Index existing cookies by (name, domain) tuple using a null character separator
+  // Index existing cookies by (name, normalized domain, path) tuple using a null character separator
   const existingMap = new Map<string, ExistingCookie>();
   for (const cookie of existing) {
-    const key = `${cookie.name}\0${cookie.domain}`;
+    const key = cookieIdentityKey(cookie.name, cookie.domain, cookie.path);
     existingMap.set(key, cookie);
   }
 
-  // Index desired cookies by (name, domain) tuple
+  // Index desired cookies by (name, normalized domain, path) tuple
   const desiredMap = new Map<string, DesiredCookie>();
   for (const cookie of activeDesired) {
-    const key = `${cookie.name}\0${cookie.domain}`;
+    const key = cookieIdentityKey(cookie.name, cookie.domain, cookie.path);
     desiredMap.set(key, cookie);
   }
 
   // Check which desired cookies need to be set
   for (const dCookie of activeDesired) {
-    const key = `${dCookie.name}\0${dCookie.domain}`;
+    const key = cookieIdentityKey(dCookie.name, dCookie.domain, dCookie.path);
     const eCookie = existingMap.get(key);
 
     if (!eCookie || eCookie.value !== dCookie.value) {
@@ -55,9 +73,15 @@ export function diffCookies(
 
   // Check which existing cookies need to be deleted
   for (const eCookie of existing) {
-    const key = `${eCookie.name}\0${eCookie.domain}`;
+    const key = cookieIdentityKey(eCookie.name, eCookie.domain, eCookie.path);
     if (!desiredMap.has(key)) {
-      ops.push({ type: 'delete', name: eCookie.name, domain: eCookie.domain });
+      ops.push({
+        type: 'delete',
+        name: eCookie.name,
+        domain: eCookie.domain,
+        ...(eCookie.path !== undefined ? { path: eCookie.path } : {}),
+        ...(eCookie.hostOnly !== undefined ? { hostOnly: eCookie.hostOnly } : {}),
+      });
     }
   }
 

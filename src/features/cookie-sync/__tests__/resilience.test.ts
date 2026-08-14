@@ -2,11 +2,11 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppStateProvider, useAppState } from '../../../state/store';
-import { useCookieSync } from '../useCookieSync';
-import { SyncTriggerProvider, useSyncTrigger } from '../SyncTriggerContext';
+import { useCookieSync, resetSyncPipelineForTest } from '../useCookieSync';
 
-const { autoCheckOnSyncFailureMock } = vi.hoisted(() => ({
+const { autoCheckOnSyncFailureMock, clearDomainSwitchStateMock } = vi.hoisted(() => ({
   autoCheckOnSyncFailureMock: vi.fn(),
+  clearDomainSwitchStateMock: vi.fn(),
 }));
 
 vi.mock('../../../lib/host', () => ({
@@ -30,6 +30,14 @@ vi.mock('../reload', () => ({
   reloadAfterCookieImport: vi.fn(),
 }));
 
+vi.mock('../auth-probe', () => ({
+  probeAuth: vi.fn(),
+}));
+
+vi.mock('../../healthy-domain/switch', () => ({
+  clearDomainSwitchState: clearDomainSwitchStateMock,
+}));
+
 vi.mock('../../healthy-domain/useHealthyDomainSwitch', () => ({
   useHealthyDomainSwitch: vi.fn(() => ({
     status: 'idle',
@@ -43,6 +51,8 @@ vi.mock('../../healthy-domain/useHealthyDomainSwitch', () => ({
 import { getCurrentUdemyHost } from '../../../lib/host';
 import { fetchCookieSources, fetchCookiesBySource } from '../../../lib/api';
 import { gmCookie } from '../../../lib/gm';
+import { probeAuth } from '../auth-probe';
+import { reloadAfterCookieImport } from '../reload';
 
 const StateInspector: React.FC = () => {
   const { state } = useAppState();
@@ -63,18 +73,21 @@ const CookieSyncHarness: React.FC = () => {
 describe('useCookieSync', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    resetSyncPipelineForTest();
     autoCheckOnSyncFailureMock.mockReset();
+    clearDomainSwitchStateMock.mockReset();
+
     vi.stubGlobal(
       'GM_getValue',
       vi.fn(() => ({
         licenseKey: 'license-key',
-        retryAttempts: 1,
         apiKey: 'api-key',
       }))
     );
     vi.stubGlobal('GM_setValue', vi.fn());
 
     vi.mocked(getCurrentUdemyHost).mockReturnValue('www.udemy.com');
+    vi.mocked(probeAuth).mockResolvedValue({ kind: 'authenticated', status: 200 });
     vi.mocked(fetchCookieSources).mockResolvedValue({
       ok: true,
       data: {
@@ -95,15 +108,12 @@ describe('useCookieSync', () => {
       ],
     });
     vi.mocked(gmCookie.list).mockResolvedValue([]);
+    vi.mocked(gmCookie.set).mockResolvedValue();
     vi.mocked(gmCookie.delete).mockResolvedValue();
   });
 
-  it('syncs hostOnly cookies without forwarding domain', async () => {
-    vi.mocked(gmCookie.set).mockImplementation(async (details) => {
-      if ('domain' in details && details.domain) {
-        throw new Error('Failed to parse or set cookie named "ud_cache_marketplace_country"');
-      }
-    });
+  it('skips server cookie reads and mutations on auth-probe 2xx', async () => {
+    vi.mocked(probeAuth).mockResolvedValueOnce({ kind: 'authenticated', status: 200 });
 
     render(React.createElement(AppStateProvider, undefined, React.createElement(CookieSyncHarness)));
 
@@ -111,28 +121,20 @@ describe('useCookieSync', () => {
       expect(screen.getByTestId('phase').textContent).toBe('ok');
     });
 
-    expect(screen.getByTestId('error').textContent).toBe('');
+    expect(probeAuth).toHaveBeenCalledTimes(1);
+    expect(probeAuth).toHaveBeenCalledWith('www.udemy.com');
+    expect(clearDomainSwitchStateMock).toHaveBeenCalledTimes(1);
+    expect(fetchCookieSources).not.toHaveBeenCalled();
+    expect(fetchCookiesBySource).not.toHaveBeenCalled();
+    expect(gmCookie.set).not.toHaveBeenCalled();
+    expect(gmCookie.delete).not.toHaveBeenCalled();
+    expect(screen.getByTestId('lastResult').textContent).toBe('Session is authenticated');
   });
 
-  it('continues syncing after a single cookie set failure', async () => {
-    vi.mocked(fetchCookiesBySource).mockResolvedValue({
-      ok: true,
-      data: Array.from({ length: 5 }, (_, index) => ({
-        name: `cookie-${index + 1}`,
-        value: `value-${index + 1}`,
-        domain: 'www.udemy.com',
-        path: '/',
-        secure: true,
-      })),
-    });
-
-    let callCount = 0;
-    vi.mocked(gmCookie.set).mockImplementation(async () => {
-      callCount += 1;
-      if (callCount === 3) {
-        throw new Error('Failed to parse or set cookie named "cookie-3"');
-      }
-    });
+  it('imports cookies when auth-probe reports expired session (non-2xx)', async () => {
+    vi.mocked(probeAuth)
+      .mockResolvedValueOnce({ kind: 'expired', status: 401 }) // Initial probe
+      .mockResolvedValueOnce({ kind: 'authenticated', status: 200 }); // Post-import probe
 
     render(React.createElement(AppStateProvider, undefined, React.createElement(CookieSyncHarness)));
 
@@ -140,15 +142,33 @@ describe('useCookieSync', () => {
       expect(screen.getByTestId('phase').textContent).toBe('ok');
     });
 
-    expect(vi.mocked(gmCookie.set)).toHaveBeenCalledTimes(5);
-    expect(screen.getByTestId('lastResult').textContent).toContain('1 skipped');
-    expect(screen.getByTestId('error').textContent).toBe('');
+    expect(probeAuth).toHaveBeenCalledTimes(2);
+    expect(fetchCookieSources).toHaveBeenCalledWith('www.udemy.com');
+    expect(fetchCookiesBySource).toHaveBeenCalledWith('www.udemy.com', '0');
+    expect(gmCookie.set).toHaveBeenCalledTimes(1);
+    expect(clearDomainSwitchStateMock).toHaveBeenCalledTimes(1);
+    expect(reloadAfterCookieImport).toHaveBeenCalledWith(1);
   });
 
-  it('invokes healthy-domain auto-check once after retries are exhausted', async () => {
-    vi.mocked(fetchCookieSources).mockResolvedValue({
-      ok: false,
-      error: 'source fetch failed',
+  it('imports cookies when auth-probe reports redirect', async () => {
+    vi.mocked(probeAuth)
+      .mockResolvedValueOnce({ kind: 'expired', status: 302 }) // Initial probe
+      .mockResolvedValueOnce({ kind: 'authenticated', status: 200 }); // Post-import probe
+
+    render(React.createElement(AppStateProvider, undefined, React.createElement(CookieSyncHarness)));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('phase').textContent).toBe('ok');
+    });
+
+    expect(fetchCookieSources).toHaveBeenCalledTimes(1);
+    expect(gmCookie.set).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows error on exhausted network probe failures without importing cookies or auto-switching', async () => {
+    vi.mocked(probeAuth).mockResolvedValueOnce({
+      kind: 'network_error',
+      error: 'Network connection failed',
     });
 
     render(React.createElement(AppStateProvider, undefined, React.createElement(CookieSyncHarness)));
@@ -157,12 +177,35 @@ describe('useCookieSync', () => {
       expect(screen.getByTestId('phase').textContent).toBe('error');
     });
 
-    expect(autoCheckOnSyncFailureMock).toHaveBeenCalledTimes(1);
-    expect(autoCheckOnSyncFailureMock).toHaveBeenCalledWith('www.udemy.com');
+    expect(screen.getByTestId('error').textContent).toBe('Network connection failed');
+    expect(fetchCookieSources).not.toHaveBeenCalled();
+    expect(fetchCookiesBySource).not.toHaveBeenCalled();
+    expect(gmCookie.set).not.toHaveBeenCalled();
+    expect(autoCheckOnSyncFailureMock).not.toHaveBeenCalled();
   });
 
-  it('does not invoke healthy-domain auto-check on successful sync', async () => {
-    vi.mocked(gmCookie.set).mockResolvedValue();
+  it('retries only failed cookie mutations once and does not repeat successful mutations', async () => {
+    vi.mocked(probeAuth)
+      .mockResolvedValueOnce({ kind: 'expired', status: 401 })
+      .mockResolvedValueOnce({ kind: 'authenticated', status: 200 });
+
+    vi.mocked(fetchCookiesBySource).mockResolvedValueOnce({
+      ok: true,
+      data: [
+        { name: 'cookie-1', value: 'v1', domain: 'www.udemy.com', path: '/' },
+        { name: 'cookie-2', value: 'v2', domain: 'www.udemy.com', path: '/' },
+      ] as any,
+    });
+
+    let cookie2Attempts = 0;
+    vi.mocked(gmCookie.set).mockImplementation(async (details) => {
+      if (details.name === 'cookie-2') {
+        cookie2Attempts++;
+        if (cookie2Attempts === 1) {
+          throw new Error('Failed to set cookie-2');
+        }
+      }
+    });
 
     render(React.createElement(AppStateProvider, undefined, React.createElement(CookieSyncHarness)));
 
@@ -170,46 +213,78 @@ describe('useCookieSync', () => {
       expect(screen.getByTestId('phase').textContent).toBe('ok');
     });
 
-    expect(autoCheckOnSyncFailureMock).not.toHaveBeenCalled();
+    // cookie-1 was attempted once (success)
+    // cookie-2 was attempted twice (fail then success)
+    expect(vi.mocked(gmCookie.set)).toHaveBeenCalledTimes(3);
+    expect(screen.getByTestId('lastResult').textContent).toContain('2 cookies synchronized (2 set, 0 deleted)');
   });
 
-  it('SyncTriggerProvider publishes triggerSync which invokes the inner sync pipeline', async () => {
-    const TestConsumer: React.FC = () => {
-      const { triggerSync } = useSyncTrigger();
-      return React.createElement('button', {
-        'data-testid': 'trigger-btn',
-        onClick: () => {
-          triggerSync();
-        }
-      }, 'Trigger');
+  it('invokes healthy-domain auto-switch when post-import authentication verification fails', async () => {
+    vi.mocked(probeAuth)
+      .mockResolvedValueOnce({ kind: 'expired', status: 401 }) // Initial probe
+      .mockResolvedValueOnce({ kind: 'expired', status: 401 }); // Post-import probe still expired
+
+    render(React.createElement(AppStateProvider, undefined, React.createElement(CookieSyncHarness)));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('phase').textContent).toBe('error');
+    });
+
+    expect(screen.getByTestId('error').textContent).toBe('Session authentication failed after cookie import');
+    expect(autoCheckOnSyncFailureMock).toHaveBeenCalledTimes(1);
+    expect(autoCheckOnSyncFailureMock).toHaveBeenCalledWith('www.udemy.com');
+    expect(reloadAfterCookieImport).not.toHaveBeenCalled();
+  });
+
+  it('stops on permanent cookie source failure without auto-switching', async () => {
+    vi.mocked(probeAuth).mockResolvedValueOnce({ kind: 'expired', status: 401 });
+    vi.mocked(fetchCookieSources).mockResolvedValueOnce({
+      ok: false,
+      error: 'source manifest missing',
+    });
+
+    render(React.createElement(AppStateProvider, undefined, React.createElement(CookieSyncHarness)));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('phase').textContent).toBe('error');
+    });
+
+    expect(screen.getByTestId('error').textContent).toBe('source manifest missing');
+    expect(autoCheckOnSyncFailureMock).not.toHaveBeenCalled();
+    expect(reloadAfterCookieImport).not.toHaveBeenCalled();
+  });
+
+  it('shows error without auto-switching when post-import auth probe hits network error', async () => {
+    vi.mocked(probeAuth)
+      .mockResolvedValueOnce({ kind: 'expired', status: 401 }) // Initial probe
+      .mockResolvedValueOnce({ kind: 'network_error', error: 'Network connection failed' });
+
+    render(React.createElement(AppStateProvider, undefined, React.createElement(CookieSyncHarness)));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('phase').textContent).toBe('error');
+    });
+
+    expect(screen.getByTestId('error').textContent).toBe('Network connection failed');
+    expect(autoCheckOnSyncFailureMock).not.toHaveBeenCalled();
+    expect(reloadAfterCookieImport).not.toHaveBeenCalled();
+  });
+
+  it('shares one in-flight pipeline across duplicate component mounts', async () => {
+    vi.mocked(probeAuth).mockResolvedValue({ kind: 'authenticated', status: 200 });
+
+    const DoubleHarness: React.FC = () => {
+      useCookieSync();
+      useCookieSync();
+      return React.createElement(StateInspector);
     };
 
-    render(
-      React.createElement(
-        AppStateProvider,
-        undefined,
-        React.createElement(
-          SyncTriggerProvider,
-          undefined,
-          React.createElement(TestConsumer)
-        )
-      )
-    );
+    render(React.createElement(AppStateProvider, undefined, React.createElement(DoubleHarness)));
 
-    // Initial load: useCookieSync triggers sync automatically on mount (because SyncTriggerProvider calls it).
-    // Let's clear mock calls before we click
     await waitFor(() => {
-      expect(vi.mocked(fetchCookieSources)).toHaveBeenCalled();
+      expect(screen.getByTestId('phase').textContent).toBe('ok');
     });
-    vi.mocked(fetchCookieSources).mockClear();
 
-    // Now click the trigger button
-    const btn = screen.getByTestId('trigger-btn');
-    btn.click();
-
-    // Check if fetchCookieSources is called again
-    await waitFor(() => {
-      expect(vi.mocked(fetchCookieSources)).toHaveBeenCalledTimes(1);
-    });
+    expect(probeAuth).toHaveBeenCalledTimes(1);
   });
 });

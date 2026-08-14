@@ -1,11 +1,13 @@
-import { gmXhr } from './gm';
+import { gmXhr, GmHttpError, GmNetworkError } from './gm';
 import { Config, Folder, PublicHealthSnapshot } from '../state/types';
 import { DesiredCookie } from './cookies';
 
 // Worker base URL
 const WORKER_URL = 'https://cf-api-gateway.sitienbmt.workers.dev/udemy/v3';
 
-export type ApiResult<T> = { ok: true; data: T } | { ok: false; error: string };
+export type ApiResult<T> =
+  | { ok: true; data: T; status?: number }
+  | { ok: false; error: string; status?: number };
 
 export interface CookieSourceDomain {
   host: string;
@@ -17,6 +19,46 @@ export interface CookieSourcesResponse {
   fallback?: { cookieFileIds: string[] };
 }
 
+export function isTransientStatus(status?: number): boolean {
+  if (status === 408 || status === 429) return true;
+  if (status !== undefined && status >= 500 && status <= 599) return true;
+  return false;
+}
+
+const MAX_READ_RETRIES = 2; // initial attempt + 2 retries = 3 attempts total
+
+async function fetchWithTransientRetry<T>(fn: () => Promise<T>): Promise<ApiResult<T>> {
+  let attempts = 0;
+  while (true) {
+    try {
+      const response = await fn();
+      if (response && typeof response === 'object' && 'error' in response && (response as any).error) {
+        return { ok: false, error: (response as any).error };
+      }
+      return { ok: true, data: response, status: 200 };
+    } catch (error: any) {
+      let status: number | undefined;
+      let isTransient = false;
+      if (error instanceof GmHttpError) {
+        status = error.status;
+        isTransient = isTransientStatus(status);
+      } else if (error instanceof GmNetworkError) {
+        isTransient = true;
+      }
+
+      if (isTransient && attempts < MAX_READ_RETRIES) {
+        attempts++;
+        continue;
+      }
+
+      return {
+        ok: false,
+        error: error?.message || String(error),
+        status,
+      };
+    }
+  }
+}
 
 // Internal helper: builds headers from current config
 function makeHeaders(config: Config, host?: string): Record<string, string> {
@@ -39,9 +81,10 @@ export async function validateLicense(config: Config): Promise<ApiResult<{ valid
     if (response && response.error) {
       return { ok: false, error: response.error };
     }
-    return { ok: true, data: response };
+    return { ok: true, data: response, status: 200 };
   } catch (error: any) {
-    return { ok: false, error: error?.message || String(error) };
+    const status = error instanceof GmHttpError ? error.status : undefined;
+    return { ok: false, error: error?.message || String(error), status };
   }
 }
 
@@ -51,53 +94,49 @@ export async function fetchCookieHealth(config: Config): Promise<ApiResult<Publi
     if (response && response.error) {
       return { ok: false, error: response.error };
     }
-    return { ok: true, data: response };
+    return { ok: true, data: response, status: 200 };
   } catch (error: any) {
-    return { ok: false, error: error?.message || String(error) };
+    const status = error instanceof GmHttpError ? error.status : undefined;
+    return { ok: false, error: error?.message || String(error), status };
   }
 }
 
 // Cookie sources: GET /api/public/udemy-cookie-sources (no auth)
 export async function fetchCookieSources(host: string): Promise<ApiResult<CookieSourcesResponse>> {
-  try {
-    const headers = { 'X-Udemy-Host': host };
-    const response = await gmXhr<any>('GET', `${WORKER_URL}/api/public/udemy-cookie-sources`, headers);
-    if (response && response.error) {
-      return { ok: false, error: response.error };
-    }
+  const headers = { 'X-Udemy-Host': host };
+  const rawResult = await fetchWithTransientRetry<any>(() =>
+    gmXhr<any>('GET', `${WORKER_URL}/api/public/udemy-cookie-sources`, headers)
+  );
 
-    // Map backend response (where domains have cookieCount) to CookieSourcesResponse schema
-    const domains: CookieSourceDomain[] = (response.domains || []).map((d: any) => ({
-      host: d.host,
-      cookieFileIds: d.cookieFileIds || Array.from({ length: d.cookieCount || 0 }, (_, i) => String(i))
-    }));
-
-    const fallback = response.fallback ? {
-      cookieFileIds: response.fallback.cookieFileIds || Array.from({ length: response.fallback.cookieCount || 0 }, (_, i) => String(i))
-    } : undefined;
-
-    return { ok: true, data: { domains, fallback } };
-  } catch (error: any) {
-    return { ok: false, error: error?.message || String(error) };
+  if (!rawResult.ok) {
+    return rawResult;
   }
+
+  const response = rawResult.data;
+  // Map backend response (where domains have cookieCount) to CookieSourcesResponse schema
+  const domains: CookieSourceDomain[] = (response.domains || []).map((d: any) => ({
+    host: d.host,
+    cookieFileIds: d.cookieFileIds || Array.from({ length: d.cookieCount || 0 }, (_, i) => String(i)),
+  }));
+
+  const fallback = response.fallback
+    ? {
+        cookieFileIds:
+          response.fallback.cookieFileIds ||
+          Array.from({ length: response.fallback.cookieCount || 0 }, (_, i) => String(i)),
+      }
+    : undefined;
+
+  return { ok: true, data: { domains, fallback }, status: rawResult.status };
 }
 
 // Fetch cookies by source: GET /api/public/udemy-cookies?host=...&index=...
 export async function fetchCookiesBySource(host: string, fileId: string): Promise<ApiResult<DesiredCookie[]>> {
-  try {
-    // If the actual endpoint still uses index, parse fileId as integer if numeric, else 0
-    const indexVal = /^\d+$/.test(fileId) ? parseInt(fileId, 10) : 0;
-    const url = `${WORKER_URL}/api/public/udemy-cookies?host=${encodeURIComponent(host)}&index=${indexVal}`;
-    const response = await gmXhr<any>('GET', url);
-    if (response && response.error) {
-      return { ok: false, error: response.error };
-    }
-    return { ok: true, data: response };
-  } catch (error: any) {
-    return { ok: false, error: error?.message || String(error) };
-  }
-}
+  const indexVal = /^\d+$/.test(fileId) ? parseInt(fileId, 10) : 0;
+  const url = `${WORKER_URL}/api/public/udemy-cookies?host=${encodeURIComponent(host)}&index=${indexVal}`;
 
+  return fetchWithTransientRetry<DesiredCookie[]>(() => gmXhr<DesiredCookie[]>('GET', url));
+}
 
 // Init (POST /api/init) — call once on script load when license valid
 export async function initSession(config: Config, host: string): Promise<ApiResult<void>> {
@@ -106,9 +145,10 @@ export async function initSession(config: Config, host: string): Promise<ApiResu
     if (response && response.error) {
       return { ok: false, error: response.error };
     }
-    return { ok: true, data: undefined };
+    return { ok: true, data: undefined, status: 200 };
   } catch (error: any) {
-    return { ok: false, error: error?.message || String(error) };
+    const status = error instanceof GmHttpError ? error.status : undefined;
+    return { ok: false, error: error?.message || String(error), status };
   }
 }
 
@@ -117,15 +157,17 @@ export interface SyncResponse {
 }
 
 // GET /api/sync with makeHeaders(config)
-export async function fetchSync(config: Config): Promise<ApiResult<SyncResponse>> {
+export async function fetchSync(config: Config, host?: string): Promise<ApiResult<SyncResponse>> {
   try {
-    const response = await gmXhr<any>('GET', `${WORKER_URL}/api/sync`, makeHeaders(config));
+    const resolvedHost = host ?? window.location.host;
+    const response = await gmXhr<any>('GET', `${WORKER_URL}/api/sync`, makeHeaders(config, resolvedHost));
     if (response && response.error) {
       return { ok: false, error: response.error };
     }
-    return { ok: true, data: response };
+    return { ok: true, data: response, status: 200 };
   } catch (error: any) {
-    return { ok: false, error: error?.message || String(error) };
+    const status = error instanceof GmHttpError ? error.status : undefined;
+    return { ok: false, error: error?.message || String(error), status };
   }
 }
 
@@ -139,9 +181,10 @@ export async function createFolder(
     if (response && response.error) {
       return { ok: false, error: response.error };
     }
-    return { ok: true, data: response };
+    return { ok: true, data: response, status: 200 };
   } catch (error: any) {
-    return { ok: false, error: error?.message || String(error) };
+    const status = error instanceof GmHttpError ? error.status : undefined;
+    return { ok: false, error: error?.message || String(error), status };
   }
 }
 
@@ -156,9 +199,10 @@ export async function updateFolder(
     if (response && response.error) {
       return { ok: false, error: response.error };
     }
-    return { ok: true, data: response };
+    return { ok: true, data: response, status: 200 };
   } catch (error: any) {
-    return { ok: false, error: error?.message || String(error) };
+    const status = error instanceof GmHttpError ? error.status : undefined;
+    return { ok: false, error: error?.message || String(error), status };
   }
 }
 
@@ -169,9 +213,10 @@ export async function deleteFolder(config: Config, folderId: string): Promise<Ap
     if (response && response.error) {
       return { ok: false, error: response.error };
     }
-    return { ok: true, data: undefined };
+    return { ok: true, data: undefined, status: 200 };
   } catch (error: any) {
-    return { ok: false, error: error?.message || String(error) };
+    const status = error instanceof GmHttpError ? error.status : undefined;
+    return { ok: false, error: error?.message || String(error), status };
   }
 }
 
@@ -194,10 +239,9 @@ export async function addCourseToFolders(
     if (response && response.error) {
       return { ok: false, error: response.error };
     }
-    return { ok: true, data: response };
+    return { ok: true, data: response, status: 200 };
   } catch (error: any) {
-    return { ok: false, error: error?.message || String(error) };
+    const status = error instanceof GmHttpError ? error.status : undefined;
+    return { ok: false, error: error?.message || String(error), status };
   }
 }
-
-

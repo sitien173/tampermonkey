@@ -7,6 +7,7 @@
 // @match        *://*.udemy.com/*
 // @grant        GM_setValue
 // @grant        GM_getValue
+// @grant        GM_deleteValue
 // @grant        GM_cookie
 // @grant        GM_xmlhttpRequest
 // @grant        GM_registerMenuCommand

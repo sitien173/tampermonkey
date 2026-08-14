@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { loadStoredConfig, DEFAULT_CONFIG } from '../store';
 
 describe('loadStoredConfig', () => {
-  it('drops legacy keys (showUiButtons, showFolderOrganizer) when present in stored blob', () => {
+  it('drops legacy keys (retryAttempts, showUiButtons, showFolderOrganizer) when present in stored blob', () => {
     const stored = {
       licenseKey: 'abc',
       retryAttempts: 5,
@@ -15,9 +15,9 @@ describe('loadStoredConfig', () => {
 
     expect(result).toEqual({
       licenseKey: 'abc',
-      retryAttempts: 5,
       apiKey: 'k',
     });
+    expect('retryAttempts' in result).toBe(false);
     expect('showUiButtons' in result).toBe(false);
     expect('showFolderOrganizer' in result).toBe(false);
   });
@@ -25,7 +25,6 @@ describe('loadStoredConfig', () => {
   it('falls back to defaults for missing keys', () => {
     const result = loadStoredConfig({ licenseKey: 'only-license' });
     expect(result.licenseKey).toBe('only-license');
-    expect(result.retryAttempts).toBe(DEFAULT_CONFIG.retryAttempts);
     expect(result.apiKey).toBe(DEFAULT_CONFIG.apiKey);
   });
 

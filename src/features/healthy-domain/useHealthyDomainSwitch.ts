@@ -3,7 +3,14 @@ import { fetchCookieHealth } from '../../lib/api';
 import { getCurrentUdemyHost } from '../../lib/host';
 import { useAppState } from '../../state/store';
 import { PublicHealthSnapshot } from '../../state/types';
-import { buildRedirectUrl, canAttempt, pickHealthyHost, recordAttempt } from './switch';
+import { cleanupCookiesForHost } from './cookie-cleanup';
+import {
+  buildRedirectUrl,
+  canAttempt,
+  pickHealthyHost,
+  readDomainSwitchState,
+  recordAttempt,
+} from './switch';
 
 export type HealthyDomainStatus = 'idle' | 'loading' | 'ok' | 'unreachable';
 
@@ -12,6 +19,8 @@ export const locationRedirect = {
     window.location.href = url;
   },
 };
+
+let isSwitchingInProgress = false;
 
 export function useHealthyDomainSwitch() {
   const { state, dispatch } = useAppState();
@@ -40,35 +49,71 @@ export function useHealthyDomainSwitch() {
   }, [snapshot, state.config]);
 
   const switchNow = useCallback(async () => {
-    const nextSnapshot = await loadSnapshot();
-    const currentHost = getCurrentUdemyHost();
-    const targetHost = pickHealthyHost(nextSnapshot, currentHost);
-
-    if (!targetHost) {
-      dispatch({
-        type: 'NOTICE_PUSH',
-        payload: {
-          kind: 'info',
-          text: 'No healthy Udemy domain available right now.',
-        },
-      });
+    if (isSwitchingInProgress) {
       return;
     }
+    isSwitchingInProgress = true;
 
-    const redirectUrl = buildRedirectUrl(targetHost, window.location.href);
-    if (!redirectUrl) {
-      dispatch({
-        type: 'NOTICE_PUSH',
-        payload: {
-          kind: 'info',
-          text: 'No healthy Udemy domain available right now.',
-        },
-      });
-      return;
+    try {
+      const nextSnapshot = await loadSnapshot();
+      const currentHost = getCurrentUdemyHost();
+      const targetHost = pickHealthyHost(nextSnapshot, currentHost);
+
+      if (!targetHost) {
+        dispatch({
+          type: 'NOTICE_PUSH',
+          payload: {
+            kind: 'info',
+            text: 'No healthy Udemy domain available right now.',
+          },
+        });
+        return;
+      }
+
+      const redirectUrl = buildRedirectUrl(targetHost, window.location.href);
+      if (!redirectUrl) {
+        dispatch({
+          type: 'NOTICE_PUSH',
+          payload: {
+            kind: 'info',
+            text: 'No healthy Udemy domain available right now.',
+          },
+        });
+        return;
+      }
+
+      try {
+        await cleanupCookiesForHost(currentHost);
+      } catch (cleanupError: any) {
+        const msg = cleanupError instanceof Error ? cleanupError.message : String(cleanupError);
+        dispatch({
+          type: 'NOTICE_PUSH',
+          payload: {
+            kind: 'error',
+            text: `Failed to clean up cookies before domain switch: ${msg}`,
+          },
+        });
+        return;
+      }
+
+      try {
+        await recordAttempt(targetHost, currentHost, { manual: true });
+      } catch (stateError: any) {
+        const msg = stateError instanceof Error ? stateError.message : String(stateError);
+        dispatch({
+          type: 'NOTICE_PUSH',
+          payload: {
+            kind: 'error',
+            text: `Failed to record domain-switch state: ${msg}`,
+          },
+        });
+        return;
+      }
+
+      locationRedirect.assign(redirectUrl);
+    } finally {
+      isSwitchingInProgress = false;
     }
-
-    recordAttempt(targetHost);
-    locationRedirect.assign(redirectUrl);
   }, [dispatch, loadSnapshot]);
 
   const autoCheckOnSyncFailure = useCallback(
@@ -77,28 +122,102 @@ export function useHealthyDomainSwitch() {
         return;
       }
 
-      const nextSnapshot = await loadSnapshot();
-      const targetHost = pickHealthyHost(nextSnapshot, currentHost);
-      if (!targetHost) {
-        console.log('[Cookie Updater] Healthy-domain auto-switch skipped: no healthy target.');
+      if (isSwitchingInProgress) {
         return;
       }
+      isSwitchingInProgress = true;
 
-      if (!canAttempt(targetHost)) {
-        console.log('[Cookie Updater] Healthy-domain auto-switch skipped by loop guard.');
-        return;
+      try {
+        let loopState;
+        try {
+          loopState = await readDomainSwitchState();
+        } catch (stateError: any) {
+          const msg = stateError instanceof Error ? stateError.message : String(stateError);
+          console.error(`[Cookie Updater] Healthy-domain auto-switch skipped: ${msg}`);
+          dispatch({
+            type: 'NOTICE_PUSH',
+            payload: {
+              kind: 'error',
+              text: `Failed to read domain-switch state: ${msg}`,
+            },
+          });
+          return;
+        }
+
+        const nextSnapshot = await loadSnapshot();
+        const targetHost = pickHealthyHost(
+          nextSnapshot,
+          currentHost,
+          loopState?.visitedHosts ?? []
+        );
+
+        if (!targetHost) {
+          console.log('[Cookie Updater] Healthy-domain auto-switch skipped: no healthy target.');
+          return;
+        }
+
+        let allowed;
+        try {
+          allowed = await canAttempt(targetHost, { currentHost });
+        } catch (stateError: any) {
+          const msg = stateError instanceof Error ? stateError.message : String(stateError);
+          console.error(`[Cookie Updater] Healthy-domain auto-switch skipped: ${msg}`);
+          dispatch({
+            type: 'NOTICE_PUSH',
+            payload: {
+              kind: 'error',
+              text: `Failed to read domain-switch state: ${msg}`,
+            },
+          });
+          return;
+        }
+        if (!allowed) {
+          console.log('[Cookie Updater] Healthy-domain auto-switch skipped by loop guard.');
+          return;
+        }
+
+        const redirectUrl = buildRedirectUrl(targetHost, window.location.href);
+        if (!redirectUrl) {
+          console.log('[Cookie Updater] Healthy-domain auto-switch skipped: invalid redirect URL.');
+          return;
+        }
+
+        try {
+          await cleanupCookiesForHost(currentHost);
+        } catch (cleanupError: any) {
+          const msg = cleanupError instanceof Error ? cleanupError.message : String(cleanupError);
+          console.error(`[Cookie Updater] Cookie cleanup failed during auto-switch: ${msg}`);
+          dispatch({
+            type: 'NOTICE_PUSH',
+            payload: {
+              kind: 'error',
+              text: `Failed to clean up cookies before domain switch: ${msg}`,
+            },
+          });
+          return;
+        }
+
+        try {
+          await recordAttempt(targetHost, currentHost, { manual: false });
+        } catch (stateError: any) {
+          const msg = stateError instanceof Error ? stateError.message : String(stateError);
+          console.error(`[Cookie Updater] Healthy-domain auto-switch skipped: ${msg}`);
+          dispatch({
+            type: 'NOTICE_PUSH',
+            payload: {
+              kind: 'error',
+              text: `Failed to record domain-switch state: ${msg}`,
+            },
+          });
+          return;
+        }
+
+        locationRedirect.assign(redirectUrl);
+      } finally {
+        isSwitchingInProgress = false;
       }
-
-      const redirectUrl = buildRedirectUrl(targetHost, window.location.href);
-      if (!redirectUrl) {
-        console.log('[Cookie Updater] Healthy-domain auto-switch skipped: invalid redirect URL.');
-        return;
-      }
-
-      recordAttempt(targetHost);
-      locationRedirect.assign(redirectUrl);
     },
-    [loadSnapshot, state.config.licenseKey]
+    [dispatch, loadSnapshot, state.config.licenseKey]
   );
 
   return {

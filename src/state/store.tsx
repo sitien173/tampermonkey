@@ -3,11 +3,10 @@ import { AppState, Action, Config } from './types';
 
 export const DEFAULT_CONFIG: Config = {
   licenseKey: '',
-  retryAttempts: 3,
   apiKey: 'ZDksovkGHYUqwK8k9hoDCKHSP2geS6WB',
 };
 
-const CONFIG_KEYS: ReadonlyArray<keyof Config> = ['licenseKey', 'retryAttempts', 'apiKey'];
+const CONFIG_KEYS: ReadonlyArray<keyof Config> = ['licenseKey', 'apiKey'];
 
 export function loadStoredConfig(stored: unknown): Config {
   if (!stored || typeof stored !== 'object') return { ...DEFAULT_CONFIG };
