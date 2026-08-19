@@ -44,14 +44,14 @@ const bundlePlugin = () => {
   };
 };
 
-const copyToWwwroot = () => ({
-  name: 'copy-to-wwwroot',
+const copyToDist = () => ({
+  name: 'copy-to-dist',
   closeBundle() {
-    const destDir = path.resolve(__dirname, '../wwwroot');
+    const destDir = path.resolve(__dirname, 'dist');
     
-    // Skip copy if target wwwroot directory does not exist (e.g., in CI or other environments)
+    // Skip copy if target dist directory does not exist (e.g., in CI or other environments)
     if (!existsSync(destDir)) {
-      console.log(`Destination directory ${destDir} does not exist, skipping copy to wwwroot.`);
+      console.log(`Destination directory ${destDir} does not exist, skipping copy to dist.`);
       return;
     }
 
@@ -76,7 +76,7 @@ const copyToWwwroot = () => ({
           console.warn(`Source file ${src} not found, skipping copy.`);
         }
       } catch (err) {
-        console.error(`Failed to copy ${path.basename(src)} to wwwroot: ${err.message}`);
+        console.error(`Failed to copy ${path.basename(src)} to dist: ${err.message}`);
       }
     }
   }
@@ -88,7 +88,7 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     bundlePlugin(),
-    copyToWwwroot()
+    copyToDist()
   ],
   define: {
     'process.env.NODE_ENV': JSON.stringify(mode),

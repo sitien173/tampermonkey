@@ -19,36 +19,38 @@ export function useFolders(): {
   deleteFolder: (id: string) => Promise<void>;
 } {
   const { state, dispatch } = useAppState();
-  const { config, folders: foldersState } = state;
+  const { config, folders: foldersState, licenseScopeRevision } = state;
 
   const refresh = useCallback(async () => {
+    const capturedRevision = state.licenseScopeRevision;
     if (config.licenseKey) {
-      dispatch({ type: 'FOLDERS_UPDATE', payload: { status: 'loading' } });
+      dispatch({ type: 'FOLDERS_UPDATE', payload: { status: 'loading' }, revision: capturedRevision });
       const res = await fetchSync(config);
       if (res.ok) {
-        dispatch({ type: 'FOLDERS_UPDATE', payload: { status: 'ready', folders: res.data.folders } });
+        dispatch({
+          type: 'FOLDERS_UPDATE',
+          payload: { status: 'ready', folders: res.data.folders },
+          revision: capturedRevision,
+        });
       } else {
-        dispatch({ type: 'FOLDERS_UPDATE', payload: { status: 'error' } });
+        dispatch({
+          type: 'FOLDERS_UPDATE',
+          payload: { status: 'error' },
+          revision: capturedRevision,
+        });
       }
     } else {
-      // In local mode, if we are currently empty or status is idle/error, load defaults
-      if (foldersState.status === 'idle' || foldersState.status === 'error' || foldersState.folders.length === 0) {
-        const defaults: Folder[] = [
-          { id: generateUUID(), name: 'My Courses', color: '#6366f1', courses: [], course_count: 0, sort_order: 0 },
-          { id: generateUUID(), name: 'Favorites', color: '#ec4899', courses: [], course_count: 0, sort_order: 1 },
-          { id: generateUUID(), name: 'In Progress', color: '#f59e0b', courses: [], course_count: 0, sort_order: 2 },
-          { id: generateUUID(), name: 'Completed', color: '#10b981', courses: [], course_count: 0, sort_order: 3 },
-        ];
-        dispatch({ type: 'FOLDERS_UPDATE', payload: { status: 'ready', folders: defaults } });
-      } else {
-        dispatch({ type: 'FOLDERS_UPDATE', payload: { status: 'ready' } });
-      }
+      dispatch({
+        type: 'FOLDERS_UPDATE',
+        payload: { status: 'ready', folders: [] },
+        revision: capturedRevision,
+      });
     }
-  }, [config.licenseKey, dispatch, foldersState.status, foldersState.folders.length]);
+  }, [config, dispatch, state.licenseScopeRevision]);
 
   useEffect(() => {
     refresh();
-  }, [config.licenseKey]);
+  }, [config.licenseKey, licenseScopeRevision]);
 
   const createFolder = useCallback(async (name: string, color: string) => {
     if (config.licenseKey) {
@@ -70,9 +72,10 @@ export function useFolders(): {
       dispatch({
         type: 'FOLDERS_UPDATE',
         payload: { folders: [...foldersState.folders, newFolder] },
+        revision: state.licenseScopeRevision,
       });
     }
-  }, [config, foldersState.folders, refresh, dispatch]);
+  }, [config, foldersState.folders, refresh, dispatch, state.licenseScopeRevision]);
 
   const updateFolder = useCallback(async (id: string, updates: Partial<Folder>) => {
     if (config.licenseKey) {
@@ -87,9 +90,10 @@ export function useFolders(): {
       dispatch({
         type: 'FOLDERS_UPDATE',
         payload: { folders: updated },
+        revision: state.licenseScopeRevision,
       });
     }
-  }, [config, foldersState.folders, refresh, dispatch]);
+  }, [config, foldersState.folders, refresh, dispatch, state.licenseScopeRevision]);
 
   const deleteFolder = useCallback(async (id: string) => {
     if (config.licenseKey) {
@@ -104,9 +108,10 @@ export function useFolders(): {
       dispatch({
         type: 'FOLDERS_UPDATE',
         payload: { folders: filtered },
+        revision: state.licenseScopeRevision,
       });
     }
-  }, [config, foldersState.folders, refresh, dispatch]);
+  }, [config, foldersState.folders, refresh, dispatch, state.licenseScopeRevision]);
 
   const sortedFolders = sortFoldersByOrder(foldersState.folders);
 

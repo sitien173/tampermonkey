@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useRef, useLayoutEffect } from 'react';
 import { fetchCookieHealth } from '../../lib/api';
 import { getCurrentUdemyHost } from '../../lib/host';
 import { useAppState } from '../../state/store';
@@ -27,6 +27,11 @@ export function useHealthyDomainSwitch() {
   const [status, setStatus] = useState<HealthyDomainStatus>('idle');
   const [snapshot, setSnapshot] = useState<PublicHealthSnapshot | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const currentRevisionRef = useRef(state.licenseScopeRevision);
+  useLayoutEffect(() => {
+    currentRevisionRef.current = state.licenseScopeRevision;
+  }, [state.licenseScopeRevision]);
 
   const loadSnapshot = useCallback(async (): Promise<PublicHealthSnapshot | null> => {
     if (snapshot) {
@@ -117,7 +122,7 @@ export function useHealthyDomainSwitch() {
   }, [dispatch, loadSnapshot]);
 
   const autoCheckOnSyncFailure = useCallback(
-    async (currentHost: string) => {
+    async (currentHost: string, revision?: number) => {
       if (!state.config.licenseKey) {
         return;
       }
@@ -140,6 +145,7 @@ export function useHealthyDomainSwitch() {
               kind: 'error',
               text: `Failed to read domain-switch state: ${msg}`,
             },
+            revision,
           });
           return;
         }
@@ -168,6 +174,7 @@ export function useHealthyDomainSwitch() {
               kind: 'error',
               text: `Failed to read domain-switch state: ${msg}`,
             },
+            revision,
           });
           return;
         }
@@ -193,6 +200,7 @@ export function useHealthyDomainSwitch() {
               kind: 'error',
               text: `Failed to clean up cookies before domain switch: ${msg}`,
             },
+            revision,
           });
           return;
         }
@@ -208,7 +216,12 @@ export function useHealthyDomainSwitch() {
               kind: 'error',
               text: `Failed to record domain-switch state: ${msg}`,
             },
+            revision,
           });
+          return;
+        }
+
+        if (revision !== undefined && revision !== currentRevisionRef.current) {
           return;
         }
 

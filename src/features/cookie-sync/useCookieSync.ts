@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect } from 'react';
 import { useAppState } from '../../state/store';
 import { getCurrentUdemyHost } from '../../lib/host';
 import { fetchCookieSources, fetchCookiesBySource } from '../../lib/api';
@@ -10,9 +10,13 @@ import { reloadAfterCookieImport } from './reload';
 import { probeAuth } from './auth-probe';
 
 let inFlightSyncPromise: Promise<void> | null = null;
+let inFlightSyncRevision: number | null = null;
+let activeRevision: number | null = null;
 
 export function resetSyncPipelineForTest(): void {
   inFlightSyncPromise = null;
+  inFlightSyncRevision = null;
+  activeRevision = null;
 }
 
 async function applyCookieOp(op: CookieOp, host: string): Promise<void> {
@@ -47,11 +51,12 @@ async function applyCookieOp(op: CookieOp, host: string): Promise<void> {
 
 interface SyncParams {
   licenseKey: string;
+  revision: number;
   dispatch: ReturnType<typeof useAppState>['dispatch'];
-  autoCheckOnSyncFailure: (host: string) => Promise<void>;
+  autoCheckOnSyncFailure: (host: string, revision?: number) => Promise<void>;
 }
 
-async function runSyncPipeline({ licenseKey, dispatch, autoCheckOnSyncFailure }: SyncParams): Promise<void> {
+async function runSyncPipeline({ licenseKey, revision, dispatch, autoCheckOnSyncFailure }: SyncParams): Promise<void> {
   const host = getCurrentUdemyHost();
   if (!host) {
     return;
@@ -62,13 +67,15 @@ async function runSyncPipeline({ licenseKey, dispatch, autoCheckOnSyncFailure }:
     return;
   }
 
-  dispatch({ type: 'SYNC_STATUS', payload: { phase: 'syncing', error: null } });
+  dispatch({ type: 'SYNC_STATUS', payload: { phase: 'syncing', error: null }, revision });
 
   // 1. Initial auth probe
   const initialProbe = await probeAuth(host);
+  if (activeRevision !== revision) return;
 
   if (initialProbe.kind === 'authenticated') {
     await clearDomainSwitchState();
+    if (activeRevision !== revision) return;
     dispatch({
       type: 'SYNC_STATUS',
       payload: {
@@ -76,6 +83,7 @@ async function runSyncPipeline({ licenseKey, dispatch, autoCheckOnSyncFailure }:
         lastResult: 'Session is authenticated',
         error: null,
       },
+      revision,
     });
     return;
   }
@@ -88,6 +96,7 @@ async function runSyncPipeline({ licenseKey, dispatch, autoCheckOnSyncFailure }:
         phase: 'error',
         error: initialProbe.error,
       },
+      revision,
     });
     return;
   }
@@ -95,6 +104,7 @@ async function runSyncPipeline({ licenseKey, dispatch, autoCheckOnSyncFailure }:
   // 2. Initial probe was expired (redirect or non-2xx HTTP response) -> perform cookie import
   try {
     const sourcesResult = await fetchCookieSources(host);
+    if (activeRevision !== revision) return;
     if (!sourcesResult.ok) {
       throw new Error(sourcesResult.error);
     }
@@ -112,48 +122,34 @@ async function runSyncPipeline({ licenseKey, dispatch, autoCheckOnSyncFailure }:
       throw new Error(`No cookie files configured for host: ${host}`);
     }
 
-    const fileId = matchedDomain.cookieFileIds[0];
-    const cookiesResult = await fetchCookiesBySource(host, fileId);
-    if (!cookiesResult.ok) {
-      throw new Error(cookiesResult.error);
-    }
-
-    const desiredCookies = cookiesResult.data;
-    const existingCookies = await gmCookie.list({ domain: host });
-
-    const ops = diffCookies(
-      existingCookies.map((c) => ({
-        name: c.name,
-        value: c.value,
-        domain: c.domain,
-        path: c.path,
-      })),
-      desiredCookies
-    );
-
-    let setOpsCount = 0;
-    let deleteOpsCount = 0;
-    const failedOps: CookieOp[] = [];
-
-    // Apply every operation once
-    for (const op of ops) {
-      try {
-        await applyCookieOp(op, host);
-        if (op.type === 'set') setOpsCount++;
-        else if (op.type === 'delete') deleteOpsCount++;
-      } catch (error: any) {
-        if (error?.message && error.message.includes('not available')) {
-          throw error;
-        }
-        console.warn(`[Cookie Updater] cookie op failed on first attempt: ${op.type === 'set' ? op.cookie.name : op.name} — ${error?.message || error}`);
-        failedOps.push(op);
+    for (const [sourceIndex, fileId] of matchedDomain.cookieFileIds.entries()) {
+      const cookiesResult = await fetchCookiesBySource(host, fileId);
+      if (activeRevision !== revision) return;
+      if (!cookiesResult.ok) {
+        throw new Error(cookiesResult.error);
       }
-    }
 
-    // Retry only failed operations once
-    let skippedOpsCount = 0;
-    if (failedOps.length > 0) {
-      for (const op of failedOps) {
+      const desiredCookies = cookiesResult.data;
+      const existingCookies = await gmCookie.list({ domain: host });
+      if (activeRevision !== revision) return;
+
+      const ops = diffCookies(
+        existingCookies.map((c) => ({
+          name: c.name,
+          value: c.value,
+          domain: c.domain,
+          path: c.path,
+        })),
+        desiredCookies
+      );
+
+      let setOpsCount = 0;
+      let deleteOpsCount = 0;
+      const failedOps: CookieOp[] = [];
+
+      // Apply every operation once
+      for (const op of ops) {
+        if (activeRevision !== revision) return;
         try {
           await applyCookieOp(op, host);
           if (op.type === 'set') setOpsCount++;
@@ -162,47 +158,79 @@ async function runSyncPipeline({ licenseKey, dispatch, autoCheckOnSyncFailure }:
           if (error?.message && error.message.includes('not available')) {
             throw error;
           }
-          console.warn(`[Cookie Updater] cookie op failed on retry: ${op.type === 'set' ? op.cookie.name : op.name} — ${error?.message || error}`);
-          skippedOpsCount++;
+          console.warn(`[Cookie Updater] cookie op failed on first attempt: ${op.type === 'set' ? op.cookie.name : op.name} — ${error?.message || error}`);
+          failedOps.push(op);
         }
+      }
+
+      // Retry only failed operations once
+      let skippedOpsCount = 0;
+      if (failedOps.length > 0) {
+        for (const op of failedOps) {
+          if (activeRevision !== revision) return;
+          try {
+            await applyCookieOp(op, host);
+            if (op.type === 'set') setOpsCount++;
+            else if (op.type === 'delete') deleteOpsCount++;
+          } catch (error: any) {
+            if (error?.message && error.message.includes('not available')) {
+              throw error;
+            }
+            console.warn(`[Cookie Updater] cookie op failed on retry: ${op.type === 'set' ? op.cookie.name : op.name} — ${error?.message || error}`);
+            skippedOpsCount++;
+          }
+        }
+      }
+
+      // 3. Relist cookies and probe authentication again
+      await gmCookie.list({ domain: host });
+      if (activeRevision !== revision) return;
+
+      const postProbe = await probeAuth(host);
+      if (activeRevision !== revision) return;
+
+      if (postProbe.kind === 'authenticated') {
+        await clearDomainSwitchState();
+        if (activeRevision !== revision) return;
+
+        const resultMsg =
+          skippedOpsCount > 0
+            ? `${ops.length} cookies synchronized (${setOpsCount} set, ${deleteOpsCount} deleted, ${skippedOpsCount} skipped)`
+            : `${ops.length} cookies synchronized (${setOpsCount} set, ${deleteOpsCount} deleted)`;
+
+        dispatch({
+          type: 'SYNC_STATUS',
+          payload: {
+            phase: 'ok',
+            lastResult: resultMsg,
+            error: null,
+          },
+          revision,
+        });
+        if (activeRevision === revision) {
+          reloadAfterCookieImport(ops.length);
+        }
+        return;
+      }
+
+      if (postProbe.kind === 'network_error') {
+        dispatch({
+          type: 'SYNC_STATUS',
+          payload: {
+            phase: 'error',
+            error: postProbe.error,
+          },
+          revision,
+        });
+        return;
+      }
+
+      if (sourceIndex < matchedDomain.cookieFileIds.length - 1) {
+        console.warn(`[Cookie Updater] cookie source index ${sourceIndex} did not restore authentication; trying the next source.`);
+        continue;
       }
     }
 
-    // 3. Relist cookies and probe authentication again
-    await gmCookie.list({ domain: host });
-
-    const postProbe = await probeAuth(host);
-    if (postProbe.kind === 'authenticated') {
-      await clearDomainSwitchState();
-      const resultMsg =
-        skippedOpsCount > 0
-          ? `${ops.length} cookies synchronized (${setOpsCount} set, ${deleteOpsCount} deleted, ${skippedOpsCount} skipped)`
-          : `${ops.length} cookies synchronized (${setOpsCount} set, ${deleteOpsCount} deleted)`;
-
-      dispatch({
-        type: 'SYNC_STATUS',
-        payload: {
-          phase: 'ok',
-          lastResult: resultMsg,
-          error: null,
-        },
-      });
-      reloadAfterCookieImport(ops.length);
-      return;
-    }
-
-    if (postProbe.kind === 'network_error') {
-      dispatch({
-        type: 'SYNC_STATUS',
-        payload: {
-          phase: 'error',
-          error: postProbe.error,
-        },
-      });
-      return;
-    }
-
-    // Post-import probe returned an HTTP non-2xx or redirect: restoration failed.
     const errorMsg = 'Session authentication failed after cookie import';
     dispatch({
       type: 'SYNC_STATUS',
@@ -210,9 +238,13 @@ async function runSyncPipeline({ licenseKey, dispatch, autoCheckOnSyncFailure }:
         phase: 'error',
         error: errorMsg,
       },
+      revision,
     });
-    await autoCheckOnSyncFailure(host);
+    if (activeRevision === revision) {
+      await autoCheckOnSyncFailure(host, revision);
+    }
   } catch (err: any) {
+    if (activeRevision !== revision) return;
     const errorMsg = err?.message || String(err);
     console.error(`[Cookie Updater] Cookie sync failed: ${errorMsg}`);
     dispatch({
@@ -221,6 +253,7 @@ async function runSyncPipeline({ licenseKey, dispatch, autoCheckOnSyncFailure }:
         phase: 'error',
         error: errorMsg,
       },
+      revision,
     });
   }
 }
@@ -229,17 +262,25 @@ export function useCookieSync(): void {
   const { state, dispatch } = useAppState();
   const { autoCheckOnSyncFailure } = useHealthyDomainSwitch();
   const licenseKey = state.config.licenseKey;
+  const revision = state.licenseScopeRevision;
+
+  useLayoutEffect(() => {
+    activeRevision = revision;
+  }, [revision]);
 
   useEffect(() => {
+    activeRevision = revision;
     if (!licenseKey) {
       return;
     }
-    if (!inFlightSyncPromise) {
+    if (inFlightSyncRevision !== revision || !inFlightSyncPromise) {
+      inFlightSyncRevision = revision;
       inFlightSyncPromise = runSyncPipeline({
         licenseKey,
+        revision,
         dispatch,
         autoCheckOnSyncFailure,
       });
     }
-  }, [licenseKey, dispatch, autoCheckOnSyncFailure]);
+  }, [licenseKey, revision, dispatch, autoCheckOnSyncFailure]);
 }

@@ -156,11 +156,67 @@ export interface SyncResponse {
   folders: Folder[];
 }
 
+export interface UpdateCourseProgressPayload {
+  progress: number;
+  is_completed: boolean;
+  last_lesson_url: string | null;
+}
+
+export interface UpdateCourseProgressResponse {
+  course?: Course;
+  success?: boolean;
+}
+
 // GET /api/sync with makeHeaders(config)
 export async function fetchSync(config: Config, host?: string): Promise<ApiResult<SyncResponse>> {
   try {
-    const resolvedHost = host ?? window.location.host;
+    const resolvedHost = host ?? (typeof window !== 'undefined' ? window.location.host : undefined);
     const response = await gmXhr<any>('GET', `${WORKER_URL}/api/sync`, makeHeaders(config, resolvedHost));
+    if (response && response.error) {
+      return { ok: false, error: response.error };
+    }
+    if (response && response.folders && Array.isArray(response.folders)) {
+      const normalizedFolders: Folder[] = response.folders.map((f: any) => ({
+        ...f,
+        courses: (f.courses || []).map((c: any) => ({
+          ...c,
+          id: String(c.course_id ?? c.id),
+          udemy_course_id: String(c.udemy_course_id ?? ''),
+          is_completed: Boolean(c.is_completed),
+          last_lesson_url: c.last_lesson_url ?? null,
+          progress: typeof c.progress === 'number' ? c.progress : 0,
+        })),
+      }));
+      return { ok: true, data: { folders: normalizedFolders }, status: 200 };
+    }
+    return { ok: true, data: response, status: 200 };
+  } catch (error: any) {
+    const status = error instanceof GmHttpError ? error.status : undefined;
+    return { ok: false, error: error?.message || String(error), status };
+  }
+}
+
+// PUT /api/folders/{folderId}/courses/{courseId}
+export async function updateCourseProgress(
+  config: Config,
+  folderId: string,
+  courseId: string,
+  payload: UpdateCourseProgressPayload,
+  host?: string
+): Promise<ApiResult<UpdateCourseProgressResponse>> {
+  try {
+    const resolvedHost = host ?? (typeof window !== 'undefined' ? window.location.host : undefined);
+    const body = {
+      progress: payload.progress,
+      is_completed: payload.is_completed,
+      last_lesson_url: payload.last_lesson_url,
+    };
+    const response = await gmXhr<any>(
+      'PUT',
+      `${WORKER_URL}/api/folders/${folderId}/courses/${courseId}`,
+      makeHeaders(config, resolvedHost),
+      JSON.stringify(body)
+    );
     if (response && response.error) {
       return { ok: false, error: response.error };
     }

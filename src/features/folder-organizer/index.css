@@ -404,7 +404,54 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.course-progress-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xxs);
   margin-top: auto;
+  padding-top: var(--space-xs);
+}
+
+.course-progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.course-progress-label {
+  font-weight: var(--weight-medium);
+  font-size: var(--type-text-xs-size);
+}
+
+.course-completed-badge {
+  background: var(--color-green-soft, rgba(46, 125, 50, 0.15));
+  color: var(--color-text-green, #2e7d32);
+  padding: 1px 6px;
+  border-radius: var(--radius-md);
+  font-size: 10px;
+  font-weight: var(--weight-medium);
+  border: 1px solid var(--color-green-border, rgba(46, 125, 50, 0.3));
+}
+
+.course-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--color-border-subdued);
+  border-radius: var(--radius-xs);
+  overflow: hidden;
+}
+
+.course-progress-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: var(--radius-xs);
+  transition: width var(--motion-normal) var(--ease-standard);
+}
+
+.course-progress-fill.is-completed {
+  background: var(--color-text-green, #2e7d32);
 }
 
 /* Spinner and Status States */

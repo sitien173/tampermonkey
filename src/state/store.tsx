@@ -28,6 +28,7 @@ const getInitialState = (): AppState => {
   const loadedConfig = loadStoredConfig(stored);
 
   return {
+    licenseScopeRevision: 0,
     config: loadedConfig,
     license: {
       key: loadedConfig.licenseKey || '',
@@ -54,6 +55,19 @@ const getInitialState = (): AppState => {
   };
 };
 
+function getActionRevision(action: Action): number | undefined {
+  if ('revision' in action && action.revision !== undefined) {
+    return action.revision;
+  }
+  if ('payload' in action && action.payload && typeof action.payload === 'object' && 'revision' in action.payload) {
+    const rev = (action.payload as Record<string, unknown>).revision;
+    if (typeof rev === 'number') {
+      return rev;
+    }
+  }
+  return undefined;
+}
+
 export function appReducer(state: AppState, action: Action): AppState {
   switch (action.type) {
     case 'CONFIG_UPDATE':
@@ -61,16 +75,57 @@ export function appReducer(state: AppState, action: Action): AppState {
         ...state,
         config: { ...state.config, ...action.payload },
       };
-    case 'LICENSE_STATUS':
+    case 'LICENSE_COMMIT': {
+      const newKey = action.payload.licenseKey;
+      return {
+        ...state,
+        licenseScopeRevision: state.licenseScopeRevision + 1,
+        config: {
+          ...state.config,
+          licenseKey: newKey,
+        },
+        license: {
+          key: newKey,
+          status: 'unknown',
+          expiresAt: null,
+          lastValidatedAt: null,
+        },
+        sync: {
+          phase: 'idle',
+          lastResult: null,
+          error: null,
+          notice: null,
+        },
+        folders: {
+          status: 'loading',
+          folders: [],
+        },
+        ui: {
+          ...state.ui,
+          addToFolderOpen: false,
+        },
+      };
+    }
+    case 'LICENSE_STATUS': {
+      const actionRev = getActionRevision(action);
+      if (actionRev !== undefined && actionRev !== state.licenseScopeRevision) {
+        return state;
+      }
       return {
         ...state,
         license: { ...state.license, ...action.payload },
       };
-    case 'SYNC_STATUS':
+    }
+    case 'SYNC_STATUS': {
+      const actionRev = getActionRevision(action);
+      if (actionRev !== undefined && actionRev !== state.licenseScopeRevision) {
+        return state;
+      }
       return {
         ...state,
         sync: { ...state.sync, ...action.payload },
       };
+    }
     case 'UI_TOGGLE':
       return {
         ...state,
@@ -79,12 +134,47 @@ export function appReducer(state: AppState, action: Action): AppState {
           [action.payload.key]: action.payload.value,
         },
       };
-    case 'FOLDERS_UPDATE':
+    case 'FOLDERS_UPDATE': {
+      const actionRev = getActionRevision(action);
+      if (actionRev !== undefined && actionRev !== state.licenseScopeRevision) {
+        return state;
+      }
       return {
         ...state,
         folders: { ...state.folders, ...action.payload },
       };
-    case 'NOTICE_PUSH':
+    }
+    case 'COURSE_PROGRESS_UPDATE': {
+      const actionRev = getActionRevision(action);
+      if (actionRev !== undefined && actionRev !== state.licenseScopeRevision) {
+        return state;
+      }
+      const { courseId, progress, is_completed, last_lesson_url } = action.payload;
+      return {
+        ...state,
+        folders: {
+          ...state.folders,
+          folders: state.folders.folders.map((folder) => ({
+            ...folder,
+            courses: folder.courses.map((course) =>
+              course.id === courseId
+                ? {
+                    ...course,
+                    progress,
+                    is_completed,
+                    last_lesson_url,
+                  }
+                : course
+            ),
+          })),
+        },
+      };
+    }
+    case 'NOTICE_PUSH': {
+      const actionRev = getActionRevision(action);
+      if (actionRev !== undefined && actionRev !== state.licenseScopeRevision) {
+        return state;
+      }
       return {
         ...state,
         sync: {
@@ -92,6 +182,7 @@ export function appReducer(state: AppState, action: Action): AppState {
           notice: action.payload,
         },
       };
+    }
     case 'NOTICE_CLEAR':
       return {
         ...state,

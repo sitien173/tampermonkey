@@ -4,16 +4,18 @@ import { validateLicense } from '../../lib/api';
 import { LicenseState } from '../../state/types';
 
 /**
- * Hook to validate license on mount and whenever config.licenseKey changes.
- * Dispatches LICENSE_STATUS actions.
+ * Hook to validate license on mount and whenever config.licenseKey or licenseScopeRevision changes.
+ * Dispatches LICENSE_STATUS actions carrying the captured revision.
  * Surfaces expiry warning when expiresAt is within 7 days.
  */
 export function useLicense(): { status: LicenseState['status']; expiresAt: number | null; warning?: string } {
   const { state, dispatch } = useAppState();
   const { licenseKey } = state.config;
+  const { licenseScopeRevision } = state;
 
   useEffect(() => {
     let active = true;
+    const capturedRevision = licenseScopeRevision;
 
     async function checkLicense() {
       if (!licenseKey) {
@@ -24,6 +26,7 @@ export function useLicense(): { status: LicenseState['status']; expiresAt: numbe
             expiresAt: null,
             lastValidatedAt: Date.now(),
           },
+          revision: capturedRevision,
         });
         return;
       }
@@ -31,6 +34,7 @@ export function useLicense(): { status: LicenseState['status']; expiresAt: numbe
       dispatch({
         type: 'LICENSE_STATUS',
         payload: { status: 'checking' },
+        revision: capturedRevision,
       });
 
       const result = await validateLicense(state.config);
@@ -51,6 +55,7 @@ export function useLicense(): { status: LicenseState['status']; expiresAt: numbe
             expiresAt: expiresAt || null,
             lastValidatedAt: Date.now(),
           },
+          revision: capturedRevision,
         });
       } else {
         dispatch({
@@ -60,6 +65,7 @@ export function useLicense(): { status: LicenseState['status']; expiresAt: numbe
             expiresAt: null,
             lastValidatedAt: Date.now(),
           },
+          revision: capturedRevision,
         });
       }
     }
@@ -69,7 +75,7 @@ export function useLicense(): { status: LicenseState['status']; expiresAt: numbe
     return () => {
       active = false;
     };
-  }, [licenseKey, dispatch]);
+  }, [licenseKey, licenseScopeRevision, dispatch]);
 
   const { status, expiresAt } = state.license;
   let warning: string | undefined = undefined;

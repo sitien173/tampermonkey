@@ -16,6 +16,7 @@ export function useAddCourse() {
     folderIds: string[]
   ): Promise<{ ok: true; added: number } | { ok: false; message: string }> => {
     setStatus('saving');
+    const capturedRevision = state.licenseScopeRevision;
     try {
       if (!state.config.licenseKey) {
         // Local mode
@@ -68,7 +69,11 @@ export function useAddCourse() {
           return f;
         });
 
-        dispatch({ type: 'FOLDERS_UPDATE', payload: { folders: updatedFolders } });
+        dispatch({
+          type: 'FOLDERS_UPDATE',
+          payload: { folders: updatedFolders },
+          revision: capturedRevision,
+        });
         dispatch({
           type: 'NOTICE_PUSH',
           payload: {
@@ -76,6 +81,7 @@ export function useAddCourse() {
             text: `Saved to ${folderIds.length} folder${folderIds.length === 1 ? '' : 's'}`,
             ttl: 4000,
           },
+          revision: capturedRevision,
         });
         setStatus('idle');
         return { ok: true, added };
@@ -108,6 +114,7 @@ export function useAddCourse() {
         dispatch({
           type: 'FOLDERS_UPDATE',
           payload: { status: 'ready', folders: res.data.folders },
+          revision: capturedRevision,
         });
       }
 
@@ -118,6 +125,7 @@ export function useAddCourse() {
           text: `Saved to ${folderIds.length} folder${folderIds.length === 1 ? '' : 's'}`,
           ttl: 4000,
         },
+        revision: capturedRevision,
       });
 
       setStatus('idle');

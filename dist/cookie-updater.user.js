@@ -19,7 +19,7 @@
 // ==/UserScript==
 
 
-window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre+Franklin:ital,wght@0,100..900;1,100..900&display=swap');.license-panel {\n  background: var(--bg-surface);\n  border: 1px solid var(--color-border-subdued);\n  border-radius: var(--radius-xs);\n  padding: var(--space-md);\n  margin-bottom: var(--space-lg);\n  color: var(--fg1);\n}\n\n.license-panel-title {\n  color: var(--color-text-subdued);\n  margin-bottom: var(--space-sm);\n}\n\n.license-row {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: var(--space-sm);\n}\n\n.license-row:last-child {\n  margin-bottom: 0;\n}\n\n.license-label {\n  color: var(--color-text-subdued);\n}\n\n.license-value {\n  color: var(--fg1);\n}\n\n/* Badge (Flowforge tag/badge pattern) */\n.badge {\n  display: inline-flex;\n  align-items: center;\n  padding: var(--space-xxs) var(--space-xs);\n  border-radius: var(--radius-md);\n  text-transform: capitalize;\n}\n\n.badge-valid {\n  background: var(--color-decorative-green);\n  color: var(--color-text-deep-green);\n  border: 1px solid var(--color-border-green);\n}\n\n.badge-invalid {\n  background: var(--color-decorative-red);\n  color: var(--color-text-red);\n  border: 1px solid var(--color-border-red);\n}\n\n.badge-expired {\n  background: var(--color-decorative-yellow);\n  color: var(--color-icon-yellow);\n  border: 1px solid var(--color-border-yellow);\n}\n\n.badge-checking {\n  background: var(--color-decorative-blue);\n  color: var(--color-action-interactive);\n  border: 1px solid var(--color-border-blue);\n  animation: pulse var(--motion-slow) infinite;\n}\n\n.badge-unknown {\n  background: var(--color-decorative-gray);\n  color: var(--color-text-subdued);\n  border: 1px solid var(--color-border-default);\n}\n\n.license-warning {\n  margin-top: var(--space-sm);\n  padding: var(--space-xs) var(--space-sm);\n  background: var(--color-decorative-yellow);\n  border-left: 3px solid var(--color-border-yellow);\n  border-radius: var(--radius-xxs);\n  color: var(--color-icon-yellow);\n  display: flex;\n  align-items: center;\n  gap: var(--space-xs);\n}\n\n@keyframes pulse {\n  0%, 100% {\n    opacity: 1;\n  }\n  50% {\n    opacity: 0.5;\n  }\n}\n.settings-backdrop {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background-color: rgba(18, 18, 18, 0.4);\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  z-index: 99999;\n  animation: fadeIn var(--motion-normal) var(--ease-decelerate);\n}\n\n.settings-modal {\n  background: var(--bg-surface);\n  border: 1px solid var(--color-border-subdued);\n  border-radius: var(--radius-xs);\n  width: 90%;\n  min-width: var(--layout-modal-min-width);\n  max-width: 720px;\n  max-height: 90vh;\n  box-shadow: var(--elev-depth64);\n  animation: scaleUp var(--motion-slow) var(--ease-decelerate);\n  display: flex;\n  flex-direction: column;\n}\n\n.settings-header {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  height: var(--space-4xl);\n  padding: 0 var(--space-xl);\n  border-bottom: 1px solid var(--color-border-subdued);\n}\n\n.settings-title {\n  /* Using ff-display-sm from index.css instead of local styles, but can apply layout if needed */\n  margin: 0;\n}\n\n.settings-close-btn {\n  background: transparent;\n  border: none;\n  color: var(--color-text-subdued);\n  cursor: pointer;\n  padding: var(--space-xxs);\n  border-radius: var(--radius-xxs);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition: all var(--motion-fast) var(--ease-standard);\n}\n\n.settings-close-btn:hover {\n  background: var(--bg-surface-hover);\n  color: var(--fg1);\n}\n\n.settings-close-btn:focus-visible {\n  outline: 2px solid var(--color-action-interactive);\n  outline-offset: 2px;\n}\n\n.settings-content {\n  padding: var(--space-lg) var(--space-xl);\n  overflow-y: auto;\n  flex: 1;\n}\n\n/* Form Styles */\n.config-form {\n  display: flex;\n  flex-direction: column;\n  gap: var(--space-lg);\n  margin-bottom: var(--space-lg);\n}\n\n.form-group {\n  display: flex;\n  flex-direction: column;\n  gap: var(--space-xs);\n}\n\n.form-label {\n  /* text-sm will be applied via ff-label-sm */\n  margin-bottom: 0;\n}\n\n.form-input {\n  background: var(--bg-surface);\n  border: 1px solid var(--color-border-default);\n  border-radius: var(--radius-xs);\n  padding: 0 var(--space-sm);\n  height: var(--layout-field-height);\n  font-family: var(--font-sans);\n  font-size: var(--type-text-md-size);\n  color: var(--fg1);\n  outline: none;\n  transition: all var(--motion-fast) var(--ease-standard);\n}\n\n.form-input:hover {\n  background: var(--bg-surface-hover);\n}\n\n.form-input:focus {\n  border-color: var(--color-action-interactive);\n  box-shadow: inset 0 0 0 1px var(--color-action-interactive);\n  background: var(--bg-surface);\n}\n\n.form-input:disabled,\n.form-input-disabled {\n  background: var(--bg-canvas);\n  color: var(--color-text-disabled);\n  border-color: var(--color-border-subdued);\n  cursor: not-allowed;\n}\n\n.form-help {\n  color: var(--color-text-subdued);\n  margin-top: 0;\n}\n\n.form-group-checkbox {\n  display: flex;\n  align-items: center;\n  gap: var(--space-sm);\n  cursor: pointer;\n  user-select: none;\n  height: var(--layout-field-height);\n}\n\n.form-checkbox {\n  appearance: none;\n  -webkit-appearance: none;\n  height: 20px;\n  width: 20px;\n  background-color: var(--bg-surface);\n  border: 1px solid var(--color-border-default);\n  border-radius: var(--radius-xxs);\n  cursor: pointer;\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  outline: none;\n  transition: all var(--motion-fast) var(--ease-standard);\n  margin: 0;\n}\n\n.form-checkbox:hover {\n  background: var(--bg-surface-hover);\n}\n\n.form-checkbox:checked {\n  background-color: var(--primary);\n  border-color: var(--primary);\n}\n\n.form-checkbox:checked::after {\n  content: \"\";\n  display: block;\n  width: 5px;\n  height: 10px;\n  border: solid var(--color-surface);\n  border-width: 0 2px 2px 0;\n  transform: rotate(45deg);\n  margin-bottom: 2px;\n}\n\n.form-checkbox:focus-visible {\n  outline: 2px solid var(--color-action-interactive);\n  outline-offset: 2px;\n}\n\n.form-checkbox-label {\n  cursor: pointer;\n}\n\n@keyframes fadeIn {\n  from { opacity: 0; }\n  to { opacity: 1; }\n}\n\n@keyframes scaleUp {\n  from { transform: scale(0.98); opacity: 0; }\n  to { transform: scale(1); opacity: 1; }\n}.sync-indicator-container {\n  position: fixed;\n  bottom: var(--space-lg);\n  right: var(--space-lg);\n  z-index: 9999;\n  pointer-events: none;\n}\n\n.sync-indicator-badge {\n  pointer-events: auto;\n  display: flex;\n  align-items: center;\n  gap: var(--space-sm);\n  background: var(--bg-surface);\n  border: 1px solid var(--color-border-subdued);\n  box-shadow: var(--elev-depth16);\n  border-radius: var(--radius-xs);\n  padding: var(--space-sm) var(--space-md);\n  color: var(--fg1);\n  transition: all var(--motion-slow) var(--ease-standard);\n  transform: translateY(0);\n  opacity: 1;\n  animation: slideInUp var(--motion-slow) var(--ease-decelerate);\n}\n\n.sync-indicator-badge.status-ok {\n  border-left: 3px solid var(--color-border-green);\n}\n\n.sync-indicator-badge.status-error {\n  border-left: 3px solid var(--color-border-red);\n}\n\n.sync-indicator-badge.status-syncing {\n  border-left: 3px solid var(--color-border-blue);\n}\n\n.sync-indicator-badge.hide {\n  transform: translateY(20px) scale(0.95);\n  opacity: 0;\n  pointer-events: none;\n}\n\n.sync-indicator-icon-container {\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  width: 18px;\n  height: 18px;\n}\n\n/* Spinner for syncing state */\n.sync-spinner {\n  width: 16px;\n  height: 16px;\n  border: 2px solid var(--color-decorative-blue);\n  border-top-color: var(--color-action-interactive);\n  border-radius: 50%;\n  animation: spin 0.8s linear infinite;\n}\n\n/* Checkmark for ok state */\n.sync-checkmark {\n  color: var(--color-icon-green);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n\n/* Red X for error state */\n.sync-error-icon {\n  color: var(--color-icon-red);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n\n/* Text status styling */\n.sync-indicator-text {\n  /* Using ff-label-sm */\n}\n\n.sync-indicator-detail {\n  color: var(--color-text-subdued);\n  margin-left: var(--space-xxs);\n}\n\n@keyframes spin {\n  from { transform: rotate(0deg); }\n  to { transform: rotate(360deg); }\n}\n\n@keyframes slideInUp {\n  from {\n    transform: translateY(20px) scale(0.95);\n    opacity: 0;\n  }\n  to {\n    transform: translateY(0) scale(1);\n    opacity: 1;\n  }\n}\n/* folder-organizer/index.css */\n.organizer-backdrop {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background-color: rgba(18, 18, 18, 0.4);\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  z-index: 99999;\n  animation: fadeIn var(--motion-normal) var(--ease-decelerate);\n}\n\n.organizer-modal {\n  background: var(--bg-surface);\n  border: 1px solid var(--color-border-subdued);\n  border-radius: var(--radius-xs);\n  width: 95%;\n  max-width: 900px;\n  height: 85vh;\n  box-shadow: var(--elev-depth64);\n  animation: scaleUp var(--motion-slow) var(--ease-decelerate);\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n}\n\n.organizer-header {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  height: var(--space-4xl);\n  padding: 0 var(--space-xl);\n  border-bottom: 1px solid var(--color-border-subdued);\n}\n\n.organizer-title {\n  margin: 0;\n}\n\n.organizer-close-btn {\n  background: transparent;\n  border: none;\n  color: var(--color-text-subdued);\n  cursor: pointer;\n  padding: var(--space-xxs);\n  border-radius: var(--radius-xxs);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition: all var(--motion-fast) var(--ease-standard);\n}\n\n.organizer-close-btn:hover {\n  background: var(--bg-surface-hover);\n  color: var(--fg1);\n}\n\n.organizer-close-btn:focus-visible {\n  outline: 2px solid var(--color-action-interactive);\n  outline-offset: 2px;\n}\n\n.organizer-body {\n  display: flex;\n  flex: 1;\n  overflow: hidden;\n}\n\n/* Sidebar Styles */\n.organizer-sidebar {\n  width: var(--layout-sidebar-width);\n  border-right: 1px solid var(--color-border-subdued);\n  display: flex;\n  flex-direction: column;\n  background: var(--bg-surface);\n}\n\n.sidebar-content {\n  flex: 1;\n  overflow-y: auto;\n  padding: var(--space-sm);\n  display: flex;\n  flex-direction: column;\n  gap: var(--space-xs);\n}\n\n.folder-list {\n  display: flex;\n  flex-direction: column;\n  gap: var(--space-none);\n}\n\n.folder-row {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding: var(--space-xs) var(--space-sm);\n  border-radius: var(--radius-xxs);\n  background: var(--bg-surface);\n  border: 1px solid transparent;\n  cursor: pointer;\n  transition: all var(--motion-fast) var(--ease-standard);\n}\n\n.folder-row:hover {\n  background: var(--bg-surface-hover);\n}\n\n.folder-row.active {\n  background: var(--color-navigation-container);\n}\n\n.folder-row.dragging {\n  opacity: 0.5;\n  border: 1px dashed var(--color-border-default);\n}\n\n.folder-left {\n  display: flex;\n  align-items: center;\n  gap: var(--space-xs);\n  min-width: 0;\n}\n\n.folder-color-dot {\n  width: 12px;\n  height: 12px;\n  border-radius: 50%;\n  flex-shrink: 0;\n}\n\n.folder-name {\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n\n.folder-right {\n  display: flex;\n  align-items: center;\n  gap: var(--space-xs);\n}\n\n.course-count-badge {\n  background: var(--bg-canvas);\n  padding: 2px 6px;\n  border-radius: var(--radius-md);\n  font-size: 11px;\n  color: var(--color-text-subdued);\n  border: 1px solid var(--color-border-subdued);\n}\n\n.folder-actions {\n  display: flex;\n  gap: var(--space-xxs);\n  opacity: 0;\n  transition: opacity var(--motion-fast);\n}\n\n.folder-row:hover .folder-actions {\n  opacity: 1;\n}\n\n.folder-action-btn {\n  background: transparent;\n  border: none;\n  color: var(--color-text-subdued);\n  cursor: pointer;\n  padding: 2px;\n  border-radius: var(--radius-xxs);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n\n.folder-action-btn:hover {\n  background: var(--bg-surface-hover);\n  color: var(--fg1);\n}\n\n.sidebar-footer {\n  padding: var(--space-sm);\n  border-top: 1px solid var(--color-border-subdued);\n}\n\n.add-folder-btn {\n  width: 100%;\n  padding: var(--space-xs);\n  background: var(--bg-surface);\n  border: 1px dashed var(--color-border-default);\n  border-radius: var(--radius-xs);\n  color: var(--fg1);\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  gap: var(--space-xs);\n  transition: all var(--motion-fast) var(--ease-standard);\n}\n\n.add-folder-btn:hover {\n  background: var(--bg-surface-hover);\n  border-color: var(--color-border-subdued);\n}\n\n.add-folder-btn:focus-visible {\n  outline: 2px solid var(--color-action-interactive);\n  outline-offset: 2px;\n}\n\n.folder-form {\n  display: flex;\n  flex-direction: column;\n  gap: var(--space-xs);\n  background: var(--bg-surface-hover);\n  padding: var(--space-xs);\n  border-radius: var(--radius-xs);\n  border: 1px solid var(--color-border-subdued);\n}\n\n.folder-form-input {\n  background: var(--bg-surface);\n  border: 1px solid var(--color-border-default);\n  border-radius: var(--radius-xxs);\n  padding: var(--space-xxs) var(--space-xs);\n  color: var(--fg1);\n  font-family: var(--font-sans);\n  font-size: var(--type-text-sm-size);\n  outline: none;\n}\n\n.folder-form-input:focus {\n  border-color: var(--color-action-interactive);\n  box-shadow: inset 0 0 0 1px var(--color-action-interactive);\n}\n\n.folder-form-row {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  gap: var(--space-xs);\n}\n\n.color-picker-wrapper {\n  display: flex;\n  align-items: center;\n  gap: var(--space-xs);\n}\n\n.color-input {\n  appearance: none;\n  -webkit-appearance: none;\n  background: none;\n  border: none;\n  width: 24px;\n  height: 24px;\n  cursor: pointer;\n  padding: 0;\n}\n\n.color-input::-webkit-color-swatch-wrapper {\n  padding: 0;\n}\n\n.color-input::-webkit-color-swatch {\n  border: 1px solid var(--color-border-subdued);\n  border-radius: 50%;\n}\n\n.folder-form-actions {\n  display: flex;\n  gap: var(--space-xxs);\n}\n\n.form-btn {\n  padding: var(--space-xxs) var(--space-xs);\n  border-radius: var(--radius-xxs);\n  cursor: pointer;\n  border: 1px solid transparent;\n  font-family: var(--font-sans);\n  font-size: var(--type-text-sm-size);\n  transition: all var(--motion-fast) var(--ease-standard);\n}\n\n.form-btn-save {\n  background: var(--primary);\n  color: var(--color-surface);\n}\n\n.form-btn-save:hover {\n  background: var(--primary-hover);\n}\n\n.form-btn-cancel {\n  background: var(--bg-surface);\n  border-color: var(--color-border-subdued);\n  color: var(--fg1);\n}\n\n.form-btn-cancel:hover {\n  background: var(--bg-surface-hover);\n}\n\n/* Main Panel Styles */\n.organizer-main {\n  flex: 1;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n  background: var(--bg-canvas);\n}\n\n.main-header {\n  padding: var(--space-md) var(--space-xl);\n  border-bottom: 1px solid var(--color-border-subdued);\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  background: var(--bg-surface);\n}\n\n.selected-folder-title {\n  margin: 0;\n  display: flex;\n  align-items: center;\n  gap: var(--space-sm);\n}\n\n.selected-folder-dot {\n  width: 14px;\n  height: 14px;\n  border-radius: 50%;\n}\n\n.main-content {\n  flex: 1;\n  overflow-y: auto;\n  padding: var(--space-lg);\n}\n\n.course-grid {\n  display: grid;\n  grid-template-columns: repeat(auto-fill, minmax(192px, 1fr));\n  gap: var(--space-md);\n}\n\n.course-card {\n  background: var(--bg-surface);\n  border: 1px solid var(--color-border-subdued);\n  border-radius: var(--radius-xs);\n  overflow: hidden;\n  display: flex;\n  flex-direction: column;\n  transition: all var(--motion-fast) var(--ease-standard);\n  text-decoration: none;\n  color: inherit;\n  box-shadow: var(--elev-depth4);\n}\n\n.course-card:hover {\n  transform: translateY(-2px);\n  box-shadow: var(--elev-depth16);\n  border-color: var(--color-border-default);\n}\n\n.course-thumbnail-wrapper {\n  position: relative;\n  width: 100%;\n  padding-top: 56.25%; /* 16:9 aspect ratio */\n  background: var(--bg-canvas);\n  border-bottom: 1px solid var(--color-border-subdued);\n}\n\n.course-thumbnail {\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n.course-info {\n  padding: var(--space-sm);\n  display: flex;\n  flex-direction: column;\n  gap: var(--space-xxs);\n  flex: 1;\n}\n\n.course-title {\n  margin: 0;\n  display: -webkit-box;\n  -webkit-line-clamp: 2;\n  -webkit-box-orient: vertical;\n  overflow: hidden;\n  line-height: var(--type-text-sm-lh);\n}\n\n.course-instructor {\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  margin-top: auto;\n}\n\n/* Spinner and Status States */\n.organizer-center-state {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  height: 100%;\n  width: 100%;\n  gap: var(--space-md);\n}\n\n.ufo-spinner {\n  border: 3px solid var(--color-border-subdued);\n  border-top: 3px solid var(--primary);\n  border-radius: 50%;\n  width: 36px;\n  height: 36px;\n  animation: ufo-spin 1s linear infinite;\n}\n\n.error-text {\n  color: var(--color-text-red);\n}\n\n.retry-btn {\n  background: var(--primary);\n  color: var(--color-surface);\n  border: none;\n  padding: var(--space-xs) var(--space-md);\n  border-radius: var(--radius-xs);\n  cursor: pointer;\n  transition: background var(--motion-fast);\n}\n\n.retry-btn:hover {\n  background: var(--primary-hover);\n}\n\n.empty-text {\n  color: var(--color-text-subdued);\n}\n\n@keyframes organizer-fadeIn {\n  from { opacity: 0; }\n  to { opacity: 1; }\n}\n\n@keyframes organizer-scaleUp {\n  from { transform: scale(0.98); opacity: 0; }\n  to { transform: scale(1); opacity: 1; }\n}\n\n@keyframes ufo-spin {\n  0% { transform: rotate(0deg); }\n  100% { transform: rotate(360deg); }\n}.atf-backdrop {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background-color: rgba(18, 18, 18, 0.45);\n  backdrop-filter: blur(4px);\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  z-index: 99999;\n  animation: atf-fadeIn 0.2s cubic-bezier(0, 0, 0.2, 1);\n}\n\n.atf-modal {\n  background: var(--bg-surface, #1e293b);\n  border: 1px solid var(--color-border-subdued, #334155);\n  border-radius: var(--radius-xs, 6px);\n  width: 90%;\n  max-width: 480px;\n  max-height: 80vh;\n  box-shadow: var(--elev-depth64, 0 20px 25px -5px rgba(0, 0, 0, 0.3));\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n  animation: atf-scaleUp 0.3s cubic-bezier(0, 0, 0.2, 1);\n}\n\n.atf-header {\n  padding: 16px 24px;\n  border-bottom: 1px solid var(--color-border-subdued, #334155);\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n}\n\n.atf-title-section {\n  display: flex;\n  gap: 16px;\n  align-items: center;\n  flex: 1;\n  min-width: 0;\n}\n\n.atf-thumbnail {\n  width: 64px;\n  height: 36px;\n  object-fit: cover;\n  border-radius: 4px;\n  border: 1px solid var(--color-border-subdued, #334155);\n  flex-shrink: 0;\n}\n\n.atf-course-info {\n  flex: 1;\n  min-width: 0;\n}\n\n.atf-course-title {\n  margin: 0 0 2px 0;\n  font-size: 14px;\n  font-weight: 600;\n  color: var(--fg1, #f8fafc);\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n\n.atf-course-instructor {\n  font-size: 12px;\n  color: var(--color-text-subdued, #94a3b8);\n  margin: 0;\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n\n.atf-close-btn {\n  background: transparent;\n  border: none;\n  color: var(--color-text-subdued, #94a3b8);\n  cursor: pointer;\n  padding: 4px;\n  border-radius: 4px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition: all 0.2s;\n  margin-left: 8px;\n}\n\n.atf-close-btn:hover {\n  background: var(--bg-surface-hover, #334155);\n  color: var(--fg1, #f8fafc);\n}\n\n.atf-error-banner {\n  background-color: var(--color-text-red, #ef4444);\n  color: #ffffff;\n  padding: 12px 16px;\n  font-size: 13px;\n  display: flex;\n  align-items: center;\n  gap: 8px;\n}\n\n.atf-body {\n  flex: 1;\n  overflow-y: auto;\n  padding: 16px 24px;\n  display: flex;\n  flex-direction: column;\n  gap: 12px;\n}\n\n.atf-folder-item {\n  display: flex;\n  align-items: center;\n  gap: 12px;\n  padding: 8px 12px;\n  border-radius: 4px;\n  cursor: pointer;\n  transition: background 0.2s;\n  user-select: none;\n}\n\n.atf-folder-item:hover {\n  background: var(--bg-surface-hover, #334155);\n}\n\n.atf-checkbox {\n  width: 16px;\n  height: 16px;\n  cursor: pointer;\n  accent-color: var(--primary, #6366f1);\n}\n\n.atf-folder-dot {\n  width: 10px;\n  height: 10px;\n  border-radius: 50%;\n  flex-shrink: 0;\n}\n\n.atf-folder-name {\n  font-size: 14px;\n  color: var(--fg1, #f8fafc);\n  flex: 1;\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n\n.atf-footer {\n  padding: 16px 24px;\n  border-top: 1px solid var(--color-border-subdued, #334155);\n  display: flex;\n  justify-content: flex-end;\n  gap: 12px;\n}\n\n.atf-btn {\n  padding: 8px 16px;\n  border-radius: 4px;\n  font-size: 13px;\n  font-weight: 500;\n  cursor: pointer;\n  border: 1px solid transparent;\n  transition: all 0.2s;\n  display: flex;\n  align-items: center;\n  gap: 8px;\n}\n\n.atf-btn-cancel {\n  background: transparent;\n  border-color: var(--color-border-subdued, #334155);\n  color: var(--fg1, #f8fafc);\n}\n\n.atf-btn-cancel:hover {\n  background: var(--bg-surface-hover, #334155);\n}\n\n.atf-btn-save {\n  background: var(--primary, #6366f1);\n  color: #ffffff;\n}\n\n.atf-btn-save:hover:not(:disabled) {\n  background: var(--primary-hover, #4f46e5);\n}\n\n.atf-btn-save:disabled {\n  opacity: 0.5;\n  cursor: not-allowed;\n}\n\n.atf-spinner-small {\n  border: 2px solid rgba(255, 255, 255, 0.3);\n  border-top: 2px solid #ffffff;\n  border-radius: 50%;\n  width: 14px;\n  height: 14px;\n  animation: atf-spin 1s linear infinite;\n}\n\n@keyframes atf-fadeIn {\n  from { opacity: 0; }\n  to { opacity: 1; }\n}\n\n@keyframes atf-scaleUp {\n  from { transform: scale(0.95); opacity: 0; }\n  to { transform: scale(1); opacity: 1; }\n}\n\n@keyframes atf-spin {\n  0% { transform: rotate(0deg); }\n  100% { transform: rotate(360deg); }\n}\n.cu-fab-container {\n  position: fixed;\n  bottom: 16px;\n  right: 16px;\n  z-index: 99990;\n  display: flex;\n  flex-direction: column;\n  align-items: flex-end;\n  font-family: var(--font-sans);\n}\n\n.cu-fab-trigger {\n  width: 48px;\n  height: 48px;\n  border-radius: var(--radius-full);\n  background: var(--color-action-primary);\n  color: var(--color-text-inverse);\n  border: none;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  box-shadow: var(--elev-depth16);\n  transition: background var(--motion-fast) var(--ease-standard),\n              transform var(--motion-fast) var(--ease-standard);\n}\n\n.cu-fab-trigger:hover {\n  background: var(--color-action-primary-hover);\n  transform: scale(1.05);\n}\n\n.cu-fab-trigger:active {\n  transform: scale(0.95);\n}\n\n.cu-fab-trigger-icon {\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n\n.cu-fab-menu {\n  display: flex;\n  flex-direction: column;\n  align-items: flex-end;\n  gap: 8px;\n  margin-bottom: 8px;\n  animation: cu-fab-fade-in var(--motion-fast) var(--ease-standard);\n}\n\n@keyframes cu-fab-fade-in {\n  from {\n    opacity: 0;\n    transform: translateY(10px);\n  }\n  to {\n    opacity: 1;\n    transform: translateY(0);\n  }\n}\n\n.cu-fab-item {\n  display: flex;\n  align-items: center;\n  gap: var(--space-xs);\n  padding: var(--space-xs) var(--space-sm);\n  background: var(--color-surface);\n  border: 1px solid var(--color-border-subdued);\n  border-radius: var(--radius-sm);\n  color: var(--color-text-default);\n  cursor: pointer;\n  box-shadow: var(--elev-depth4);\n  transition: background var(--motion-fast) var(--ease-standard),\n              transform var(--motion-fast) var(--ease-standard);\n  font-size: var(--type-text-sm-size);\n  font-weight: 500;\n  white-space: nowrap;\n}\n\n.cu-fab-item:hover {\n  background: var(--color-surface-muted);\n  transform: translateX(-4px);\n}\n\n.cu-fab-item:active {\n  transform: scale(0.98);\n}\n\n.cu-fab-item-icon {\n  font-size: 16px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n\n.cu-fab-item-text {\n  line-height: 1.2;\n}\n\n.cu-fab-item:disabled {\n  opacity: 0.5;\n  cursor: not-allowed;\n  transform: none;\n  background: var(--color-surface);\n}\n\n\n/* ============================================================\n   Flowforge — Colors & Type\n   Source of truth: DESIGN.md (alpha)\n   Loaded by every UI kit, slide, and preview card.\n   ============================================================ */\n/* ----- Fonts ------------------------------------------------ */\n:root, :host {\n  /* ===== Color tokens =================================== */\n\n  /* Core surfaces */\n  --color-transparent: transparent;\n  --color-canvas: #F2F2F2;\n  --color-surface: #FFFFFF;\n  --color-surface-muted: #F2F2F2;\n  --color-surface-subtle: #E5E5E5;\n  --color-surface-strong: #BFBFBF;\n  --color-surface-inverse: #121212;\n\n  /* Agent / research / launch surfaces */\n  --color-surface-agent: #EBF1F0;\n  --color-surface-agent-subtle: #F5F8F7;\n  --color-surface-agent-raised: #DBE2E1;\n  --color-surface-preview: #CFEEEA;\n  --color-surface-selection: #E3F7EF;\n\n  /* Navigation */\n  --color-navigation-container: #E5F0E8;\n  --color-navigation-inverse: #004C45;\n\n  /* Action hierarchy */\n  --color-action-primary: #172D2D;\n  --color-action-primary-hover: #004C45;\n  --color-action-primary-disabled: #808080;\n  --color-action-outline-hover: #E5F0E8;\n  --color-action-interactive: #0F748B;\n  --color-action-interactive-hover: #0E687D;\n  --color-action-interactive-disabled: #D9F2F7;\n  --color-action-card: #A4DCB4;\n  --color-action-card-hover: #004C45;\n\n  /* Borders & focus */\n  --color-border-default: #808080;\n  --color-border-subdued: #D2D2D2;\n  --color-border-focus: #D9F2F7;\n  --color-border-blue: #17AED0;\n  --color-border-red: #BB363C;\n  --color-border-yellow: #F7C11B;\n  --color-border-green: #316E68;\n  --color-border-agent: #CDD9D7;\n  --color-border-agent-strong: #626D6B;\n  --color-border-green-gray: #C8D1D0;\n\n  /* Text */\n  --color-text-default: #121212;\n  --color-text-subdued: #404040;\n  --color-text-placeholder: #666666;\n  --color-text-disabled: #BFBFBF;\n  --color-text-inverse: #FFFFFF;\n  --color-text-inverse-subdued: #E5E5E5;\n  --color-text-red: #9C1D24;\n  --color-text-display: #004C45;\n  --color-text-agent: #172D2D;\n  --color-text-agent-subdued: #626D6B;\n  --color-text-deep-green: #24302F;\n  --color-text-code-green: #256D28;\n  --color-text-code-key: #844B1F;\n\n  /* Decorative / semantic fills */\n  --color-decorative-blue: #D9F2F7;\n  --color-decorative-red: #EDD5D5;\n  --color-decorative-yellow: #F6DFA3;\n  --color-decorative-green: #D5EBDB;\n  --color-decorative-purple: #CFD4E4;\n  --color-decorative-gray: #E5E5E5;\n\n  /* Icon roles */\n  --color-icon-default: #121212;\n  --color-icon-yellow: #A4680E;\n  --color-icon-red: #BB363C;\n  --color-icon-purple: #6B7EA6;\n  --color-icon-green: #004C45;\n  --color-icon-blue: #0E687D;\n\n  /* Convenience semantic aliases */\n  --fg1: var(--color-text-default);\n  --fg2: var(--color-text-subdued);\n  --fg3: var(--color-text-placeholder);\n  --fg-inverse: var(--color-text-inverse);\n  --bg-canvas: var(--color-canvas);\n  --bg-surface: var(--color-surface);\n  --bg-surface-hover: var(--color-surface-muted);\n  --primary: var(--color-action-primary);\n  --primary-hover: var(--color-action-primary-hover);\n  --accent-green: var(--color-text-display);\n  --accent-blue: var(--color-action-interactive);\n\n  /* ===== Spacing scale (4px-derived) ==================== */\n  --space-none: 0px;\n  --space-xxs: 4px;\n  --space-xs: 8px;\n  --space-sm: 12px;\n  --space-md: 16px;\n  --space-lg: 24px;\n  --space-xl: 32px;\n  --space-2xl: 40px;\n  --space-3xl: 48px;\n  --space-4xl: 64px;\n  --space-5xl: 80px;\n  --space-6xl: 96px;\n  --space-7xl: 160px;\n\n  /* ===== Radius ========================================= */\n  --radius-none: 0px;\n  --radius-xxs: 4px;\n  --radius-xs: 8px;\n  --radius-sm: 12px;\n  --radius-md: 16px;\n  --radius-guided: 18px;\n  --radius-lg: 24px;\n  --radius-full: 9999px;\n\n  /* ===== Elevation ====================================== */\n  --elev-none: none;\n  --elev-button: 0px 1px 0px rgba(18, 18, 18, 0.05),\n                 inset 0px -1px 0px rgba(18, 18, 18, 0.2);\n  --elev-depth4: 0px 4px 10px rgba(18, 18, 18, 0.12),\n                 0px 1px 3px rgba(18, 18, 18, 0.08);\n  --elev-input-raised: 0px 1px 3px rgba(18, 18, 18, 0.08),\n                       0px 4px 10px rgba(18, 18, 18, 0.12);\n  --elev-depth16: 0px 10px 25px rgba(18, 18, 18, 0.15),\n                  0px 1px 3px rgba(18, 18, 18, 0.08);\n  --elev-guided: 0px 28px 60px rgba(36, 48, 47, 0.12);\n  --elev-depth64: 0px 24px 60px rgba(18, 18, 18, 0.2),\n                  0px 4px 8px rgba(18, 18, 18, 0.18);\n\n  /* ===== Motion ========================================= */\n  --motion-fast: 150ms;\n  --motion-normal: 250ms;\n  --motion-slow: 350ms;\n  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);\n  --ease-decelerate: cubic-bezier(0, 0, 0.2, 1);\n  --ease-accelerate: cubic-bezier(0.4, 0, 1, 1);\n\n  /* ===== Layout ========================================= */\n  --layout-sidebar-width: 200px;\n  --layout-modal-min-width: 660px;\n  --layout-field-height: 48px;\n  --layout-tab-active-border-width: 2px;\n  --layout-table-header-height: 44px;\n  --layout-table-row-height: 56px;\n  --layout-graph-node-width: 136px;\n  --layout-graph-node-height: 144px;\n  --layout-card-item-width: 192px;\n  --layout-card-item-height: 136px;\n  --layout-assistant-panel-min-width: 36%;\n  --layout-assistant-rail-collapsed-width: 72px;\n  --layout-assistant-input-height: 60px;\n  --layout-assistant-input-min-height: 52px;\n  --layout-assistant-input-max-width: 1009px;\n  --layout-source-chip-width: 195px;\n  --layout-source-chip-height: 34px;\n  --layout-guided-card-max-width: 720px;\n  --layout-guided-card-max-height: 640px;\n  --layout-guided-card-min-height: 560px;\n\n  /* ===== Typography tokens ============================== */\n  --font-sans: \"Libre Franklin\", -apple-system, BlinkMacSystemFont,\n               \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif;\n  --font-mono: ui-monospace, \"SF Mono\", Menlo, Consolas, \"Liberation Mono\",\n               monospace;\n\n  /* Display */\n  --type-display-xxl-size: 72px;  --type-display-xxl-lh: 90px;\n  --type-display-xl-size:  60px;  --type-display-xl-lh:  72px;\n  --type-display-lg-size:  48px;  --type-display-lg-lh:  60px;\n  --type-display-md-size:  36px;  --type-display-md-lh:  44px;\n  --type-display-sm-size:  30px;  --type-display-sm-lh:  38px;\n  --type-display-xs-size:  24px;  --type-display-xs-lh:  32px;\n  --type-display-weight:   600;\n\n  /* Text */\n  --type-text-xxl-size: 24px;  --type-text-xxl-lh: 32px;\n  --type-text-xl-size:  20px;  --type-text-xl-lh:  30px;\n  --type-text-lg-size:  18px;  --type-text-lg-lh:  28px;\n  --type-text-md-size:  16px;  --type-text-md-lh:  24px;\n  --type-text-sm-size:  14px;  --type-text-sm-lh:  20px;\n  --type-text-xs-size:  12px;  --type-text-xs-lh:  18px;\n\n  /* Utility */\n  --type-button-md-size: 16px; --type-button-md-lh: 24px; --type-button-md-weight: 500;\n  --type-label-sm-size:  14px; --type-label-sm-lh:  20px; --type-label-sm-weight:  500;\n}\n/* ----- Base reset ------------------------------------------ */\n.cu-host {\n  background: var(--bg-canvas);\n  color: var(--fg1);\n  font-family: var(--font-sans);\n  font-size: var(--type-text-md-size);\n  line-height: var(--type-text-md-lh);\n  -webkit-font-smoothing: antialiased;\n  -moz-osx-font-smoothing: grayscale;\n}\n/* ===== Semantic role classes ================================\n   Use class names like `.ff-display-md` or `.ff-text-sm` on any\n   element. Headings get sensible defaults but stay overridable.\n   ============================================================ */\n.ff-display-xxl, .ff-display-xl, .ff-display-lg,\n.ff-display-md,  .ff-display-sm, .ff-display-xs {\n  font-family: var(--font-sans);\n  font-weight: var(--type-display-weight);\n  letter-spacing: normal;\n  color: var(--color-text-default);\n  margin: 0;\n}\n.ff-display-xxl { font-size: var(--type-display-xxl-size); line-height: var(--type-display-xxl-lh); }\n.ff-display-xl  { font-size: var(--type-display-xl-size);  line-height: var(--type-display-xl-lh);  }\n.ff-display-lg  { font-size: var(--type-display-lg-size);  line-height: var(--type-display-lg-lh);  }\n.ff-display-md  { font-size: var(--type-display-md-size);  line-height: var(--type-display-md-lh);  }\n.ff-display-sm  { font-size: var(--type-display-sm-size);  line-height: var(--type-display-sm-lh);  }\n.ff-display-xs  { font-size: var(--type-display-xs-size);  line-height: var(--type-display-xs-lh);  }\n.ff-text-xxl, .ff-text-xl, .ff-text-lg,\n.ff-text-md,  .ff-text-sm, .ff-text-xs {\n  font-family: var(--font-sans);\n  font-weight: 400;\n  letter-spacing: normal;\n  color: var(--color-text-default);\n  margin: 0;\n}\n.ff-text-xxl { font-size: var(--type-text-xxl-size); line-height: var(--type-text-xxl-lh); }\n.ff-text-xl  { font-size: var(--type-text-xl-size);  line-height: var(--type-text-xl-lh);  }\n.ff-text-lg  { font-size: var(--type-text-lg-size);  line-height: var(--type-text-lg-lh);  }\n.ff-text-md  { font-size: var(--type-text-md-size);  line-height: var(--type-text-md-lh);  }\n.ff-text-sm  { font-size: var(--type-text-sm-size);  line-height: var(--type-text-sm-lh);  }\n.ff-text-xs  { font-size: var(--type-text-xs-size);  line-height: var(--type-text-xs-lh);  }\n.ff-button-md {\n  font-family: var(--font-sans);\n  font-size: var(--type-button-md-size);\n  line-height: var(--type-button-md-lh);\n  font-weight: var(--type-button-md-weight);\n  letter-spacing: normal;\n}\n.ff-label-sm {\n  font-family: var(--font-sans);\n  font-size: var(--type-label-sm-size);\n  line-height: var(--type-label-sm-lh);\n  font-weight: var(--type-label-sm-weight);\n  letter-spacing: normal;\n}\n/* Convenience tone modifiers */\n.ff-fg-default  { color: var(--color-text-default); }\n.ff-fg-subdued  { color: var(--color-text-subdued); }\n.ff-fg-placeholder { color: var(--color-text-placeholder); }\n.ff-fg-disabled { color: var(--color-text-disabled); }\n.ff-fg-inverse  { color: var(--color-text-inverse); }\n.ff-fg-display  { color: var(--color-text-display); }\n.ff-fg-red      { color: var(--color-text-red); }\n.ff-fg-blue     { color: var(--color-action-interactive); }\n/* Map to common HTML defaults (still product-app sized) */\nh1 { font-size: var(--type-display-md-size); line-height: var(--type-display-md-lh); font-weight: var(--type-display-weight); margin: 0; }\nh2 { font-size: var(--type-display-sm-size); line-height: var(--type-display-sm-lh); font-weight: var(--type-display-weight); margin: 0; }\nh3 { font-size: var(--type-display-xs-size); line-height: var(--type-display-xs-lh); font-weight: var(--type-display-weight); margin: 0; }\nh4 { font-size: var(--type-text-lg-size);    line-height: var(--type-text-lg-lh);    font-weight: 600; margin: 0; }\np, li { font-size: var(--type-text-md-size); line-height: var(--type-text-md-lh); margin: 0; }\nsmall, .ff-caption { font-size: var(--type-text-xs-size); line-height: var(--type-text-xs-lh); color: var(--color-text-subdued); }\ncode, kbd, pre { font-family: var(--font-mono); font-size: 13px; }\n/* Generic focus ring used app-wide */\n.ff-focusable:focus-visible,\nbutton:focus-visible,\na:focus-visible,\ninput:focus-visible,\nselect:focus-visible,\ntextarea:focus-visible {\n  outline: 2px solid var(--color-action-interactive);\n  outline-offset: 2px;\n  border-radius: var(--radius-xxs);\n}\n:host {\n  /* Set root variables locally for the shadow DOM host if needed */\n  font-family: var(--font-sans);\n  color: var(--fg1);\n}\n*, *::before, *::after {\n  box-sizing: border-box;\n}\n";
+window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre+Franklin:ital,wght@0,100..900;1,100..900&display=swap');.license-panel {\n  background: var(--bg-surface);\n  border: 1px solid var(--color-border-subdued);\n  border-radius: var(--radius-xs);\n  padding: var(--space-md);\n  margin-bottom: var(--space-lg);\n  color: var(--fg1);\n}\n\n.license-panel-title {\n  color: var(--color-text-subdued);\n  margin-bottom: var(--space-sm);\n}\n\n.license-row {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  margin-bottom: var(--space-sm);\n}\n\n.license-row:last-child {\n  margin-bottom: 0;\n}\n\n.license-label {\n  color: var(--color-text-subdued);\n}\n\n.license-value {\n  color: var(--fg1);\n}\n\n/* Badge (Flowforge tag/badge pattern) */\n.badge {\n  display: inline-flex;\n  align-items: center;\n  padding: var(--space-xxs) var(--space-xs);\n  border-radius: var(--radius-md);\n  text-transform: capitalize;\n}\n\n.badge-valid {\n  background: var(--color-decorative-green);\n  color: var(--color-text-deep-green);\n  border: 1px solid var(--color-border-green);\n}\n\n.badge-invalid {\n  background: var(--color-decorative-red);\n  color: var(--color-text-red);\n  border: 1px solid var(--color-border-red);\n}\n\n.badge-expired {\n  background: var(--color-decorative-yellow);\n  color: var(--color-icon-yellow);\n  border: 1px solid var(--color-border-yellow);\n}\n\n.badge-checking {\n  background: var(--color-decorative-blue);\n  color: var(--color-action-interactive);\n  border: 1px solid var(--color-border-blue);\n  animation: pulse var(--motion-slow) infinite;\n}\n\n.badge-unknown {\n  background: var(--color-decorative-gray);\n  color: var(--color-text-subdued);\n  border: 1px solid var(--color-border-default);\n}\n\n.license-warning {\n  margin-top: var(--space-sm);\n  padding: var(--space-xs) var(--space-sm);\n  background: var(--color-decorative-yellow);\n  border-left: 3px solid var(--color-border-yellow);\n  border-radius: var(--radius-xxs);\n  color: var(--color-icon-yellow);\n  display: flex;\n  align-items: center;\n  gap: var(--space-xs);\n}\n\n@keyframes pulse {\n  0%, 100% {\n    opacity: 1;\n  }\n  50% {\n    opacity: 0.5;\n  }\n}\n.settings-backdrop {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background-color: rgba(18, 18, 18, 0.4);\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  z-index: 99999;\n  animation: fadeIn var(--motion-normal) var(--ease-decelerate);\n}\n\n.settings-modal {\n  background: var(--bg-surface);\n  border: 1px solid var(--color-border-subdued);\n  border-radius: var(--radius-xs);\n  width: 90%;\n  min-width: var(--layout-modal-min-width);\n  max-width: 720px;\n  max-height: 90vh;\n  box-shadow: var(--elev-depth64);\n  animation: scaleUp var(--motion-slow) var(--ease-decelerate);\n  display: flex;\n  flex-direction: column;\n}\n\n.settings-header {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  height: var(--space-4xl);\n  padding: 0 var(--space-xl);\n  border-bottom: 1px solid var(--color-border-subdued);\n}\n\n.settings-title {\n  /* Using ff-display-sm from index.css instead of local styles, but can apply layout if needed */\n  margin: 0;\n}\n\n.settings-close-btn {\n  background: transparent;\n  border: none;\n  color: var(--color-text-subdued);\n  cursor: pointer;\n  padding: var(--space-xxs);\n  border-radius: var(--radius-xxs);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition: all var(--motion-fast) var(--ease-standard);\n}\n\n.settings-close-btn:hover {\n  background: var(--bg-surface-hover);\n  color: var(--fg1);\n}\n\n.settings-close-btn:focus-visible {\n  outline: 2px solid var(--color-action-interactive);\n  outline-offset: 2px;\n}\n\n.settings-content {\n  padding: var(--space-lg) var(--space-xl);\n  overflow-y: auto;\n  flex: 1;\n}\n\n/* Form Styles */\n.config-form {\n  display: flex;\n  flex-direction: column;\n  gap: var(--space-lg);\n  margin-bottom: var(--space-lg);\n}\n\n.form-group {\n  display: flex;\n  flex-direction: column;\n  gap: var(--space-xs);\n}\n\n.form-label {\n  /* text-sm will be applied via ff-label-sm */\n  margin-bottom: 0;\n}\n\n.form-input {\n  background: var(--bg-surface);\n  border: 1px solid var(--color-border-default);\n  border-radius: var(--radius-xs);\n  padding: 0 var(--space-sm);\n  height: var(--layout-field-height);\n  font-family: var(--font-sans);\n  font-size: var(--type-text-md-size);\n  color: var(--fg1);\n  outline: none;\n  transition: all var(--motion-fast) var(--ease-standard);\n}\n\n.form-input:hover {\n  background: var(--bg-surface-hover);\n}\n\n.form-input:focus {\n  border-color: var(--color-action-interactive);\n  box-shadow: inset 0 0 0 1px var(--color-action-interactive);\n  background: var(--bg-surface);\n}\n\n.form-input:disabled,\n.form-input-disabled {\n  background: var(--bg-canvas);\n  color: var(--color-text-disabled);\n  border-color: var(--color-border-subdued);\n  cursor: not-allowed;\n}\n\n.form-help {\n  color: var(--color-text-subdued);\n  margin-top: 0;\n}\n\n.form-group-checkbox {\n  display: flex;\n  align-items: center;\n  gap: var(--space-sm);\n  cursor: pointer;\n  user-select: none;\n  height: var(--layout-field-height);\n}\n\n.form-checkbox {\n  appearance: none;\n  -webkit-appearance: none;\n  height: 20px;\n  width: 20px;\n  background-color: var(--bg-surface);\n  border: 1px solid var(--color-border-default);\n  border-radius: var(--radius-xxs);\n  cursor: pointer;\n  display: inline-flex;\n  align-items: center;\n  justify-content: center;\n  outline: none;\n  transition: all var(--motion-fast) var(--ease-standard);\n  margin: 0;\n}\n\n.form-checkbox:hover {\n  background: var(--bg-surface-hover);\n}\n\n.form-checkbox:checked {\n  background-color: var(--primary);\n  border-color: var(--primary);\n}\n\n.form-checkbox:checked::after {\n  content: \"\";\n  display: block;\n  width: 5px;\n  height: 10px;\n  border: solid var(--color-surface);\n  border-width: 0 2px 2px 0;\n  transform: rotate(45deg);\n  margin-bottom: 2px;\n}\n\n.form-checkbox:focus-visible {\n  outline: 2px solid var(--color-action-interactive);\n  outline-offset: 2px;\n}\n\n.form-checkbox-label {\n  cursor: pointer;\n}\n\n@keyframes fadeIn {\n  from { opacity: 0; }\n  to { opacity: 1; }\n}\n\n@keyframes scaleUp {\n  from { transform: scale(0.98); opacity: 0; }\n  to { transform: scale(1); opacity: 1; }\n}.sync-indicator-container {\n  position: fixed;\n  bottom: var(--space-lg);\n  right: var(--space-lg);\n  z-index: 9999;\n  pointer-events: none;\n}\n\n.sync-indicator-badge {\n  pointer-events: auto;\n  display: flex;\n  align-items: center;\n  gap: var(--space-sm);\n  background: var(--bg-surface);\n  border: 1px solid var(--color-border-subdued);\n  box-shadow: var(--elev-depth16);\n  border-radius: var(--radius-xs);\n  padding: var(--space-sm) var(--space-md);\n  color: var(--fg1);\n  transition: all var(--motion-slow) var(--ease-standard);\n  transform: translateY(0);\n  opacity: 1;\n  animation: slideInUp var(--motion-slow) var(--ease-decelerate);\n}\n\n.sync-indicator-badge.status-ok {\n  border-left: 3px solid var(--color-border-green);\n}\n\n.sync-indicator-badge.status-error {\n  border-left: 3px solid var(--color-border-red);\n}\n\n.sync-indicator-badge.status-syncing {\n  border-left: 3px solid var(--color-border-blue);\n}\n\n.sync-indicator-badge.hide {\n  transform: translateY(20px) scale(0.95);\n  opacity: 0;\n  pointer-events: none;\n}\n\n.sync-indicator-icon-container {\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  width: 18px;\n  height: 18px;\n}\n\n/* Spinner for syncing state */\n.sync-spinner {\n  width: 16px;\n  height: 16px;\n  border: 2px solid var(--color-decorative-blue);\n  border-top-color: var(--color-action-interactive);\n  border-radius: 50%;\n  animation: spin 0.8s linear infinite;\n}\n\n/* Checkmark for ok state */\n.sync-checkmark {\n  color: var(--color-icon-green);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n\n/* Red X for error state */\n.sync-error-icon {\n  color: var(--color-icon-red);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n\n/* Text status styling */\n.sync-indicator-text {\n  /* Using ff-label-sm */\n}\n\n.sync-indicator-detail {\n  color: var(--color-text-subdued);\n  margin-left: var(--space-xxs);\n}\n\n@keyframes spin {\n  from { transform: rotate(0deg); }\n  to { transform: rotate(360deg); }\n}\n\n@keyframes slideInUp {\n  from {\n    transform: translateY(20px) scale(0.95);\n    opacity: 0;\n  }\n  to {\n    transform: translateY(0) scale(1);\n    opacity: 1;\n  }\n}\n/* folder-organizer/index.css */\n.organizer-backdrop {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background-color: rgba(18, 18, 18, 0.4);\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  z-index: 99999;\n  animation: fadeIn var(--motion-normal) var(--ease-decelerate);\n}\n\n.organizer-modal {\n  background: var(--bg-surface);\n  border: 1px solid var(--color-border-subdued);\n  border-radius: var(--radius-xs);\n  width: 95%;\n  max-width: 900px;\n  height: 85vh;\n  box-shadow: var(--elev-depth64);\n  animation: scaleUp var(--motion-slow) var(--ease-decelerate);\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n}\n\n.organizer-header {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  height: var(--space-4xl);\n  padding: 0 var(--space-xl);\n  border-bottom: 1px solid var(--color-border-subdued);\n}\n\n.organizer-title {\n  margin: 0;\n}\n\n.organizer-close-btn {\n  background: transparent;\n  border: none;\n  color: var(--color-text-subdued);\n  cursor: pointer;\n  padding: var(--space-xxs);\n  border-radius: var(--radius-xxs);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition: all var(--motion-fast) var(--ease-standard);\n}\n\n.organizer-close-btn:hover {\n  background: var(--bg-surface-hover);\n  color: var(--fg1);\n}\n\n.organizer-close-btn:focus-visible {\n  outline: 2px solid var(--color-action-interactive);\n  outline-offset: 2px;\n}\n\n.organizer-body {\n  display: flex;\n  flex: 1;\n  overflow: hidden;\n}\n\n/* Sidebar Styles */\n.organizer-sidebar {\n  width: var(--layout-sidebar-width);\n  border-right: 1px solid var(--color-border-subdued);\n  display: flex;\n  flex-direction: column;\n  background: var(--bg-surface);\n}\n\n.sidebar-content {\n  flex: 1;\n  overflow-y: auto;\n  padding: var(--space-sm);\n  display: flex;\n  flex-direction: column;\n  gap: var(--space-xs);\n}\n\n.folder-list {\n  display: flex;\n  flex-direction: column;\n  gap: var(--space-none);\n}\n\n.folder-row {\n  display: flex;\n  align-items: center;\n  justify-content: space-between;\n  padding: var(--space-xs) var(--space-sm);\n  border-radius: var(--radius-xxs);\n  background: var(--bg-surface);\n  border: 1px solid transparent;\n  cursor: pointer;\n  transition: all var(--motion-fast) var(--ease-standard);\n}\n\n.folder-row:hover {\n  background: var(--bg-surface-hover);\n}\n\n.folder-row.active {\n  background: var(--color-navigation-container);\n}\n\n.folder-row.dragging {\n  opacity: 0.5;\n  border: 1px dashed var(--color-border-default);\n}\n\n.folder-left {\n  display: flex;\n  align-items: center;\n  gap: var(--space-xs);\n  min-width: 0;\n}\n\n.folder-color-dot {\n  width: 12px;\n  height: 12px;\n  border-radius: 50%;\n  flex-shrink: 0;\n}\n\n.folder-name {\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n\n.folder-right {\n  display: flex;\n  align-items: center;\n  gap: var(--space-xs);\n}\n\n.course-count-badge {\n  background: var(--bg-canvas);\n  padding: 2px 6px;\n  border-radius: var(--radius-md);\n  font-size: 11px;\n  color: var(--color-text-subdued);\n  border: 1px solid var(--color-border-subdued);\n}\n\n.folder-actions {\n  display: flex;\n  gap: var(--space-xxs);\n  opacity: 0;\n  transition: opacity var(--motion-fast);\n}\n\n.folder-row:hover .folder-actions {\n  opacity: 1;\n}\n\n.folder-action-btn {\n  background: transparent;\n  border: none;\n  color: var(--color-text-subdued);\n  cursor: pointer;\n  padding: 2px;\n  border-radius: var(--radius-xxs);\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n\n.folder-action-btn:hover {\n  background: var(--bg-surface-hover);\n  color: var(--fg1);\n}\n\n.sidebar-footer {\n  padding: var(--space-sm);\n  border-top: 1px solid var(--color-border-subdued);\n}\n\n.add-folder-btn {\n  width: 100%;\n  padding: var(--space-xs);\n  background: var(--bg-surface);\n  border: 1px dashed var(--color-border-default);\n  border-radius: var(--radius-xs);\n  color: var(--fg1);\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  gap: var(--space-xs);\n  transition: all var(--motion-fast) var(--ease-standard);\n}\n\n.add-folder-btn:hover {\n  background: var(--bg-surface-hover);\n  border-color: var(--color-border-subdued);\n}\n\n.add-folder-btn:focus-visible {\n  outline: 2px solid var(--color-action-interactive);\n  outline-offset: 2px;\n}\n\n.folder-form {\n  display: flex;\n  flex-direction: column;\n  gap: var(--space-xs);\n  background: var(--bg-surface-hover);\n  padding: var(--space-xs);\n  border-radius: var(--radius-xs);\n  border: 1px solid var(--color-border-subdued);\n}\n\n.folder-form-input {\n  background: var(--bg-surface);\n  border: 1px solid var(--color-border-default);\n  border-radius: var(--radius-xxs);\n  padding: var(--space-xxs) var(--space-xs);\n  color: var(--fg1);\n  font-family: var(--font-sans);\n  font-size: var(--type-text-sm-size);\n  outline: none;\n}\n\n.folder-form-input:focus {\n  border-color: var(--color-action-interactive);\n  box-shadow: inset 0 0 0 1px var(--color-action-interactive);\n}\n\n.folder-form-row {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  gap: var(--space-xs);\n}\n\n.color-picker-wrapper {\n  display: flex;\n  align-items: center;\n  gap: var(--space-xs);\n}\n\n.color-input {\n  appearance: none;\n  -webkit-appearance: none;\n  background: none;\n  border: none;\n  width: 24px;\n  height: 24px;\n  cursor: pointer;\n  padding: 0;\n}\n\n.color-input::-webkit-color-swatch-wrapper {\n  padding: 0;\n}\n\n.color-input::-webkit-color-swatch {\n  border: 1px solid var(--color-border-subdued);\n  border-radius: 50%;\n}\n\n.folder-form-actions {\n  display: flex;\n  gap: var(--space-xxs);\n}\n\n.form-btn {\n  padding: var(--space-xxs) var(--space-xs);\n  border-radius: var(--radius-xxs);\n  cursor: pointer;\n  border: 1px solid transparent;\n  font-family: var(--font-sans);\n  font-size: var(--type-text-sm-size);\n  transition: all var(--motion-fast) var(--ease-standard);\n}\n\n.form-btn-save {\n  background: var(--primary);\n  color: var(--color-surface);\n}\n\n.form-btn-save:hover {\n  background: var(--primary-hover);\n}\n\n.form-btn-cancel {\n  background: var(--bg-surface);\n  border-color: var(--color-border-subdued);\n  color: var(--fg1);\n}\n\n.form-btn-cancel:hover {\n  background: var(--bg-surface-hover);\n}\n\n/* Main Panel Styles */\n.organizer-main {\n  flex: 1;\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n  background: var(--bg-canvas);\n}\n\n.main-header {\n  padding: var(--space-md) var(--space-xl);\n  border-bottom: 1px solid var(--color-border-subdued);\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  background: var(--bg-surface);\n}\n\n.selected-folder-title {\n  margin: 0;\n  display: flex;\n  align-items: center;\n  gap: var(--space-sm);\n}\n\n.selected-folder-dot {\n  width: 14px;\n  height: 14px;\n  border-radius: 50%;\n}\n\n.main-content {\n  flex: 1;\n  overflow-y: auto;\n  padding: var(--space-lg);\n}\n\n.course-grid {\n  display: grid;\n  grid-template-columns: repeat(auto-fill, minmax(192px, 1fr));\n  gap: var(--space-md);\n}\n\n.course-card {\n  background: var(--bg-surface);\n  border: 1px solid var(--color-border-subdued);\n  border-radius: var(--radius-xs);\n  overflow: hidden;\n  display: flex;\n  flex-direction: column;\n  transition: all var(--motion-fast) var(--ease-standard);\n  text-decoration: none;\n  color: inherit;\n  box-shadow: var(--elev-depth4);\n}\n\n.course-card:hover {\n  transform: translateY(-2px);\n  box-shadow: var(--elev-depth16);\n  border-color: var(--color-border-default);\n}\n\n.course-thumbnail-wrapper {\n  position: relative;\n  width: 100%;\n  padding-top: 56.25%; /* 16:9 aspect ratio */\n  background: var(--bg-canvas);\n  border-bottom: 1px solid var(--color-border-subdued);\n}\n\n.course-thumbnail {\n  position: absolute;\n  top: 0;\n  left: 0;\n  width: 100%;\n  height: 100%;\n  object-fit: cover;\n}\n\n.course-info {\n  padding: var(--space-sm);\n  display: flex;\n  flex-direction: column;\n  gap: var(--space-xxs);\n  flex: 1;\n}\n\n.course-title {\n  margin: 0;\n  display: -webkit-box;\n  -webkit-line-clamp: 2;\n  -webkit-box-orient: vertical;\n  overflow: hidden;\n  line-height: var(--type-text-sm-lh);\n}\n\n.course-instructor {\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n\n.course-progress-section {\n  display: flex;\n  flex-direction: column;\n  gap: var(--space-xxs);\n  margin-top: auto;\n  padding-top: var(--space-xs);\n}\n\n.course-progress-header {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n}\n\n.course-progress-label {\n  font-weight: var(--weight-medium);\n  font-size: var(--type-text-xs-size);\n}\n\n.course-completed-badge {\n  background: var(--color-green-soft, rgba(46, 125, 50, 0.15));\n  color: var(--color-text-green, #2e7d32);\n  padding: 1px 6px;\n  border-radius: var(--radius-md);\n  font-size: 10px;\n  font-weight: var(--weight-medium);\n  border: 1px solid var(--color-green-border, rgba(46, 125, 50, 0.3));\n}\n\n.course-progress-bar {\n  width: 100%;\n  height: 6px;\n  background: var(--color-border-subdued);\n  border-radius: var(--radius-xs);\n  overflow: hidden;\n}\n\n.course-progress-fill {\n  height: 100%;\n  background: var(--primary);\n  border-radius: var(--radius-xs);\n  transition: width var(--motion-normal) var(--ease-standard);\n}\n\n.course-progress-fill.is-completed {\n  background: var(--color-text-green, #2e7d32);\n}\n\n/* Spinner and Status States */\n.organizer-center-state {\n  display: flex;\n  flex-direction: column;\n  align-items: center;\n  justify-content: center;\n  height: 100%;\n  width: 100%;\n  gap: var(--space-md);\n}\n\n.ufo-spinner {\n  border: 3px solid var(--color-border-subdued);\n  border-top: 3px solid var(--primary);\n  border-radius: 50%;\n  width: 36px;\n  height: 36px;\n  animation: ufo-spin 1s linear infinite;\n}\n\n.error-text {\n  color: var(--color-text-red);\n}\n\n.retry-btn {\n  background: var(--primary);\n  color: var(--color-surface);\n  border: none;\n  padding: var(--space-xs) var(--space-md);\n  border-radius: var(--radius-xs);\n  cursor: pointer;\n  transition: background var(--motion-fast);\n}\n\n.retry-btn:hover {\n  background: var(--primary-hover);\n}\n\n.empty-text {\n  color: var(--color-text-subdued);\n}\n\n@keyframes organizer-fadeIn {\n  from { opacity: 0; }\n  to { opacity: 1; }\n}\n\n@keyframes organizer-scaleUp {\n  from { transform: scale(0.98); opacity: 0; }\n  to { transform: scale(1); opacity: 1; }\n}\n\n@keyframes ufo-spin {\n  0% { transform: rotate(0deg); }\n  100% { transform: rotate(360deg); }\n}.atf-backdrop {\n  position: fixed;\n  top: 0;\n  left: 0;\n  right: 0;\n  bottom: 0;\n  background-color: rgba(18, 18, 18, 0.45);\n  backdrop-filter: blur(4px);\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  z-index: 99999;\n  animation: atf-fadeIn 0.2s cubic-bezier(0, 0, 0.2, 1);\n}\n\n.atf-modal {\n  background: var(--bg-surface, #1e293b);\n  border: 1px solid var(--color-border-subdued, #334155);\n  border-radius: var(--radius-xs, 6px);\n  width: 90%;\n  max-width: 480px;\n  max-height: 80vh;\n  box-shadow: var(--elev-depth64, 0 20px 25px -5px rgba(0, 0, 0, 0.3));\n  display: flex;\n  flex-direction: column;\n  overflow: hidden;\n  animation: atf-scaleUp 0.3s cubic-bezier(0, 0, 0.2, 1);\n}\n\n.atf-header {\n  padding: 16px 24px;\n  border-bottom: 1px solid var(--color-border-subdued, #334155);\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n}\n\n.atf-title-section {\n  display: flex;\n  gap: 16px;\n  align-items: center;\n  flex: 1;\n  min-width: 0;\n}\n\n.atf-thumbnail {\n  width: 64px;\n  height: 36px;\n  object-fit: cover;\n  border-radius: 4px;\n  border: 1px solid var(--color-border-subdued, #334155);\n  flex-shrink: 0;\n}\n\n.atf-course-info {\n  flex: 1;\n  min-width: 0;\n}\n\n.atf-course-title {\n  margin: 0 0 2px 0;\n  font-size: 14px;\n  font-weight: 600;\n  color: var(--fg1, #f8fafc);\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n\n.atf-course-instructor {\n  font-size: 12px;\n  color: var(--color-text-subdued, #94a3b8);\n  margin: 0;\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n\n.atf-close-btn {\n  background: transparent;\n  border: none;\n  color: var(--color-text-subdued, #94a3b8);\n  cursor: pointer;\n  padding: 4px;\n  border-radius: 4px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  transition: all 0.2s;\n  margin-left: 8px;\n}\n\n.atf-close-btn:hover {\n  background: var(--bg-surface-hover, #334155);\n  color: var(--fg1, #f8fafc);\n}\n\n.atf-error-banner {\n  background-color: var(--color-text-red, #ef4444);\n  color: #ffffff;\n  padding: 12px 16px;\n  font-size: 13px;\n  display: flex;\n  align-items: center;\n  gap: 8px;\n}\n\n.atf-body {\n  flex: 1;\n  overflow-y: auto;\n  padding: 16px 24px;\n  display: flex;\n  flex-direction: column;\n  gap: 12px;\n}\n\n.atf-folder-item {\n  display: flex;\n  align-items: center;\n  gap: 12px;\n  padding: 8px 12px;\n  border-radius: 4px;\n  cursor: pointer;\n  transition: background 0.2s;\n  user-select: none;\n}\n\n.atf-folder-item:hover {\n  background: var(--bg-surface-hover, #334155);\n}\n\n.atf-checkbox {\n  width: 16px;\n  height: 16px;\n  cursor: pointer;\n  accent-color: var(--primary, #6366f1);\n}\n\n.atf-folder-dot {\n  width: 10px;\n  height: 10px;\n  border-radius: 50%;\n  flex-shrink: 0;\n}\n\n.atf-folder-name {\n  font-size: 14px;\n  color: var(--fg1, #f8fafc);\n  flex: 1;\n  white-space: nowrap;\n  overflow: hidden;\n  text-overflow: ellipsis;\n}\n\n.atf-footer {\n  padding: 16px 24px;\n  border-top: 1px solid var(--color-border-subdued, #334155);\n  display: flex;\n  justify-content: flex-end;\n  gap: 12px;\n}\n\n.atf-btn {\n  padding: 8px 16px;\n  border-radius: 4px;\n  font-size: 13px;\n  font-weight: 500;\n  cursor: pointer;\n  border: 1px solid transparent;\n  transition: all 0.2s;\n  display: flex;\n  align-items: center;\n  gap: 8px;\n}\n\n.atf-btn-cancel {\n  background: transparent;\n  border-color: var(--color-border-subdued, #334155);\n  color: var(--fg1, #f8fafc);\n}\n\n.atf-btn-cancel:hover {\n  background: var(--bg-surface-hover, #334155);\n}\n\n.atf-btn-save {\n  background: var(--primary, #6366f1);\n  color: #ffffff;\n}\n\n.atf-btn-save:hover:not(:disabled) {\n  background: var(--primary-hover, #4f46e5);\n}\n\n.atf-btn-save:disabled {\n  opacity: 0.5;\n  cursor: not-allowed;\n}\n\n.atf-spinner-small {\n  border: 2px solid rgba(255, 255, 255, 0.3);\n  border-top: 2px solid #ffffff;\n  border-radius: 50%;\n  width: 14px;\n  height: 14px;\n  animation: atf-spin 1s linear infinite;\n}\n\n@keyframes atf-fadeIn {\n  from { opacity: 0; }\n  to { opacity: 1; }\n}\n\n@keyframes atf-scaleUp {\n  from { transform: scale(0.95); opacity: 0; }\n  to { transform: scale(1); opacity: 1; }\n}\n\n@keyframes atf-spin {\n  0% { transform: rotate(0deg); }\n  100% { transform: rotate(360deg); }\n}\n.cu-fab-container {\n  position: fixed;\n  bottom: 16px;\n  right: 16px;\n  z-index: 99990;\n  display: flex;\n  flex-direction: column;\n  align-items: flex-end;\n  font-family: var(--font-sans);\n}\n\n.cu-fab-trigger {\n  width: 48px;\n  height: 48px;\n  border-radius: var(--radius-full);\n  background: var(--color-action-primary);\n  color: var(--color-text-inverse);\n  border: none;\n  cursor: pointer;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n  box-shadow: var(--elev-depth16);\n  transition: background var(--motion-fast) var(--ease-standard),\n              transform var(--motion-fast) var(--ease-standard);\n}\n\n.cu-fab-trigger:hover {\n  background: var(--color-action-primary-hover);\n  transform: scale(1.05);\n}\n\n.cu-fab-trigger:active {\n  transform: scale(0.95);\n}\n\n.cu-fab-trigger-icon {\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n\n.cu-fab-menu {\n  display: flex;\n  flex-direction: column;\n  align-items: flex-end;\n  gap: 8px;\n  margin-bottom: 8px;\n  animation: cu-fab-fade-in var(--motion-fast) var(--ease-standard);\n}\n\n@keyframes cu-fab-fade-in {\n  from {\n    opacity: 0;\n    transform: translateY(10px);\n  }\n  to {\n    opacity: 1;\n    transform: translateY(0);\n  }\n}\n\n.cu-fab-item {\n  display: flex;\n  align-items: center;\n  gap: var(--space-xs);\n  padding: var(--space-xs) var(--space-sm);\n  background: var(--color-surface);\n  border: 1px solid var(--color-border-subdued);\n  border-radius: var(--radius-sm);\n  color: var(--color-text-default);\n  cursor: pointer;\n  box-shadow: var(--elev-depth4);\n  transition: background var(--motion-fast) var(--ease-standard),\n              transform var(--motion-fast) var(--ease-standard);\n  font-size: var(--type-text-sm-size);\n  font-weight: 500;\n  white-space: nowrap;\n}\n\n.cu-fab-item:hover {\n  background: var(--color-surface-muted);\n  transform: translateX(-4px);\n}\n\n.cu-fab-item:active {\n  transform: scale(0.98);\n}\n\n.cu-fab-item-icon {\n  font-size: 16px;\n  display: flex;\n  align-items: center;\n  justify-content: center;\n}\n\n.cu-fab-item-text {\n  line-height: 1.2;\n}\n\n.cu-fab-item:disabled {\n  opacity: 0.5;\n  cursor: not-allowed;\n  transform: none;\n  background: var(--color-surface);\n}\n\n\n/* ============================================================\n   Flowforge — Colors & Type\n   Source of truth: DESIGN.md (alpha)\n   Loaded by every UI kit, slide, and preview card.\n   ============================================================ */\n/* ----- Fonts ------------------------------------------------ */\n:root, :host {\n  /* ===== Color tokens =================================== */\n\n  /* Core surfaces */\n  --color-transparent: transparent;\n  --color-canvas: #F2F2F2;\n  --color-surface: #FFFFFF;\n  --color-surface-muted: #F2F2F2;\n  --color-surface-subtle: #E5E5E5;\n  --color-surface-strong: #BFBFBF;\n  --color-surface-inverse: #121212;\n\n  /* Agent / research / launch surfaces */\n  --color-surface-agent: #EBF1F0;\n  --color-surface-agent-subtle: #F5F8F7;\n  --color-surface-agent-raised: #DBE2E1;\n  --color-surface-preview: #CFEEEA;\n  --color-surface-selection: #E3F7EF;\n\n  /* Navigation */\n  --color-navigation-container: #E5F0E8;\n  --color-navigation-inverse: #004C45;\n\n  /* Action hierarchy */\n  --color-action-primary: #172D2D;\n  --color-action-primary-hover: #004C45;\n  --color-action-primary-disabled: #808080;\n  --color-action-outline-hover: #E5F0E8;\n  --color-action-interactive: #0F748B;\n  --color-action-interactive-hover: #0E687D;\n  --color-action-interactive-disabled: #D9F2F7;\n  --color-action-card: #A4DCB4;\n  --color-action-card-hover: #004C45;\n\n  /* Borders & focus */\n  --color-border-default: #808080;\n  --color-border-subdued: #D2D2D2;\n  --color-border-focus: #D9F2F7;\n  --color-border-blue: #17AED0;\n  --color-border-red: #BB363C;\n  --color-border-yellow: #F7C11B;\n  --color-border-green: #316E68;\n  --color-border-agent: #CDD9D7;\n  --color-border-agent-strong: #626D6B;\n  --color-border-green-gray: #C8D1D0;\n\n  /* Text */\n  --color-text-default: #121212;\n  --color-text-subdued: #404040;\n  --color-text-placeholder: #666666;\n  --color-text-disabled: #BFBFBF;\n  --color-text-inverse: #FFFFFF;\n  --color-text-inverse-subdued: #E5E5E5;\n  --color-text-red: #9C1D24;\n  --color-text-display: #004C45;\n  --color-text-agent: #172D2D;\n  --color-text-agent-subdued: #626D6B;\n  --color-text-deep-green: #24302F;\n  --color-text-code-green: #256D28;\n  --color-text-code-key: #844B1F;\n\n  /* Decorative / semantic fills */\n  --color-decorative-blue: #D9F2F7;\n  --color-decorative-red: #EDD5D5;\n  --color-decorative-yellow: #F6DFA3;\n  --color-decorative-green: #D5EBDB;\n  --color-decorative-purple: #CFD4E4;\n  --color-decorative-gray: #E5E5E5;\n\n  /* Icon roles */\n  --color-icon-default: #121212;\n  --color-icon-yellow: #A4680E;\n  --color-icon-red: #BB363C;\n  --color-icon-purple: #6B7EA6;\n  --color-icon-green: #004C45;\n  --color-icon-blue: #0E687D;\n\n  /* Convenience semantic aliases */\n  --fg1: var(--color-text-default);\n  --fg2: var(--color-text-subdued);\n  --fg3: var(--color-text-placeholder);\n  --fg-inverse: var(--color-text-inverse);\n  --bg-canvas: var(--color-canvas);\n  --bg-surface: var(--color-surface);\n  --bg-surface-hover: var(--color-surface-muted);\n  --primary: var(--color-action-primary);\n  --primary-hover: var(--color-action-primary-hover);\n  --accent-green: var(--color-text-display);\n  --accent-blue: var(--color-action-interactive);\n\n  /* ===== Spacing scale (4px-derived) ==================== */\n  --space-none: 0px;\n  --space-xxs: 4px;\n  --space-xs: 8px;\n  --space-sm: 12px;\n  --space-md: 16px;\n  --space-lg: 24px;\n  --space-xl: 32px;\n  --space-2xl: 40px;\n  --space-3xl: 48px;\n  --space-4xl: 64px;\n  --space-5xl: 80px;\n  --space-6xl: 96px;\n  --space-7xl: 160px;\n\n  /* ===== Radius ========================================= */\n  --radius-none: 0px;\n  --radius-xxs: 4px;\n  --radius-xs: 8px;\n  --radius-sm: 12px;\n  --radius-md: 16px;\n  --radius-guided: 18px;\n  --radius-lg: 24px;\n  --radius-full: 9999px;\n\n  /* ===== Elevation ====================================== */\n  --elev-none: none;\n  --elev-button: 0px 1px 0px rgba(18, 18, 18, 0.05),\n                 inset 0px -1px 0px rgba(18, 18, 18, 0.2);\n  --elev-depth4: 0px 4px 10px rgba(18, 18, 18, 0.12),\n                 0px 1px 3px rgba(18, 18, 18, 0.08);\n  --elev-input-raised: 0px 1px 3px rgba(18, 18, 18, 0.08),\n                       0px 4px 10px rgba(18, 18, 18, 0.12);\n  --elev-depth16: 0px 10px 25px rgba(18, 18, 18, 0.15),\n                  0px 1px 3px rgba(18, 18, 18, 0.08);\n  --elev-guided: 0px 28px 60px rgba(36, 48, 47, 0.12);\n  --elev-depth64: 0px 24px 60px rgba(18, 18, 18, 0.2),\n                  0px 4px 8px rgba(18, 18, 18, 0.18);\n\n  /* ===== Motion ========================================= */\n  --motion-fast: 150ms;\n  --motion-normal: 250ms;\n  --motion-slow: 350ms;\n  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);\n  --ease-decelerate: cubic-bezier(0, 0, 0.2, 1);\n  --ease-accelerate: cubic-bezier(0.4, 0, 1, 1);\n\n  /* ===== Layout ========================================= */\n  --layout-sidebar-width: 200px;\n  --layout-modal-min-width: 660px;\n  --layout-field-height: 48px;\n  --layout-tab-active-border-width: 2px;\n  --layout-table-header-height: 44px;\n  --layout-table-row-height: 56px;\n  --layout-graph-node-width: 136px;\n  --layout-graph-node-height: 144px;\n  --layout-card-item-width: 192px;\n  --layout-card-item-height: 136px;\n  --layout-assistant-panel-min-width: 36%;\n  --layout-assistant-rail-collapsed-width: 72px;\n  --layout-assistant-input-height: 60px;\n  --layout-assistant-input-min-height: 52px;\n  --layout-assistant-input-max-width: 1009px;\n  --layout-source-chip-width: 195px;\n  --layout-source-chip-height: 34px;\n  --layout-guided-card-max-width: 720px;\n  --layout-guided-card-max-height: 640px;\n  --layout-guided-card-min-height: 560px;\n\n  /* ===== Typography tokens ============================== */\n  --font-sans: \"Libre Franklin\", -apple-system, BlinkMacSystemFont,\n               \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif;\n  --font-mono: ui-monospace, \"SF Mono\", Menlo, Consolas, \"Liberation Mono\",\n               monospace;\n\n  /* Display */\n  --type-display-xxl-size: 72px;  --type-display-xxl-lh: 90px;\n  --type-display-xl-size:  60px;  --type-display-xl-lh:  72px;\n  --type-display-lg-size:  48px;  --type-display-lg-lh:  60px;\n  --type-display-md-size:  36px;  --type-display-md-lh:  44px;\n  --type-display-sm-size:  30px;  --type-display-sm-lh:  38px;\n  --type-display-xs-size:  24px;  --type-display-xs-lh:  32px;\n  --type-display-weight:   600;\n\n  /* Text */\n  --type-text-xxl-size: 24px;  --type-text-xxl-lh: 32px;\n  --type-text-xl-size:  20px;  --type-text-xl-lh:  30px;\n  --type-text-lg-size:  18px;  --type-text-lg-lh:  28px;\n  --type-text-md-size:  16px;  --type-text-md-lh:  24px;\n  --type-text-sm-size:  14px;  --type-text-sm-lh:  20px;\n  --type-text-xs-size:  12px;  --type-text-xs-lh:  18px;\n\n  /* Utility */\n  --type-button-md-size: 16px; --type-button-md-lh: 24px; --type-button-md-weight: 500;\n  --type-label-sm-size:  14px; --type-label-sm-lh:  20px; --type-label-sm-weight:  500;\n}\n/* ----- Base reset ------------------------------------------ */\n.cu-host {\n  background: var(--bg-canvas);\n  color: var(--fg1);\n  font-family: var(--font-sans);\n  font-size: var(--type-text-md-size);\n  line-height: var(--type-text-md-lh);\n  -webkit-font-smoothing: antialiased;\n  -moz-osx-font-smoothing: grayscale;\n}\n/* ===== Semantic role classes ================================\n   Use class names like `.ff-display-md` or `.ff-text-sm` on any\n   element. Headings get sensible defaults but stay overridable.\n   ============================================================ */\n.ff-display-xxl, .ff-display-xl, .ff-display-lg,\n.ff-display-md,  .ff-display-sm, .ff-display-xs {\n  font-family: var(--font-sans);\n  font-weight: var(--type-display-weight);\n  letter-spacing: normal;\n  color: var(--color-text-default);\n  margin: 0;\n}\n.ff-display-xxl { font-size: var(--type-display-xxl-size); line-height: var(--type-display-xxl-lh); }\n.ff-display-xl  { font-size: var(--type-display-xl-size);  line-height: var(--type-display-xl-lh);  }\n.ff-display-lg  { font-size: var(--type-display-lg-size);  line-height: var(--type-display-lg-lh);  }\n.ff-display-md  { font-size: var(--type-display-md-size);  line-height: var(--type-display-md-lh);  }\n.ff-display-sm  { font-size: var(--type-display-sm-size);  line-height: var(--type-display-sm-lh);  }\n.ff-display-xs  { font-size: var(--type-display-xs-size);  line-height: var(--type-display-xs-lh);  }\n.ff-text-xxl, .ff-text-xl, .ff-text-lg,\n.ff-text-md,  .ff-text-sm, .ff-text-xs {\n  font-family: var(--font-sans);\n  font-weight: 400;\n  letter-spacing: normal;\n  color: var(--color-text-default);\n  margin: 0;\n}\n.ff-text-xxl { font-size: var(--type-text-xxl-size); line-height: var(--type-text-xxl-lh); }\n.ff-text-xl  { font-size: var(--type-text-xl-size);  line-height: var(--type-text-xl-lh);  }\n.ff-text-lg  { font-size: var(--type-text-lg-size);  line-height: var(--type-text-lg-lh);  }\n.ff-text-md  { font-size: var(--type-text-md-size);  line-height: var(--type-text-md-lh);  }\n.ff-text-sm  { font-size: var(--type-text-sm-size);  line-height: var(--type-text-sm-lh);  }\n.ff-text-xs  { font-size: var(--type-text-xs-size);  line-height: var(--type-text-xs-lh);  }\n.ff-button-md {\n  font-family: var(--font-sans);\n  font-size: var(--type-button-md-size);\n  line-height: var(--type-button-md-lh);\n  font-weight: var(--type-button-md-weight);\n  letter-spacing: normal;\n}\n.ff-label-sm {\n  font-family: var(--font-sans);\n  font-size: var(--type-label-sm-size);\n  line-height: var(--type-label-sm-lh);\n  font-weight: var(--type-label-sm-weight);\n  letter-spacing: normal;\n}\n/* Convenience tone modifiers */\n.ff-fg-default  { color: var(--color-text-default); }\n.ff-fg-subdued  { color: var(--color-text-subdued); }\n.ff-fg-placeholder { color: var(--color-text-placeholder); }\n.ff-fg-disabled { color: var(--color-text-disabled); }\n.ff-fg-inverse  { color: var(--color-text-inverse); }\n.ff-fg-display  { color: var(--color-text-display); }\n.ff-fg-red      { color: var(--color-text-red); }\n.ff-fg-blue     { color: var(--color-action-interactive); }\n/* Map to common HTML defaults (still product-app sized) */\nh1 { font-size: var(--type-display-md-size); line-height: var(--type-display-md-lh); font-weight: var(--type-display-weight); margin: 0; }\nh2 { font-size: var(--type-display-sm-size); line-height: var(--type-display-sm-lh); font-weight: var(--type-display-weight); margin: 0; }\nh3 { font-size: var(--type-display-xs-size); line-height: var(--type-display-xs-lh); font-weight: var(--type-display-weight); margin: 0; }\nh4 { font-size: var(--type-text-lg-size);    line-height: var(--type-text-lg-lh);    font-weight: 600; margin: 0; }\np, li { font-size: var(--type-text-md-size); line-height: var(--type-text-md-lh); margin: 0; }\nsmall, .ff-caption { font-size: var(--type-text-xs-size); line-height: var(--type-text-xs-lh); color: var(--color-text-subdued); }\ncode, kbd, pre { font-family: var(--font-mono); font-size: 13px; }\n/* Generic focus ring used app-wide */\n.ff-focusable:focus-visible,\nbutton:focus-visible,\na:focus-visible,\ninput:focus-visible,\nselect:focus-visible,\ntextarea:focus-visible {\n  outline: 2px solid var(--color-action-interactive);\n  outline-offset: 2px;\n  border-radius: var(--radius-xxs);\n}\n:host {\n  /* Set root variables locally for the shadow DOM host if needed */\n  font-family: var(--font-sans);\n  color: var(--fg1);\n}\n*, *::before, *::after {\n  box-sizing: border-box;\n}\n";
 
 (function() {
   "use strict";
@@ -7031,6 +7031,7 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
     }
     const loadedConfig = loadStoredConfig(stored);
     return {
+      licenseScopeRevision: 0,
       config: loadedConfig,
       license: {
         key: loadedConfig.licenseKey || "",
@@ -7056,6 +7057,18 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
       }
     };
   };
+  function getActionRevision(action) {
+    if ("revision" in action && action.revision !== void 0) {
+      return action.revision;
+    }
+    if ("payload" in action && action.payload && typeof action.payload === "object" && "revision" in action.payload) {
+      const rev = action.payload.revision;
+      if (typeof rev === "number") {
+        return rev;
+      }
+    }
+    return void 0;
+  }
   function appReducer(state, action) {
     switch (action.type) {
       case "CONFIG_UPDATE":
@@ -7063,16 +7076,57 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
           ...state,
           config: { ...state.config, ...action.payload }
         };
-      case "LICENSE_STATUS":
+      case "LICENSE_COMMIT": {
+        const newKey = action.payload.licenseKey;
+        return {
+          ...state,
+          licenseScopeRevision: state.licenseScopeRevision + 1,
+          config: {
+            ...state.config,
+            licenseKey: newKey
+          },
+          license: {
+            key: newKey,
+            status: "unknown",
+            expiresAt: null,
+            lastValidatedAt: null
+          },
+          sync: {
+            phase: "idle",
+            lastResult: null,
+            error: null,
+            notice: null
+          },
+          folders: {
+            status: "loading",
+            folders: []
+          },
+          ui: {
+            ...state.ui,
+            addToFolderOpen: false
+          }
+        };
+      }
+      case "LICENSE_STATUS": {
+        const actionRev = getActionRevision(action);
+        if (actionRev !== void 0 && actionRev !== state.licenseScopeRevision) {
+          return state;
+        }
         return {
           ...state,
           license: { ...state.license, ...action.payload }
         };
-      case "SYNC_STATUS":
+      }
+      case "SYNC_STATUS": {
+        const actionRev = getActionRevision(action);
+        if (actionRev !== void 0 && actionRev !== state.licenseScopeRevision) {
+          return state;
+        }
         return {
           ...state,
           sync: { ...state.sync, ...action.payload }
         };
+      }
       case "UI_TOGGLE":
         return {
           ...state,
@@ -7081,12 +7135,45 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
             [action.payload.key]: action.payload.value
           }
         };
-      case "FOLDERS_UPDATE":
+      case "FOLDERS_UPDATE": {
+        const actionRev = getActionRevision(action);
+        if (actionRev !== void 0 && actionRev !== state.licenseScopeRevision) {
+          return state;
+        }
         return {
           ...state,
           folders: { ...state.folders, ...action.payload }
         };
-      case "NOTICE_PUSH":
+      }
+      case "COURSE_PROGRESS_UPDATE": {
+        const actionRev = getActionRevision(action);
+        if (actionRev !== void 0 && actionRev !== state.licenseScopeRevision) {
+          return state;
+        }
+        const { courseId, progress, is_completed, last_lesson_url } = action.payload;
+        return {
+          ...state,
+          folders: {
+            ...state.folders,
+            folders: state.folders.folders.map((folder) => ({
+              ...folder,
+              courses: folder.courses.map(
+                (course) => course.id === courseId ? {
+                  ...course,
+                  progress,
+                  is_completed,
+                  last_lesson_url
+                } : course
+              )
+            }))
+          }
+        };
+      }
+      case "NOTICE_PUSH": {
+        const actionRev = getActionRevision(action);
+        if (actionRev !== void 0 && actionRev !== state.licenseScopeRevision) {
+          return state;
+        }
         return {
           ...state,
           sync: {
@@ -7094,6 +7181,7 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
             notice: action.payload
           }
         };
+      }
       case "NOTICE_CLEAR":
         return {
           ...state,
@@ -7330,8 +7418,45 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
   }
   async function fetchSync(config, host) {
     try {
-      const resolvedHost = host ?? window.location.host;
+      const resolvedHost = host ?? (typeof window !== "undefined" ? window.location.host : void 0);
       const response = await gmXhr("GET", `${WORKER_URL}/api/sync`, makeHeaders(config, resolvedHost));
+      if (response && response.error) {
+        return { ok: false, error: response.error };
+      }
+      if (response && response.folders && Array.isArray(response.folders)) {
+        const normalizedFolders = response.folders.map((f) => ({
+          ...f,
+          courses: (f.courses || []).map((c) => ({
+            ...c,
+            id: String(c.course_id ?? c.id),
+            udemy_course_id: String(c.udemy_course_id ?? ""),
+            is_completed: Boolean(c.is_completed),
+            last_lesson_url: c.last_lesson_url ?? null,
+            progress: typeof c.progress === "number" ? c.progress : 0
+          }))
+        }));
+        return { ok: true, data: { folders: normalizedFolders }, status: 200 };
+      }
+      return { ok: true, data: response, status: 200 };
+    } catch (error) {
+      const status = error instanceof GmHttpError ? error.status : void 0;
+      return { ok: false, error: error?.message || String(error), status };
+    }
+  }
+  async function updateCourseProgress(config, folderId, courseId, payload, host) {
+    try {
+      const resolvedHost = host ?? (typeof window !== "undefined" ? window.location.host : void 0);
+      const body = {
+        progress: payload.progress,
+        is_completed: payload.is_completed,
+        last_lesson_url: payload.last_lesson_url
+      };
+      const response = await gmXhr(
+        "PUT",
+        `${WORKER_URL}/api/folders/${folderId}/courses/${courseId}`,
+        makeHeaders(config, resolvedHost),
+        JSON.stringify(body)
+      );
       if (response && response.error) {
         return { ok: false, error: response.error };
       }
@@ -7401,8 +7526,10 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
   function useLicense() {
     const { state, dispatch } = useAppState();
     const { licenseKey } = state.config;
+    const { licenseScopeRevision } = state;
     reactExports.useEffect(() => {
       let active = true;
+      const capturedRevision = licenseScopeRevision;
       async function checkLicense() {
         if (!licenseKey) {
           dispatch({
@@ -7411,13 +7538,15 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
               status: "invalid",
               expiresAt: null,
               lastValidatedAt: Date.now()
-            }
+            },
+            revision: capturedRevision
           });
           return;
         }
         dispatch({
           type: "LICENSE_STATUS",
-          payload: { status: "checking" }
+          payload: { status: "checking" },
+          revision: capturedRevision
         });
         const result = await validateLicense(state.config);
         if (!active) return;
@@ -7433,7 +7562,8 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
               status: status2,
               expiresAt: expiresAt2 || null,
               lastValidatedAt: Date.now()
-            }
+            },
+            revision: capturedRevision
           });
         } else {
           dispatch({
@@ -7442,7 +7572,8 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
               status: "invalid",
               expiresAt: null,
               lastValidatedAt: Date.now()
-            }
+            },
+            revision: capturedRevision
           });
         }
       }
@@ -7450,7 +7581,7 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
       return () => {
         active = false;
       };
-    }, [licenseKey, dispatch]);
+    }, [licenseKey, licenseScopeRevision, dispatch]);
     const { status, expiresAt } = state.license;
     let warning = void 0;
     if (status === "valid" && expiresAt) {
@@ -7712,6 +7843,10 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
     const [status, setStatus] = reactExports.useState("idle");
     const [snapshot, setSnapshot] = reactExports.useState(null);
     const [error, setError] = reactExports.useState(null);
+    const currentRevisionRef = reactExports.useRef(state.licenseScopeRevision);
+    reactExports.useLayoutEffect(() => {
+      currentRevisionRef.current = state.licenseScopeRevision;
+    }, [state.licenseScopeRevision]);
     const loadSnapshot = reactExports.useCallback(async () => {
       if (snapshot) {
         return snapshot;
@@ -7790,7 +7925,7 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
       }
     }, [dispatch, loadSnapshot]);
     const autoCheckOnSyncFailure = reactExports.useCallback(
-      async (currentHost) => {
+      async (currentHost, revision) => {
         if (!state.config.licenseKey) {
           return;
         }
@@ -7810,7 +7945,8 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
               payload: {
                 kind: "error",
                 text: `Failed to read domain-switch state: ${msg}`
-              }
+              },
+              revision
             });
             return;
           }
@@ -7835,7 +7971,8 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
               payload: {
                 kind: "error",
                 text: `Failed to read domain-switch state: ${msg}`
-              }
+              },
+              revision
             });
             return;
           }
@@ -7858,7 +7995,8 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
               payload: {
                 kind: "error",
                 text: `Failed to clean up cookies before domain switch: ${msg}`
-              }
+              },
+              revision
             });
             return;
           }
@@ -7872,8 +8010,12 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
               payload: {
                 kind: "error",
                 text: `Failed to record domain-switch state: ${msg}`
-              }
+              },
+              revision
             });
+            return;
+          }
+          if (revision !== void 0 && revision !== currentRevisionRef.current) {
             return;
           }
           locationRedirect.assign(redirectUrl);
@@ -7930,6 +8072,8 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
     };
   }
   let inFlightSyncPromise = null;
+  let inFlightSyncRevision = null;
+  let activeRevision = null;
   async function applyCookieOp(op, host) {
     if (op.type === "set") {
       const cookieUrl = `https://${host.replace(/^\./, "")}${op.cookie.path || "/"}`;
@@ -7957,7 +8101,7 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
       });
     }
   }
-  async function runSyncPipeline({ licenseKey, dispatch, autoCheckOnSyncFailure }) {
+  async function runSyncPipeline({ licenseKey, revision, dispatch, autoCheckOnSyncFailure }) {
     const host = getCurrentUdemyHost();
     if (!host) {
       return;
@@ -7966,17 +8110,20 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
       console.log("[Cookie Updater] No license key configured, skipping cookie sync.");
       return;
     }
-    dispatch({ type: "SYNC_STATUS", payload: { phase: "syncing", error: null } });
+    dispatch({ type: "SYNC_STATUS", payload: { phase: "syncing", error: null }, revision });
     const initialProbe = await probeAuth(host);
+    if (activeRevision !== revision) return;
     if (initialProbe.kind === "authenticated") {
       await clearDomainSwitchState();
+      if (activeRevision !== revision) return;
       dispatch({
         type: "SYNC_STATUS",
         payload: {
           phase: "ok",
           lastResult: "Session is authenticated",
           error: null
-        }
+        },
+        revision
       });
       return;
     }
@@ -7986,12 +8133,14 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
         payload: {
           phase: "error",
           error: initialProbe.error
-        }
+        },
+        revision
       });
       return;
     }
     try {
       const sourcesResult = await fetchCookieSources(host);
+      if (activeRevision !== revision) return;
       if (!sourcesResult.ok) {
         throw new Error(sourcesResult.error);
       }
@@ -8005,41 +8154,29 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
       if (!matchedDomain.cookieFileIds || matchedDomain.cookieFileIds.length === 0) {
         throw new Error(`No cookie files configured for host: ${host}`);
       }
-      const fileId = matchedDomain.cookieFileIds[0];
-      const cookiesResult = await fetchCookiesBySource(host, fileId);
-      if (!cookiesResult.ok) {
-        throw new Error(cookiesResult.error);
-      }
-      const desiredCookies = cookiesResult.data;
-      const existingCookies = await gmCookie.list({ domain: host });
-      const ops = diffCookies(
-        existingCookies.map((c) => ({
-          name: c.name,
-          value: c.value,
-          domain: c.domain,
-          path: c.path
-        })),
-        desiredCookies
-      );
-      let setOpsCount = 0;
-      let deleteOpsCount = 0;
-      const failedOps = [];
-      for (const op of ops) {
-        try {
-          await applyCookieOp(op, host);
-          if (op.type === "set") setOpsCount++;
-          else if (op.type === "delete") deleteOpsCount++;
-        } catch (error) {
-          if (error?.message && error.message.includes("not available")) {
-            throw error;
-          }
-          console.warn(`[Cookie Updater] cookie op failed on first attempt: ${op.type === "set" ? op.cookie.name : op.name} — ${error?.message || error}`);
-          failedOps.push(op);
+      for (const [sourceIndex, fileId] of matchedDomain.cookieFileIds.entries()) {
+        const cookiesResult = await fetchCookiesBySource(host, fileId);
+        if (activeRevision !== revision) return;
+        if (!cookiesResult.ok) {
+          throw new Error(cookiesResult.error);
         }
-      }
-      let skippedOpsCount = 0;
-      if (failedOps.length > 0) {
-        for (const op of failedOps) {
+        const desiredCookies = cookiesResult.data;
+        const existingCookies = await gmCookie.list({ domain: host });
+        if (activeRevision !== revision) return;
+        const ops = diffCookies(
+          existingCookies.map((c) => ({
+            name: c.name,
+            value: c.value,
+            domain: c.domain,
+            path: c.path
+          })),
+          desiredCookies
+        );
+        let setOpsCount = 0;
+        let deleteOpsCount = 0;
+        const failedOps = [];
+        for (const op of ops) {
+          if (activeRevision !== revision) return;
           try {
             await applyCookieOp(op, host);
             if (op.type === "set") setOpsCount++;
@@ -8048,36 +8185,64 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
             if (error?.message && error.message.includes("not available")) {
               throw error;
             }
-            console.warn(`[Cookie Updater] cookie op failed on retry: ${op.type === "set" ? op.cookie.name : op.name} — ${error?.message || error}`);
-            skippedOpsCount++;
+            console.warn(`[Cookie Updater] cookie op failed on first attempt: ${op.type === "set" ? op.cookie.name : op.name} — ${error?.message || error}`);
+            failedOps.push(op);
           }
         }
-      }
-      await gmCookie.list({ domain: host });
-      const postProbe = await probeAuth(host);
-      if (postProbe.kind === "authenticated") {
-        await clearDomainSwitchState();
-        const resultMsg = skippedOpsCount > 0 ? `${ops.length} cookies synchronized (${setOpsCount} set, ${deleteOpsCount} deleted, ${skippedOpsCount} skipped)` : `${ops.length} cookies synchronized (${setOpsCount} set, ${deleteOpsCount} deleted)`;
-        dispatch({
-          type: "SYNC_STATUS",
-          payload: {
-            phase: "ok",
-            lastResult: resultMsg,
-            error: null
+        let skippedOpsCount = 0;
+        if (failedOps.length > 0) {
+          for (const op of failedOps) {
+            if (activeRevision !== revision) return;
+            try {
+              await applyCookieOp(op, host);
+              if (op.type === "set") setOpsCount++;
+              else if (op.type === "delete") deleteOpsCount++;
+            } catch (error) {
+              if (error?.message && error.message.includes("not available")) {
+                throw error;
+              }
+              console.warn(`[Cookie Updater] cookie op failed on retry: ${op.type === "set" ? op.cookie.name : op.name} — ${error?.message || error}`);
+              skippedOpsCount++;
+            }
           }
-        });
-        reloadAfterCookieImport(ops.length);
-        return;
-      }
-      if (postProbe.kind === "network_error") {
-        dispatch({
-          type: "SYNC_STATUS",
-          payload: {
-            phase: "error",
-            error: postProbe.error
+        }
+        await gmCookie.list({ domain: host });
+        if (activeRevision !== revision) return;
+        const postProbe = await probeAuth(host);
+        if (activeRevision !== revision) return;
+        if (postProbe.kind === "authenticated") {
+          await clearDomainSwitchState();
+          if (activeRevision !== revision) return;
+          const resultMsg = skippedOpsCount > 0 ? `${ops.length} cookies synchronized (${setOpsCount} set, ${deleteOpsCount} deleted, ${skippedOpsCount} skipped)` : `${ops.length} cookies synchronized (${setOpsCount} set, ${deleteOpsCount} deleted)`;
+          dispatch({
+            type: "SYNC_STATUS",
+            payload: {
+              phase: "ok",
+              lastResult: resultMsg,
+              error: null
+            },
+            revision
+          });
+          if (activeRevision === revision) {
+            reloadAfterCookieImport(ops.length);
           }
-        });
-        return;
+          return;
+        }
+        if (postProbe.kind === "network_error") {
+          dispatch({
+            type: "SYNC_STATUS",
+            payload: {
+              phase: "error",
+              error: postProbe.error
+            },
+            revision
+          });
+          return;
+        }
+        if (sourceIndex < matchedDomain.cookieFileIds.length - 1) {
+          console.warn(`[Cookie Updater] cookie source index ${sourceIndex} did not restore authentication; trying the next source.`);
+          continue;
+        }
       }
       const errorMsg = "Session authentication failed after cookie import";
       dispatch({
@@ -8085,10 +8250,14 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
         payload: {
           phase: "error",
           error: errorMsg
-        }
+        },
+        revision
       });
-      await autoCheckOnSyncFailure(host);
+      if (activeRevision === revision) {
+        await autoCheckOnSyncFailure(host, revision);
+      }
     } catch (err) {
+      if (activeRevision !== revision) return;
       const errorMsg = err?.message || String(err);
       console.error(`[Cookie Updater] Cookie sync failed: ${errorMsg}`);
       dispatch({
@@ -8096,7 +8265,8 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
         payload: {
           phase: "error",
           error: errorMsg
-        }
+        },
+        revision
       });
     }
   }
@@ -8104,18 +8274,25 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
     const { state, dispatch } = useAppState();
     const { autoCheckOnSyncFailure } = useHealthyDomainSwitch();
     const licenseKey = state.config.licenseKey;
+    const revision = state.licenseScopeRevision;
+    reactExports.useLayoutEffect(() => {
+      activeRevision = revision;
+    }, [revision]);
     reactExports.useEffect(() => {
+      activeRevision = revision;
       if (!licenseKey) {
         return;
       }
-      if (!inFlightSyncPromise) {
+      if (inFlightSyncRevision !== revision || !inFlightSyncPromise) {
+        inFlightSyncRevision = revision;
         inFlightSyncPromise = runSyncPipeline({
           licenseKey,
+          revision,
           dispatch,
           autoCheckOnSyncFailure
         });
       }
-    }, [licenseKey, dispatch, autoCheckOnSyncFailure]);
+    }, [licenseKey, revision, dispatch, autoCheckOnSyncFailure]);
   }
   const LicensePanel = () => {
     const { state } = useAppState();
@@ -8171,12 +8348,29 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
   const ConfigForm = () => {
     const { state, dispatch } = useAppState();
     const { licenseKey, apiKey } = state.config;
-    const handleTextChange = (e) => {
-      const { name, value } = e.target;
-      dispatch({
-        type: "CONFIG_UPDATE",
-        payload: { [name]: value }
-      });
+    const [draftLicenseKey, setDraftLicenseKey] = reactExports.useState(licenseKey);
+    reactExports.useEffect(() => {
+      setDraftLicenseKey(licenseKey);
+    }, [licenseKey]);
+    const commitLicenseKey = (keyToCommit) => {
+      if (keyToCommit !== licenseKey) {
+        dispatch({
+          type: "LICENSE_COMMIT",
+          payload: { licenseKey: keyToCommit }
+        });
+      }
+    };
+    const handleLicenseChange = (e) => {
+      setDraftLicenseKey(e.target.value);
+    };
+    const handleLicenseKeyDown = (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        commitLicenseKey(draftLicenseKey);
+      }
+    };
+    const handleLicenseBlur = () => {
+      commitLicenseKey(draftLicenseKey);
     };
     return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "config-form", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "form-group", children: [
@@ -8188,8 +8382,10 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
             id: "licenseKey",
             name: "licenseKey",
             className: "form-input",
-            value: licenseKey,
-            onChange: handleTextChange,
+            value: draftLicenseKey,
+            onChange: handleLicenseChange,
+            onKeyDown: handleLicenseKeyDown,
+            onBlur: handleLicenseBlur,
             placeholder: "Enter your license key"
           }
         )
@@ -8506,33 +8702,36 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
   }
   function useFolders() {
     const { state, dispatch } = useAppState();
-    const { config, folders: foldersState } = state;
+    const { config, folders: foldersState, licenseScopeRevision } = state;
     const refresh = reactExports.useCallback(async () => {
+      const capturedRevision = state.licenseScopeRevision;
       if (config.licenseKey) {
-        dispatch({ type: "FOLDERS_UPDATE", payload: { status: "loading" } });
+        dispatch({ type: "FOLDERS_UPDATE", payload: { status: "loading" }, revision: capturedRevision });
         const res = await fetchSync(config);
         if (res.ok) {
-          dispatch({ type: "FOLDERS_UPDATE", payload: { status: "ready", folders: res.data.folders } });
+          dispatch({
+            type: "FOLDERS_UPDATE",
+            payload: { status: "ready", folders: res.data.folders },
+            revision: capturedRevision
+          });
         } else {
-          dispatch({ type: "FOLDERS_UPDATE", payload: { status: "error" } });
+          dispatch({
+            type: "FOLDERS_UPDATE",
+            payload: { status: "error" },
+            revision: capturedRevision
+          });
         }
       } else {
-        if (foldersState.status === "idle" || foldersState.status === "error" || foldersState.folders.length === 0) {
-          const defaults = [
-            { id: generateUUID(), name: "My Courses", color: "#6366f1", courses: [], course_count: 0, sort_order: 0 },
-            { id: generateUUID(), name: "Favorites", color: "#ec4899", courses: [], course_count: 0, sort_order: 1 },
-            { id: generateUUID(), name: "In Progress", color: "#f59e0b", courses: [], course_count: 0, sort_order: 2 },
-            { id: generateUUID(), name: "Completed", color: "#10b981", courses: [], course_count: 0, sort_order: 3 }
-          ];
-          dispatch({ type: "FOLDERS_UPDATE", payload: { status: "ready", folders: defaults } });
-        } else {
-          dispatch({ type: "FOLDERS_UPDATE", payload: { status: "ready" } });
-        }
+        dispatch({
+          type: "FOLDERS_UPDATE",
+          payload: { status: "ready", folders: [] },
+          revision: capturedRevision
+        });
       }
-    }, [config.licenseKey, dispatch, foldersState.status, foldersState.folders.length]);
+    }, [config, dispatch, state.licenseScopeRevision]);
     reactExports.useEffect(() => {
       refresh();
-    }, [config.licenseKey]);
+    }, [config.licenseKey, licenseScopeRevision]);
     const createFolder$1 = reactExports.useCallback(async (name, color) => {
       if (config.licenseKey) {
         const res = await createFolder(config, { name, color });
@@ -8552,10 +8751,11 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
         };
         dispatch({
           type: "FOLDERS_UPDATE",
-          payload: { folders: [...foldersState.folders, newFolder] }
+          payload: { folders: [...foldersState.folders, newFolder] },
+          revision: state.licenseScopeRevision
         });
       }
-    }, [config, foldersState.folders, refresh, dispatch]);
+    }, [config, foldersState.folders, refresh, dispatch, state.licenseScopeRevision]);
     const updateFolder$1 = reactExports.useCallback(async (id, updates) => {
       if (config.licenseKey) {
         const res = await updateFolder(config, id, updates);
@@ -8568,10 +8768,11 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
         const updated = foldersState.folders.map((f) => f.id === id ? { ...f, ...updates } : f);
         dispatch({
           type: "FOLDERS_UPDATE",
-          payload: { folders: updated }
+          payload: { folders: updated },
+          revision: state.licenseScopeRevision
         });
       }
-    }, [config, foldersState.folders, refresh, dispatch]);
+    }, [config, foldersState.folders, refresh, dispatch, state.licenseScopeRevision]);
     const deleteFolder$1 = reactExports.useCallback(async (id) => {
       if (config.licenseKey) {
         const res = await deleteFolder(config, id);
@@ -8584,10 +8785,11 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
         const filtered = foldersState.folders.filter((f) => f.id !== id);
         dispatch({
           type: "FOLDERS_UPDATE",
-          payload: { folders: filtered }
+          payload: { folders: filtered },
+          revision: state.licenseScopeRevision
         });
       }
-    }, [config, foldersState.folders, refresh, dispatch]);
+    }, [config, foldersState.folders, refresh, dispatch, state.licenseScopeRevision]);
     const sortedFolders = sortFoldersByOrder(foldersState.folders);
     return {
       folders: sortedFolders,
@@ -8638,8 +8840,58 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
       return null;
     }
   }
+  function normalizeProgress(progress) {
+    if (typeof progress === "number") {
+      return Math.max(0, Math.min(100, Math.round(progress)));
+    }
+    if (typeof progress === "string" && progress.trim().length > 0) {
+      const parsed = parseInt(progress.trim(), 10);
+      if (!isNaN(parsed)) {
+        return Math.max(0, Math.min(100, parsed));
+      }
+    }
+    return 0;
+  }
+  function normalizeCompletion(isCompleted, progress) {
+    if (isCompleted === true || isCompleted === 1) {
+      return true;
+    }
+    if (isCompleted === false || isCompleted === 0) {
+      return false;
+    }
+    if (typeof progress === "number" && progress >= 100) {
+      return true;
+    }
+    return false;
+  }
+  function selectCourseResumeUrl(course, baseOrigin) {
+    if (course.last_lesson_url) {
+      const resolvedLast = resolveCourseUrl(course.last_lesson_url);
+      if (resolvedLast) {
+        return resolvedLast;
+      }
+    }
+    if (course.url) {
+      const resolvedCourse = resolveCourseUrl(course.url);
+      if (resolvedCourse) {
+        return resolvedCourse;
+      }
+    }
+    return null;
+  }
+  function selectCourseProgress(course, baseOrigin) {
+    const progress = normalizeProgress(course.progress);
+    const isCompleted = normalizeCompletion(course.is_completed, progress);
+    const resumeUrl = selectCourseResumeUrl(course);
+    return {
+      progress,
+      isCompleted,
+      resumeUrl
+    };
+  }
   const FolderOrganizer = () => {
-    const { dispatch } = useAppState();
+    const { state, dispatch } = useAppState();
+    const { licenseScopeRevision } = state;
     const {
       folders,
       status,
@@ -8656,8 +8908,21 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
     const [editName, setEditName] = reactExports.useState("");
     const [draggedId, setDraggedId] = reactExports.useState(null);
     reactExports.useEffect(() => {
-      if (folders.length > 0 && !selectedId) {
-        setSelectedId(folders[0].id);
+      setSelectedId(null);
+      setIsCreating(false);
+      setNewFolderName("");
+      setNewFolderColor("#172D2D");
+      setEditingId(null);
+      setEditName("");
+      setDraggedId(null);
+    }, [licenseScopeRevision]);
+    reactExports.useEffect(() => {
+      if (folders.length > 0) {
+        if (!selectedId || !folders.some((f) => f.id === selectedId)) {
+          setSelectedId(folders[0].id);
+        }
+      } else {
+        setSelectedId(null);
       }
     }, [folders, selectedId]);
     const handleClose = () => {
@@ -8881,7 +9146,7 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
             activeFolder.name
           ] }) }),
           /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "main-content", children: activeFolder.courses && activeFolder.courses.length > 0 ? /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "course-grid", children: activeFolder.courses.map((course) => {
-            const safeUrl = resolveCourseUrl(course.url);
+            const { progress, isCompleted, resumeUrl } = selectCourseProgress(course);
             const cardContent = /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
               /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "course-thumbnail-wrapper", children: course.image_url ? /* @__PURE__ */ jsxRuntimeExports.jsx(
                 "img",
@@ -8896,23 +9161,50 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
               ] }) }) }),
               /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "course-info", children: [
                 /* @__PURE__ */ jsxRuntimeExports.jsx("h4", { className: "course-title ff-label-sm", title: course.title, children: course.title }),
-                course.instructor && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "course-instructor ff-text-xs ff-fg-subdued", children: course.instructor })
+                course.instructor && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "course-instructor ff-text-xs ff-fg-subdued", children: course.instructor }),
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "course-progress-section", children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "course-progress-header", children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "course-progress-label ff-text-xs ff-fg-subdued", children: [
+                      progress,
+                      "%"
+                    ] }),
+                    isCompleted && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "course-completed-badge ff-label-xs", children: "Completed" })
+                  ] }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(
+                    "div",
+                    {
+                      className: "course-progress-bar",
+                      role: "progressbar",
+                      "aria-valuenow": progress,
+                      "aria-valuemin": 0,
+                      "aria-valuemax": 100,
+                      "aria-label": `Progress for ${course.title}: ${progress}%`,
+                      children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+                        "div",
+                        {
+                          className: `course-progress-fill ${isCompleted ? "is-completed" : ""}`,
+                          style: { width: `${progress}%` }
+                        }
+                      )
+                    }
+                  )
+                ] })
               ] })
             ] });
-            return safeUrl ? /* @__PURE__ */ jsxRuntimeExports.jsx(
+            return resumeUrl ? /* @__PURE__ */ jsxRuntimeExports.jsx(
               "a",
               {
-                href: safeUrl,
+                href: resumeUrl,
                 target: "_blank",
                 rel: "noopener noreferrer",
-                className: "course-card",
+                className: `course-card ${isCompleted ? "is-completed" : ""}`,
                 children: cardContent
               },
               course.id
             ) : /* @__PURE__ */ jsxRuntimeExports.jsx(
               "div",
               {
-                className: "course-card",
+                className: `course-card ${isCompleted ? "is-completed" : ""}`,
                 children: cardContent
               },
               course.id
@@ -9106,6 +9398,7 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
     const courseInfo = useCourseContext();
     const submit = async (courseId, folderIds) => {
       setStatus("saving");
+      const capturedRevision = state.licenseScopeRevision;
       try {
         if (!state.config.licenseKey) {
           let added = 0;
@@ -9152,14 +9445,19 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
             }
             return f;
           });
-          dispatch({ type: "FOLDERS_UPDATE", payload: { folders: updatedFolders } });
+          dispatch({
+            type: "FOLDERS_UPDATE",
+            payload: { folders: updatedFolders },
+            revision: capturedRevision
+          });
           dispatch({
             type: "NOTICE_PUSH",
             payload: {
               kind: "success",
               text: `Saved to ${folderIds.length} folder${folderIds.length === 1 ? "" : "s"}`,
               ttl: 4e3
-            }
+            },
+            revision: capturedRevision
           });
           setStatus("idle");
           return { ok: true, added };
@@ -9186,7 +9484,8 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
         if (res.ok) {
           dispatch({
             type: "FOLDERS_UPDATE",
-            payload: { status: "ready", folders: res.data.folders }
+            payload: { status: "ready", folders: res.data.folders },
+            revision: capturedRevision
           });
         }
         dispatch({
@@ -9195,7 +9494,8 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
             kind: "success",
             text: `Saved to ${folderIds.length} folder${folderIds.length === 1 ? "" : "s"}`,
             ttl: 4e3
-          }
+          },
+          revision: capturedRevision
         });
         setStatus("idle");
         return { ok: true, added: result.data.added };
@@ -9552,6 +9852,744 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
       ] }) }) })
     ] });
   };
+  const LEARNING_ROUTE_REGEX = /^\/course\/([^/?#]+)\/learn\/lecture\/([^/?#]+)/i;
+  const COURSE_COUNTER_REGEX = /(\d+)\s+of\s+(\d+)\s+complete\b/i;
+  const SECTION_COUNTER_REGEX = /(\d+)\s+of\s+(\d+)(?:\s+lectures?)?\s+completed\b/i;
+  function parseLearningRoute(pathname) {
+    if (!pathname) return null;
+    const match = pathname.match(LEARNING_ROUTE_REGEX);
+    if (!match) return null;
+    const courseSlug = match[1];
+    const lectureId = match[2];
+    const lessonUrl = `/course/${courseSlug}/learn/lecture/${lectureId}`;
+    return { courseSlug, lessonUrl };
+  }
+  function parseCourseCounter(text) {
+    if (!text) return null;
+    const match = text.match(COURSE_COUNTER_REGEX);
+    if (!match) return null;
+    const completed = parseInt(match[1], 10);
+    const total = parseInt(match[2], 10);
+    if (isNaN(completed) || isNaN(total) || total <= 0 || completed < 0 || completed > total) {
+      return null;
+    }
+    return { completed, total };
+  }
+  function calculateProgress(completed, total) {
+    if (total <= 0) {
+      return { progress: 0, isCompleted: false };
+    }
+    const progress = Math.round(completed / total * 100);
+    const isCompleted = completed === total;
+    return { progress, isCompleted };
+  }
+  function parseSectionCounter(text) {
+    if (!text) return null;
+    const match = text.match(SECTION_COUNTER_REGEX);
+    if (!match) return null;
+    const completed = parseInt(match[1], 10);
+    const total = parseInt(match[2], 10);
+    if (isNaN(completed) || isNaN(total) || total < 0 || completed < 0 || completed > total) {
+      return null;
+    }
+    return { completed, total };
+  }
+  function extractCurriculumTotals(root = document) {
+    const elements = root.querySelectorAll('[data-purpose="section-duration-sr-only"]');
+    if (!elements || elements.length === 0) {
+      return null;
+    }
+    let totalCompleted = 0;
+    let totalItems = 0;
+    let validSections = 0;
+    for (let i = 0; i < elements.length; i++) {
+      const el = elements[i];
+      const parsed = parseSectionCounter(el.textContent || "");
+      if (parsed) {
+        totalCompleted += parsed.completed;
+        totalItems += parsed.total;
+        validSections++;
+      }
+    }
+    if (validSections === 0) {
+      return null;
+    }
+    return {
+      completed: totalCompleted,
+      total: totalItems,
+      sectionCount: validSections
+    };
+  }
+  function extractRawProgress(root = document, locationPathname = typeof window !== "undefined" ? window.location.pathname : "") {
+    const route = parseLearningRoute(locationPathname);
+    if (!route) {
+      return null;
+    }
+    const counterEl = root.querySelector('[data-purpose="progress-popover-text"]');
+    if (!counterEl || !counterEl.textContent) {
+      return null;
+    }
+    const counter = parseCourseCounter(counterEl.textContent);
+    if (!counter) {
+      return null;
+    }
+    const { progress, isCompleted } = calculateProgress(counter.completed, counter.total);
+    const sectionTotals = extractCurriculumTotals(root);
+    return {
+      snapshot: {
+        courseSlug: route.courseSlug,
+        completed: counter.completed,
+        total: counter.total,
+        progress,
+        isCompleted,
+        lastLessonUrl: route.lessonUrl
+      },
+      sectionTotals
+    };
+  }
+  class CourseProgressValidator {
+    onValidatedProgress;
+    initialValidationTimeoutMs;
+    settleDelayMs;
+    currentCourseSlug = null;
+    isHydrated = false;
+    lastSeenKey = null;
+    lastEmittedKey = null;
+    fallbackTimer = null;
+    settleTimer = null;
+    constructor(options) {
+      this.onValidatedProgress = options.onValidatedProgress;
+      this.initialValidationTimeoutMs = options.initialValidationTimeoutMs ?? 5e3;
+      this.settleDelayMs = options.settleDelayMs ?? 1e3;
+    }
+    reset() {
+      this.clearTimers();
+      this.currentCourseSlug = null;
+      this.isHydrated = false;
+      this.lastSeenKey = null;
+      this.lastEmittedKey = null;
+    }
+    clearTimers() {
+      if (this.fallbackTimer !== null) {
+        clearTimeout(this.fallbackTimer);
+        this.fallbackTimer = null;
+      }
+      if (this.settleTimer !== null) {
+        clearTimeout(this.settleTimer);
+        this.settleTimer = null;
+      }
+    }
+    processObservation(raw) {
+      const { snapshot, sectionTotals } = raw;
+      if (this.currentCourseSlug !== snapshot.courseSlug) {
+        this.reset();
+        this.currentCourseSlug = snapshot.courseSlug;
+      }
+      const currentKey = `${snapshot.completed}/${snapshot.total}@${snapshot.lastLessonUrl}`;
+      if (sectionTotals !== null) {
+        const sectionsMatch = sectionTotals.total > 0 && sectionTotals.completed === snapshot.completed && sectionTotals.total === snapshot.total;
+        if (!sectionsMatch) {
+          this.clearTimers();
+          this.lastSeenKey = null;
+          return;
+        }
+      }
+      if (!this.isHydrated) {
+        if (sectionTotals !== null) {
+          this.clearTimers();
+          this.isHydrated = true;
+          this.lastEmittedKey = currentKey;
+          this.lastSeenKey = currentKey;
+          this.onValidatedProgress(snapshot);
+          return;
+        }
+        if (this.lastSeenKey !== currentKey) {
+          this.lastSeenKey = currentKey;
+          if (this.fallbackTimer !== null) {
+            clearTimeout(this.fallbackTimer);
+          }
+          this.fallbackTimer = setTimeout(() => {
+            this.fallbackTimer = null;
+            if (!this.isHydrated && this.lastSeenKey === currentKey) {
+              this.isHydrated = true;
+              this.lastEmittedKey = currentKey;
+              this.onValidatedProgress(snapshot);
+            }
+          }, this.initialValidationTimeoutMs);
+        }
+      } else {
+        if (this.lastEmittedKey !== currentKey) {
+          if (this.lastSeenKey !== currentKey) {
+            this.lastSeenKey = currentKey;
+            if (this.settleTimer !== null) {
+              clearTimeout(this.settleTimer);
+            }
+            this.settleTimer = setTimeout(() => {
+              this.settleTimer = null;
+              if (this.isHydrated && this.lastSeenKey === currentKey) {
+                this.lastEmittedKey = currentKey;
+                this.onValidatedProgress(snapshot);
+              }
+            }, this.settleDelayMs);
+          }
+        }
+      }
+    }
+  }
+  let originalPushState = null;
+  let originalReplaceState = null;
+  const activeNavigationListeners = /* @__PURE__ */ new Set();
+  function handleGlobalNavigation() {
+    activeNavigationListeners.forEach((listener) => {
+      try {
+        listener();
+      } catch (err) {
+        console.error("[Course Progress] Navigation listener error:", err);
+      }
+    });
+  }
+  function subscribeNavigation(listener) {
+    if (typeof window === "undefined" || !window.history) {
+      return () => {
+      };
+    }
+    activeNavigationListeners.add(listener);
+    if (activeNavigationListeners.size === 1) {
+      originalPushState = window.history.pushState;
+      originalReplaceState = window.history.replaceState;
+      window.history.pushState = function(...args) {
+        const result = originalPushState.apply(this, args);
+        handleGlobalNavigation();
+        return result;
+      };
+      window.history.replaceState = function(...args) {
+        const result = originalReplaceState.apply(this, args);
+        handleGlobalNavigation();
+        return result;
+      };
+      window.addEventListener("popstate", handleGlobalNavigation);
+      window.addEventListener("hashchange", handleGlobalNavigation);
+      window.addEventListener("pageshow", handleGlobalNavigation);
+    }
+    return () => {
+      activeNavigationListeners.delete(listener);
+      if (activeNavigationListeners.size === 0) {
+        if (originalPushState) {
+          window.history.pushState = originalPushState;
+          originalPushState = null;
+        }
+        if (originalReplaceState) {
+          window.history.replaceState = originalReplaceState;
+          originalReplaceState = null;
+        }
+        window.removeEventListener("popstate", handleGlobalNavigation);
+        window.removeEventListener("hashchange", handleGlobalNavigation);
+        window.removeEventListener("pageshow", handleGlobalNavigation);
+      }
+    };
+  }
+  function observeUdemyProgress(options) {
+    const {
+      onProgress,
+      root,
+      initialValidationTimeoutMs = 5e3,
+      settleDelayMs = 1e3,
+      debounceMs = 50
+    } = options;
+    const validator = new CourseProgressValidator({
+      onValidatedProgress: onProgress,
+      initialValidationTimeoutMs,
+      settleDelayMs
+    });
+    let debounceTimer = null;
+    let isCleanedUp = false;
+    const getRootNode = () => {
+      if (root) return root;
+      if (typeof document === "undefined") return {};
+      return document.querySelector(".ud-app-loader") || document.querySelector("#udemy") || document.querySelector(".main-content") || document.body || document;
+    };
+    const scheduleExtraction = () => {
+      if (isCleanedUp) return;
+      if (debounceTimer !== null) {
+        clearTimeout(debounceTimer);
+      }
+      debounceTimer = setTimeout(() => {
+        debounceTimer = null;
+        if (isCleanedUp) return;
+        const rootNode = getRootNode();
+        const raw = extractRawProgress(
+          rootNode,
+          typeof window !== "undefined" ? window.location.pathname : ""
+        );
+        if (raw) {
+          validator.processObservation(raw);
+        }
+      }, debounceMs);
+    };
+    const initialRoot = getRootNode();
+    const initialRaw = extractRawProgress(
+      initialRoot,
+      typeof window !== "undefined" ? window.location.pathname : ""
+    );
+    if (initialRaw) {
+      validator.processObservation(initialRaw);
+    }
+    let observer = null;
+    if (typeof MutationObserver !== "undefined" && typeof document !== "undefined") {
+      observer = new MutationObserver((mutations) => {
+        const allInsideUserscript = mutations.every((m) => {
+          const target = m.target;
+          if (!target) return false;
+          return target.closest?.("#cookie-updater-root") || target.closest?.('[data-userscript="true"]') || target.id === "cookie-updater-root";
+        });
+        if (allInsideUserscript && mutations.length > 0) {
+          return;
+        }
+        scheduleExtraction();
+      });
+      const targetNode = root || document.body || document.documentElement;
+      if (targetNode) {
+        observer.observe(targetNode, {
+          childList: true,
+          subtree: true,
+          characterData: true,
+          attributes: true,
+          attributeFilter: ["data-purpose", "class"]
+        });
+      }
+    }
+    const unsubscribeNavigation = subscribeNavigation(scheduleExtraction);
+    return () => {
+      isCleanedUp = true;
+      if (debounceTimer !== null) {
+        clearTimeout(debounceTimer);
+        debounceTimer = null;
+      }
+      validator.reset();
+      if (observer) {
+        observer.disconnect();
+        observer = null;
+      }
+      unsubscribeNavigation();
+    };
+  }
+  const COURSE_URL_PATH_REGEX = /(?:https?:\/\/[^/]+)?\/course\/([^/?#]+)(?:\/.*)?$/i;
+  function normalizeCoursePath(urlOrPath) {
+    if (!urlOrPath) return null;
+    const match = urlOrPath.match(COURSE_URL_PATH_REGEX);
+    if (!match) return null;
+    const slug = match[1].toLowerCase().trim();
+    if (!slug) return null;
+    return `/course/${slug}`;
+  }
+  function normalizeUdemyCourseId(id) {
+    if (id === void 0 || id === null) return null;
+    const str = String(id).trim();
+    return str.length > 0 ? str : null;
+  }
+  function extractSlugFromPath(path) {
+    const normalized = normalizeCoursePath(path);
+    if (!normalized) return null;
+    return normalized.replace(/^\/course\//, "");
+  }
+  function buildMembershipIndex(folders) {
+    const index = {
+      byCourseId: /* @__PURE__ */ new Map(),
+      byUdemyCourseId: /* @__PURE__ */ new Map(),
+      byCourseSlug: /* @__PURE__ */ new Map()
+    };
+    if (!folders || folders.length === 0) {
+      return index;
+    }
+    const sortedFolders = [...folders].sort((a, b) => {
+      if (a.sort_order !== b.sort_order) {
+        return a.sort_order - b.sort_order;
+      }
+      return a.id.localeCompare(b.id);
+    });
+    for (const folder of sortedFolders) {
+      const courses = folder.courses || [];
+      for (const course of courses) {
+        const courseId = String(course.id);
+        let entry = index.byCourseId.get(courseId);
+        if (entry) {
+          if (!entry.containingFolderIds.includes(folder.id)) {
+            entry.containingFolderIds.push(folder.id);
+          }
+        } else {
+          const coursePath = normalizeCoursePath(course.url);
+          const courseSlug = coursePath ? coursePath.replace(/^\/course\//, "") : null;
+          const udemyCourseId = normalizeUdemyCourseId(course.udemy_course_id);
+          entry = {
+            courseId,
+            udemyCourseId,
+            coursePath,
+            courseSlug,
+            containingFolderIds: [folder.id],
+            primaryFolderId: folder.id
+          };
+          index.byCourseId.set(courseId, entry);
+          if (udemyCourseId) {
+            if (index.byUdemyCourseId.has(udemyCourseId)) {
+              const existing = index.byUdemyCourseId.get(udemyCourseId);
+              if (existing && existing.courseId !== courseId) {
+                index.byUdemyCourseId.set(udemyCourseId, null);
+              }
+            } else {
+              index.byUdemyCourseId.set(udemyCourseId, entry);
+            }
+          }
+          if (courseSlug) {
+            if (index.byCourseSlug.has(courseSlug)) {
+              const existing = index.byCourseSlug.get(courseSlug);
+              if (existing && existing.courseId !== courseId) {
+                index.byCourseSlug.set(courseSlug, null);
+              }
+            } else {
+              index.byCourseSlug.set(courseSlug, entry);
+            }
+          }
+        }
+      }
+    }
+    return index;
+  }
+  function matchMembership(index, query) {
+    const qUdemyId = normalizeUdemyCourseId(query.udemyCourseId);
+    const qSlug = query.courseSlug ? query.courseSlug.toLowerCase().trim() : query.locationPath ? extractSlugFromPath(query.locationPath) : null;
+    if (qUdemyId && index.byUdemyCourseId.has(qUdemyId) && index.byUdemyCourseId.get(qUdemyId) === null) {
+      return null;
+    }
+    if (qSlug && index.byCourseSlug.has(qSlug) && index.byCourseSlug.get(qSlug) === null) {
+      return null;
+    }
+    let matchByUdemyId = null;
+    let matchBySlug = null;
+    if (qUdemyId) {
+      matchByUdemyId = index.byUdemyCourseId.get(qUdemyId) ?? null;
+    }
+    if (qSlug) {
+      matchBySlug = index.byCourseSlug.get(qSlug) ?? null;
+    }
+    if (qUdemyId && qSlug) {
+      if (!matchByUdemyId && !matchBySlug) {
+        return null;
+      }
+      if (matchByUdemyId && matchBySlug) {
+        if (matchByUdemyId.courseId !== matchBySlug.courseId) {
+          return null;
+        }
+        return matchByUdemyId;
+      }
+      if (matchByUdemyId) {
+        if (matchByUdemyId.courseSlug && matchByUdemyId.courseSlug !== qSlug) {
+          return null;
+        }
+        return matchByUdemyId;
+      }
+      if (matchBySlug) {
+        if (matchBySlug.udemyCourseId && matchBySlug.udemyCourseId !== qUdemyId) {
+          return null;
+        }
+        return matchBySlug;
+      }
+    }
+    if (qUdemyId) {
+      return matchByUdemyId;
+    }
+    if (qSlug) {
+      return matchBySlug;
+    }
+    return null;
+  }
+  function payloadsEqual(a, b) {
+    if (!a || !b) return false;
+    return a.progress === b.progress && a.is_completed === b.is_completed && a.last_lesson_url === b.last_lesson_url;
+  }
+  class CourseProgressUpdateQueue {
+    transport;
+    onSuccess;
+    onError;
+    onAuthError;
+    onRematch404;
+    trailingDelayMs;
+    states = /* @__PURE__ */ new Map();
+    activeRevision = null;
+    constructor(options) {
+      this.transport = options.transport;
+      this.onSuccess = options.onSuccess;
+      this.onError = options.onError;
+      this.onAuthError = options.onAuthError;
+      this.onRematch404 = options.onRematch404;
+      this.trailingDelayMs = options.trailingDelayMs ?? 1e3;
+    }
+    reset() {
+      for (const state of this.states.values()) {
+        if (state.trailingTimer !== null) {
+          clearTimeout(state.trailingTimer);
+          state.trailingTimer = null;
+        }
+      }
+      this.states.clear();
+      this.activeRevision = null;
+    }
+    enqueue(item) {
+      const { courseId, folderId, payload, revision } = item;
+      if (this.activeRevision !== revision) {
+        this.reset();
+        this.activeRevision = revision;
+      }
+      let state = this.states.get(courseId);
+      if (!state) {
+        state = {
+          folderId,
+          courseId,
+          acknowledgedPayload: null,
+          pendingPayload: null,
+          inFlight: false,
+          inFlightPayload: null,
+          revision,
+          trailingTimer: null,
+          retries: 0,
+          rematched404: false
+        };
+        this.states.set(courseId, state);
+      }
+      state.folderId = folderId;
+      state.revision = revision;
+      if (payloadsEqual(state.acknowledgedPayload, payload)) {
+        if (!state.inFlight && !state.pendingPayload) {
+          return;
+        }
+        if (state.pendingPayload && payloadsEqual(state.pendingPayload, payload)) {
+          return;
+        }
+      }
+      state.pendingPayload = payload;
+      if (!state.inFlight) {
+        if (state.trailingTimer !== null) {
+          clearTimeout(state.trailingTimer);
+        }
+        state.trailingTimer = setTimeout(() => {
+          state.trailingTimer = null;
+          this.processNext(courseId);
+        }, this.trailingDelayMs);
+      }
+    }
+    async processNext(courseId) {
+      const state = this.states.get(courseId);
+      if (!state) return;
+      if (state.inFlight) return;
+      if (!state.pendingPayload) return;
+      if (payloadsEqual(state.acknowledgedPayload, state.pendingPayload)) {
+        state.pendingPayload = null;
+        return;
+      }
+      const payloadToSend = state.pendingPayload;
+      state.pendingPayload = null;
+      state.inFlight = true;
+      state.inFlightPayload = payloadToSend;
+      await this.transmit(state, payloadToSend);
+    }
+    async transmit(state, payloadToSend) {
+      const startingRevision = state.revision;
+      const result = await this.transport({
+        folderId: state.folderId,
+        courseId: state.courseId,
+        payload: payloadToSend,
+        revision: startingRevision
+      });
+      if (this.activeRevision !== startingRevision || state.revision !== startingRevision) {
+        return;
+      }
+      if (result.ok) {
+        state.acknowledgedPayload = payloadToSend;
+        state.inFlight = false;
+        state.inFlightPayload = null;
+        state.retries = 0;
+        state.rematched404 = false;
+        this.onSuccess?.({
+          courseId: state.courseId,
+          payload: payloadToSend,
+          response: result.data,
+          revision: startingRevision
+        });
+        if (state.pendingPayload && !payloadsEqual(state.acknowledgedPayload, state.pendingPayload)) {
+          this.processNext(state.courseId);
+        }
+        return;
+      }
+      const status = result.status;
+      if (status === 401 || status === 403) {
+        state.inFlight = false;
+        state.inFlightPayload = null;
+        state.retries = 0;
+        this.onAuthError?.({ error: result.error, status, revision: startingRevision });
+        return;
+      }
+      if (status === 404) {
+        if (!state.rematched404 && this.onRematch404) {
+          state.rematched404 = true;
+          const newFolderId = await this.onRematch404({
+            courseId: state.courseId,
+            payload: payloadToSend,
+            revision: startingRevision
+          });
+          if (this.activeRevision !== startingRevision || state.revision !== startingRevision) {
+            return;
+          }
+          if (newFolderId) {
+            state.folderId = newFolderId;
+            const nextPayload = state.pendingPayload && !payloadsEqual(state.acknowledgedPayload, state.pendingPayload) ? state.pendingPayload : payloadToSend;
+            state.pendingPayload = null;
+            state.inFlightPayload = nextPayload;
+            await this.transmit(state, nextPayload);
+            return;
+          }
+        }
+        state.inFlight = false;
+        state.inFlightPayload = null;
+        state.retries = 0;
+        this.onError?.({ courseId: state.courseId, error: result.error, status, revision: startingRevision });
+        return;
+      }
+      if (isTransientStatus(status) || status === void 0) {
+        if (state.retries < 2) {
+          state.retries++;
+          const nextPayload = state.pendingPayload || payloadToSend;
+          state.pendingPayload = null;
+          state.inFlightPayload = nextPayload;
+          await this.transmit(state, nextPayload);
+          return;
+        }
+      }
+      state.inFlight = false;
+      state.inFlightPayload = null;
+      state.retries = 0;
+      this.onError?.({ courseId: state.courseId, error: result.error, status, revision: startingRevision });
+    }
+  }
+  const CourseProgressController = () => {
+    const { state, dispatch } = useAppState();
+    const licenseKey = state.config.licenseKey;
+    const revision = state.licenseScopeRevision;
+    const folders = state.folders.folders;
+    const membershipIndex = reactExports.useMemo(() => buildMembershipIndex(folders), [folders]);
+    const indexRef = reactExports.useRef(membershipIndex);
+    indexRef.current = membershipIndex;
+    const revisionRef = reactExports.useRef(revision);
+    revisionRef.current = revision;
+    const configRef = reactExports.useRef(state.config);
+    configRef.current = state.config;
+    const isPausedRef = reactExports.useRef(false);
+    reactExports.useEffect(() => {
+      isPausedRef.current = false;
+    }, [revision]);
+    const queueRef = reactExports.useRef(null);
+    if (!queueRef.current) {
+      queueRef.current = new CourseProgressUpdateQueue({
+        transport: async ({ folderId, courseId, payload }) => {
+          return updateCourseProgress(configRef.current, folderId, courseId, payload);
+        },
+        onSuccess: ({ courseId, payload, response, revision: reqRev }) => {
+          let confirmedProgress = payload.progress;
+          let confirmedIsCompleted = payload.is_completed;
+          let confirmedLastLessonUrl = payload.last_lesson_url;
+          if (response?.course) {
+            const c = response.course;
+            if (typeof c.progress === "number") {
+              confirmedProgress = c.progress;
+            } else if (c.progress !== void 0 && c.progress !== null) {
+              confirmedProgress = parseInt(String(c.progress), 10) || 0;
+            }
+            if (c.is_completed !== void 0) {
+              confirmedIsCompleted = Boolean(c.is_completed);
+            }
+            if (c.last_lesson_url !== void 0) {
+              confirmedLastLessonUrl = c.last_lesson_url ?? null;
+            }
+          }
+          dispatch({
+            type: "COURSE_PROGRESS_UPDATE",
+            payload: {
+              courseId,
+              progress: confirmedProgress,
+              is_completed: confirmedIsCompleted,
+              last_lesson_url: confirmedLastLessonUrl
+            },
+            revision: reqRev
+          });
+        },
+        onAuthError: ({ revision: reqRev }) => {
+          isPausedRef.current = true;
+          dispatch({
+            type: "NOTICE_PUSH",
+            payload: {
+              kind: "error",
+              text: "Course progress tracking paused: authentication required.",
+              ttl: 8e3
+            },
+            revision: reqRev
+          });
+        },
+        onRematch404: async ({ courseId, revision: reqRev }) => {
+          if (revisionRef.current !== reqRev) {
+            return null;
+          }
+          const syncResult = await fetchSync(configRef.current);
+          if (revisionRef.current !== reqRev) {
+            return null;
+          }
+          if (syncResult.ok) {
+            dispatch({
+              type: "FOLDERS_UPDATE",
+              payload: { folders: syncResult.data.folders },
+              revision: reqRev
+            });
+            const newIndex = buildMembershipIndex(syncResult.data.folders);
+            const entry = newIndex.byCourseId.get(courseId);
+            return entry ? entry.primaryFolderId : null;
+          }
+          return null;
+        }
+      });
+    }
+    reactExports.useEffect(() => {
+      queueRef.current?.reset();
+    }, [licenseKey, revision]);
+    reactExports.useEffect(() => {
+      if (!licenseKey) {
+        return;
+      }
+      const cleanupObserver = observeUdemyProgress({
+        onProgress: (snapshot) => {
+          if (isPausedRef.current) return;
+          if (!licenseKey) return;
+          const match = matchMembership(indexRef.current, {
+            courseSlug: snapshot.courseSlug,
+            locationPath: snapshot.lastLessonUrl
+          });
+          if (!match) {
+            return;
+          }
+          queueRef.current?.enqueue({
+            folderId: match.primaryFolderId,
+            courseId: match.courseId,
+            payload: {
+              progress: snapshot.progress,
+              is_completed: snapshot.isCompleted,
+              last_lesson_url: snapshot.lastLessonUrl
+            },
+            revision: revisionRef.current
+          });
+        }
+      });
+      return () => {
+        cleanupObserver();
+      };
+    }, [licenseKey, revision, folders]);
+    return null;
+  };
   const AppContent = () => {
     const { state, dispatch } = useAppState();
     const { ui } = state;
@@ -9561,6 +10599,7 @@ window.__CU_CSS__ = "@import url('https://fonts.googleapis.com/css2?family=Libre
       registerMenuCommands(dispatch);
     }, [dispatch]);
     return /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(CourseProgressController, {}),
       ui.settingsOpen && /* @__PURE__ */ jsxRuntimeExports.jsx(SettingsPanel, {}),
       ui.organizerOpen && /* @__PURE__ */ jsxRuntimeExports.jsx(FolderOrganizer, {}),
       ui.addToFolderOpen && /* @__PURE__ */ jsxRuntimeExports.jsx(AddToFolderModal, {}),

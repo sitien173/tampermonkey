@@ -38,6 +38,7 @@ export interface Course {
   instructor?: string;
   progress?: number;
   is_completed?: boolean;
+  last_lesson_url?: string | null;
   added_at: number;
 }
 
@@ -54,6 +55,7 @@ export interface UIState {
 }
 
 export interface AppState {
+  licenseScopeRevision: number;
   config: Config;
   license: LicenseState;
   sync: SyncState;
@@ -63,11 +65,13 @@ export interface AppState {
 
 export type Action =
   | { type: 'CONFIG_UPDATE'; payload: Partial<Config> }
-  | { type: 'LICENSE_STATUS'; payload: Partial<LicenseState> }
-  | { type: 'SYNC_STATUS'; payload: Partial<SyncState> }
+  | { type: 'LICENSE_COMMIT'; payload: { licenseKey: string } }
+  | { type: 'LICENSE_STATUS'; payload: Partial<LicenseState>; revision?: number }
+  | { type: 'SYNC_STATUS'; payload: Partial<SyncState>; revision?: number }
   | { type: 'UI_TOGGLE'; payload: { key: keyof UIState; value: boolean } }
-  | { type: 'FOLDERS_UPDATE'; payload: Partial<FoldersState> }
-  | { type: 'NOTICE_PUSH'; payload: { kind: 'info' | 'error' | 'success'; text: string; ttl?: number } }
+  | { type: 'FOLDERS_UPDATE'; payload: Partial<FoldersState>; revision?: number }
+  | { type: 'COURSE_PROGRESS_UPDATE'; payload: { courseId: string; progress: number; is_completed: boolean; last_lesson_url: string | null }; revision?: number }
+  | { type: 'NOTICE_PUSH'; payload: { kind: 'info' | 'error' | 'success'; text: string; ttl?: number }; revision?: number }
   | { type: 'NOTICE_CLEAR' };
 
 export interface PublicDomainHealth {

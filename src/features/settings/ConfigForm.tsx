@@ -1,16 +1,38 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppState } from '../../state/store';
 
 export const ConfigForm: React.FC = () => {
   const { state, dispatch } = useAppState();
   const { licenseKey, apiKey } = state.config;
 
-  const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    dispatch({
-      type: 'CONFIG_UPDATE',
-      payload: { [name]: value },
-    });
+  const [draftLicenseKey, setDraftLicenseKey] = useState(licenseKey);
+
+  useEffect(() => {
+    setDraftLicenseKey(licenseKey);
+  }, [licenseKey]);
+
+  const commitLicenseKey = (keyToCommit: string) => {
+    if (keyToCommit !== licenseKey) {
+      dispatch({
+        type: 'LICENSE_COMMIT',
+        payload: { licenseKey: keyToCommit },
+      });
+    }
+  };
+
+  const handleLicenseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setDraftLicenseKey(e.target.value);
+  };
+
+  const handleLicenseKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      commitLicenseKey(draftLicenseKey);
+    }
+  };
+
+  const handleLicenseBlur = () => {
+    commitLicenseKey(draftLicenseKey);
   };
 
   return (
@@ -22,8 +44,10 @@ export const ConfigForm: React.FC = () => {
           id="licenseKey"
           name="licenseKey"
           className="form-input"
-          value={licenseKey}
-          onChange={handleTextChange}
+          value={draftLicenseKey}
+          onChange={handleLicenseChange}
+          onKeyDown={handleLicenseKeyDown}
+          onBlur={handleLicenseBlur}
           placeholder="Enter your license key"
         />
       </div>

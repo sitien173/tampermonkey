@@ -8,6 +8,7 @@ import { StatusIndicator } from './features/cookie-sync/StatusIndicator';
 import { FolderOrganizer } from './features/folder-organizer/FolderOrganizer';
 import { AddToFolderModal } from './features/course-organizer/AddToFolderModal';
 import { Fab } from './features/fab/Fab';
+import { CourseProgressController } from './features/course-progress/CourseProgressController';
 
 const AppContent: React.FC = () => {
   const { state, dispatch } = useAppState();
@@ -26,6 +27,7 @@ const AppContent: React.FC = () => {
 
   return (
     <>
+      <CourseProgressController />
       {ui.settingsOpen && <SettingsPanel />}
       {ui.organizerOpen && <FolderOrganizer />}
       {ui.addToFolderOpen && <AddToFolderModal />}

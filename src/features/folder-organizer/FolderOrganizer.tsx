@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useAppState } from '../../state/store';
 import { useFolders } from './useFolders';
-import { resolveCourseUrl } from './course-url';
+import { selectCourseProgress } from '../../state/selectors';
 import './index.css';
 
 export const FolderOrganizer: React.FC = () => {
-  const { dispatch } = useAppState();
+  const { state, dispatch } = useAppState();
+  const { licenseScopeRevision } = state;
   const {
     folders,
     status,
@@ -29,10 +30,25 @@ export const FolderOrganizer: React.FC = () => {
   // Drag and drop state
   const [draggedId, setDraggedId] = useState<string | null>(null);
 
+  // Reset local state when license revision changes
+  useEffect(() => {
+    setSelectedId(null);
+    setIsCreating(false);
+    setNewFolderName('');
+    setNewFolderColor('#172D2D');
+    setEditingId(null);
+    setEditName('');
+    setDraggedId(null);
+  }, [licenseScopeRevision]);
+
   // Set default selected folder once folders load
   useEffect(() => {
-    if (folders.length > 0 && !selectedId) {
-      setSelectedId(folders[0].id);
+    if (folders.length > 0) {
+      if (!selectedId || !folders.some(f => f.id === selectedId)) {
+        setSelectedId(folders[0].id);
+      }
+    } else {
+      setSelectedId(null);
     }
   }, [folders, selectedId]);
 
@@ -302,7 +318,7 @@ export const FolderOrganizer: React.FC = () => {
                     {activeFolder.courses && activeFolder.courses.length > 0 ? (
                       <div className="course-grid">
                         {activeFolder.courses.map(course => {
-                          const safeUrl = resolveCourseUrl(course.url);
+                          const { progress, isCompleted, resumeUrl } = selectCourseProgress(course);
                           const cardContent = (
                             <>
                               <div className="course-thumbnail-wrapper">
@@ -326,24 +342,45 @@ export const FolderOrganizer: React.FC = () => {
                                 {course.instructor && (
                                   <span className="course-instructor ff-text-xs ff-fg-subdued">{course.instructor}</span>
                                 )}
+                                <div className="course-progress-section">
+                                  <div className="course-progress-header">
+                                    <span className="course-progress-label ff-text-xs ff-fg-subdued">{progress}%</span>
+                                    {isCompleted && (
+                                      <span className="course-completed-badge ff-label-xs">Completed</span>
+                                    )}
+                                  </div>
+                                  <div
+                                    className="course-progress-bar"
+                                    role="progressbar"
+                                    aria-valuenow={progress}
+                                    aria-valuemin={0}
+                                    aria-valuemax={100}
+                                    aria-label={`Progress for ${course.title}: ${progress}%`}
+                                  >
+                                    <div
+                                      className={`course-progress-fill ${isCompleted ? 'is-completed' : ''}`}
+                                      style={{ width: `${progress}%` }}
+                                    ></div>
+                                  </div>
+                                </div>
                               </div>
                             </>
                           );
 
-                          return safeUrl ? (
+                          return resumeUrl ? (
                             <a
                               key={course.id}
-                              href={safeUrl}
+                              href={resumeUrl}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="course-card"
+                              className={`course-card ${isCompleted ? 'is-completed' : ''}`}
                             >
                               {cardContent}
                             </a>
                           ) : (
                             <div
                               key={course.id}
-                              className="course-card"
+                              className={`course-card ${isCompleted ? 'is-completed' : ''}`}
                             >
                               {cardContent}
                             </div>

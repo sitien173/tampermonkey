@@ -73,6 +73,13 @@ const CookieSyncHarness: React.FC = () => {
 describe('useCookieSync', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(probeAuth).mockReset();
+    vi.mocked(fetchCookieSources).mockReset();
+    vi.mocked(fetchCookiesBySource).mockReset();
+    vi.mocked(gmCookie.list).mockReset();
+    vi.mocked(gmCookie.set).mockReset();
+    vi.mocked(gmCookie.delete).mockReset();
+    vi.mocked(getCurrentUdemyHost).mockReset();
     resetSyncPipelineForTest();
     autoCheckOnSyncFailureMock.mockReset();
     clearDomainSwitchStateMock.mockReset();
@@ -232,8 +239,32 @@ describe('useCookieSync', () => {
 
     expect(screen.getByTestId('error').textContent).toBe('Session authentication failed after cookie import');
     expect(autoCheckOnSyncFailureMock).toHaveBeenCalledTimes(1);
-    expect(autoCheckOnSyncFailureMock).toHaveBeenCalledWith('www.udemy.com');
+    expect(autoCheckOnSyncFailureMock).toHaveBeenCalledWith('www.udemy.com', 0);
     expect(reloadAfterCookieImport).not.toHaveBeenCalled();
+  });
+
+  it('tries the next cookie source after authentication remains expired', async () => {
+    vi.mocked(fetchCookieSources).mockResolvedValueOnce({
+      ok: true,
+      data: {
+        domains: [{ host: 'www.udemy.com', cookieFileIds: ['0', '1'] }],
+      },
+    });
+    vi.mocked(probeAuth)
+      .mockResolvedValueOnce({ kind: 'expired', status: 401 })
+      .mockResolvedValueOnce({ kind: 'expired', status: 401 })
+      .mockResolvedValueOnce({ kind: 'authenticated', status: 200 });
+
+    render(React.createElement(AppStateProvider, undefined, React.createElement(CookieSyncHarness)));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('phase').textContent).toBe('ok');
+    });
+
+    expect(fetchCookiesBySource).toHaveBeenNthCalledWith(1, 'www.udemy.com', '0');
+    expect(fetchCookiesBySource).toHaveBeenNthCalledWith(2, 'www.udemy.com', '1');
+    expect(probeAuth).toHaveBeenCalledTimes(3);
+    expect(autoCheckOnSyncFailureMock).not.toHaveBeenCalled();
   });
 
   it('stops on permanent cookie source failure without auto-switching', async () => {
@@ -286,5 +317,231 @@ describe('useCookieSync', () => {
     });
 
     expect(probeAuth).toHaveBeenCalledTimes(1);
+  });
+
+  it('restarts cookie synchronization when license scope revision changes', async () => {
+    vi.mocked(probeAuth).mockResolvedValue({ kind: 'authenticated', status: 200 });
+
+    const RestartHarness: React.FC = () => {
+      const { dispatch } = useAppState();
+      useCookieSync();
+      return React.createElement(
+        'div',
+        undefined,
+        React.createElement(StateInspector),
+        React.createElement(
+          'button',
+          {
+            'data-testid': 'commit-key-btn',
+            onClick: () => {
+              dispatch({ type: 'LICENSE_COMMIT', payload: { licenseKey: 'new-license-2' } });
+            },
+          },
+          'Commit Key'
+        )
+      );
+    };
+
+    render(React.createElement(AppStateProvider, undefined, React.createElement(RestartHarness)));
+
+    await waitFor(() => {
+      expect(screen.getByTestId('phase').textContent).toBe('ok');
+    });
+
+    expect(probeAuth).toHaveBeenCalledTimes(1);
+
+    // Commit a new key, changing license revision
+    screen.getByTestId('commit-key-btn').click();
+
+    await waitFor(() => {
+      expect(probeAuth).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  it('ignores stale cookie sync results and suppresses side effects when license revision increments in flight', async () => {
+    let resolveFirstProbe: (val: any) => void;
+    const firstProbePromise = new Promise<any>((resolve) => {
+      resolveFirstProbe = resolve;
+    });
+
+    vi.mocked(probeAuth)
+      .mockReturnValueOnce(firstProbePromise)
+      .mockResolvedValueOnce({ kind: 'authenticated', status: 200 });
+
+    const StaleHarness: React.FC = () => {
+      const { dispatch } = useAppState();
+      useCookieSync();
+      return React.createElement(
+        'div',
+        undefined,
+        React.createElement(StateInspector),
+        React.createElement(
+          'button',
+          {
+            'data-testid': 'commit-btn',
+            onClick: () => {
+              dispatch({ type: 'LICENSE_COMMIT', payload: { licenseKey: 'key-B' } });
+            },
+          },
+          'Commit Key B'
+        )
+      );
+    };
+
+    render(React.createElement(AppStateProvider, undefined, React.createElement(StaleHarness)));
+
+    // First probe started for initial key at revision 0
+    expect(probeAuth).toHaveBeenCalledTimes(1);
+
+    // Commit key B (increments revision to 1)
+    screen.getByTestId('commit-btn').click();
+
+    // Second probe starts for revision 1
+    await waitFor(() => {
+      expect(probeAuth).toHaveBeenCalledTimes(2);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('phase').textContent).toBe('ok');
+    });
+
+    // Resolve first probe (revision 0) with a network error
+    resolveFirstProbe!({ kind: 'network_error', error: 'Old Stale Error' });
+
+    // Ensure phase remains 'ok' and is not overwritten with 'error'
+    await waitFor(() => {
+      expect(screen.getByTestId('phase').textContent).toBe('ok');
+    });
+    expect(screen.getByTestId('error').textContent).toBe('');
+    expect(reloadAfterCookieImport).not.toHaveBeenCalled();
+    expect(autoCheckOnSyncFailureMock).not.toHaveBeenCalled();
+  });
+
+  it('suppresses reloadAfterCookieImport when license revision increments during cookie import', async () => {
+    let resolveSources: (val: any) => void;
+    const sourcesPromise = new Promise<any>((resolve) => {
+      resolveSources = resolve;
+    });
+
+    vi.mocked(probeAuth)
+      .mockResolvedValueOnce({ kind: 'expired', status: 401 }) // Initial probe for revision 0
+      .mockResolvedValueOnce({ kind: 'authenticated', status: 200 }); // Initial probe for revision 1
+
+    vi.mocked(fetchCookieSources)
+      .mockReturnValueOnce(sourcesPromise)
+      .mockResolvedValueOnce({
+        ok: true,
+        data: {
+          domains: [{ host: 'www.udemy.com', cookieFileIds: ['0'] }],
+        },
+      });
+
+    const ImportStaleHarness: React.FC = () => {
+      const { dispatch } = useAppState();
+      useCookieSync();
+      return React.createElement(
+        'div',
+        undefined,
+        React.createElement(StateInspector),
+        React.createElement(
+          'button',
+          {
+            'data-testid': 'commit-btn',
+            onClick: () => {
+              dispatch({ type: 'LICENSE_COMMIT', payload: { licenseKey: 'key-B' } });
+            },
+          },
+          'Commit Key B'
+        )
+      );
+    };
+
+    render(React.createElement(AppStateProvider, undefined, React.createElement(ImportStaleHarness)));
+
+    // Initial probe runs and fails with 401, starts fetchCookieSources
+    await waitFor(() => {
+      expect(fetchCookieSources).toHaveBeenCalledTimes(1);
+    });
+
+    // Commit key B (revision 1)
+    screen.getByTestId('commit-btn').click();
+
+    // Pipeline 2 starts and probeAuth returns authenticated
+    await waitFor(() => {
+      expect(screen.getByTestId('phase').textContent).toBe('ok');
+    });
+
+    // Now resolve fetchCookieSources for pipeline 0
+    resolveSources!({
+      ok: true,
+      data: {
+        domains: [{ host: 'www.udemy.com', cookieFileIds: ['0'] }],
+      },
+    });
+
+    // Wait a tick
+    await waitFor(() => {
+      expect(screen.getByTestId('phase').textContent).toBe('ok');
+    });
+
+    // reloadAfterCookieImport must NOT have been called
+    expect(reloadAfterCookieImport).not.toHaveBeenCalled();
+  });
+
+  it('suppresses autoCheckOnSyncFailure when license revision increments before post-import probe finishes', async () => {
+    let resolvePostProbe: (val: any) => void;
+    const postProbePromise = new Promise<any>((resolve) => {
+      resolvePostProbe = resolve;
+    });
+
+    vi.mocked(probeAuth)
+      .mockResolvedValueOnce({ kind: 'expired', status: 401 }) // Call 1: Pipeline 0 initial probe
+      .mockReturnValueOnce(postProbePromise) // Call 2: Pipeline 0 post-import probe
+      .mockResolvedValueOnce({ kind: 'authenticated', status: 200 }); // Call 3: Pipeline 1 initial probe
+
+    const PostProbeStaleHarness: React.FC = () => {
+      const { dispatch } = useAppState();
+      useCookieSync();
+      return React.createElement(
+        'div',
+        undefined,
+        React.createElement(StateInspector),
+        React.createElement(
+          'button',
+          {
+            'data-testid': 'commit-btn',
+            onClick: () => {
+              dispatch({ type: 'LICENSE_COMMIT', payload: { licenseKey: 'key-B' } });
+            },
+          },
+          'Commit Key B'
+        )
+      );
+    };
+
+    render(React.createElement(AppStateProvider, undefined, React.createElement(PostProbeStaleHarness)));
+
+    // Initial probe runs and cookies are set, then postProbe starts
+    await waitFor(() => {
+      expect(gmCookie.set).toHaveBeenCalled();
+    });
+
+    // Commit key B (revision 1)
+    screen.getByTestId('commit-btn').click();
+
+    // Second pipeline becomes ok
+    await waitFor(() => {
+      expect(screen.getByTestId('phase').textContent).toBe('ok');
+    });
+
+    // Resolve postProbe for revision 0 as expired
+    resolvePostProbe!({ kind: 'expired', status: 401 });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('phase').textContent).toBe('ok');
+    });
+
+    expect(autoCheckOnSyncFailureMock).not.toHaveBeenCalled();
+    expect(reloadAfterCookieImport).not.toHaveBeenCalled();
   });
 });

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { validateLicense, fetchCookieSources, fetchCookiesBySource, isTransientStatus } from './api';
+import { validateLicense, fetchCookieSources, fetchCookiesBySource, isTransientStatus, fetchSync, updateCourseProgress } from './api';
 import * as gm from './gm';
 import { GmHttpError, GmNetworkError } from './gm';
 import { Config } from '../state/types';
@@ -243,6 +243,121 @@ describe('api.ts', () => {
         status: 401,
       });
       expect(gm.gmXhr).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('fetchSync', () => {
+    it('normalizes is_completed and course fields from backend sync response', async () => {
+      vi.mocked(gm.gmXhr).mockResolvedValueOnce({
+        folders: [
+          {
+            id: 'folder-1',
+            name: 'React',
+            color: '#ff0000',
+            sort_order: 1,
+            courses: [
+              {
+                course_id: 'guid-123',
+                udemy_course_id: 12345,
+                title: 'React Course',
+                url: 'https://www.udemy.com/course/react-deep-dive/',
+                progress: 15,
+                is_completed: 0,
+                last_lesson_url: '/course/react-deep-dive/learn/lecture/1',
+              },
+              {
+                course_id: 'guid-456',
+                udemy_course_id: '67890',
+                title: 'Vue Course',
+                url: 'https://www.udemy.com/course/vue-complete/',
+                progress: 100,
+                is_completed: 1,
+                last_lesson_url: null,
+              },
+            ],
+            course_count: 2,
+          },
+        ],
+      });
+
+      const result = await fetchSync(dummyConfig, 'www.udemy.com');
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+
+      expect(result.data.folders[0].courses[0]).toEqual({
+        course_id: 'guid-123',
+        id: 'guid-123',
+        udemy_course_id: '12345',
+        title: 'React Course',
+        url: 'https://www.udemy.com/course/react-deep-dive/',
+        progress: 15,
+        is_completed: false,
+        last_lesson_url: '/course/react-deep-dive/learn/lecture/1',
+      });
+      expect(result.data.folders[0].courses[1].is_completed).toBe(true);
+    });
+  });
+
+  describe('updateCourseProgress', () => {
+    it('sends PUT to /api/folders/{folderId}/courses/{courseId} with snake_case JSON body', async () => {
+      vi.mocked(gm.gmXhr).mockResolvedValueOnce({
+        success: true,
+      });
+
+      const result = await updateCourseProgress(
+        dummyConfig,
+        'folder-guid-1',
+        'course-guid-2',
+        {
+          progress: 25,
+          is_completed: false,
+          last_lesson_url: '/course/react/learn/lecture/99',
+        },
+        'www.udemy.com'
+      );
+
+      expect(result).toEqual({
+        ok: true,
+        data: { success: true },
+        status: 200,
+      });
+
+      expect(gm.gmXhr).toHaveBeenCalledWith(
+        'PUT',
+        'https://cf-api-gateway.sitienbmt.workers.dev/udemy/v3/api/folders/folder-guid-1/courses/course-guid-2',
+        {
+          'X-License-Key': 'test-license',
+          'X-API-Key': 'test-api',
+          'X-Udemy-Host': 'www.udemy.com',
+          'Content-Type': 'application/json',
+        },
+        JSON.stringify({
+          progress: 25,
+          is_completed: false,
+          last_lesson_url: '/course/react/learn/lecture/99',
+        })
+      );
+    });
+
+    it('preserves non-2xx status code on error', async () => {
+      vi.mocked(gm.gmXhr).mockRejectedValueOnce(new GmHttpError(404, 'Not Found'));
+
+      const result = await updateCourseProgress(
+        dummyConfig,
+        'folder-guid-1',
+        'course-guid-2',
+        {
+          progress: 25,
+          is_completed: false,
+          last_lesson_url: null,
+        }
+      );
+
+      expect(result).toEqual({
+        ok: false,
+        error: 'HTTP Error 404: Not Found',
+        status: 404,
+      });
     });
   });
 });
